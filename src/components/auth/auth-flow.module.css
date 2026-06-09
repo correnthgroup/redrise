@@ -1,0 +1,165 @@
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+  height: 100%;
+  width: 100%;
+}
+
+.formPanel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2.5rem 3rem;
+  border-right: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0%, rgba(255, 255, 255, 0.96) 100%);
+}
+
+.formInner {
+  width: 100%;
+  max-width: 24rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.brandMark {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 12px 24px -14px rgba(140, 31, 40, 0.55);
+}
+
+.brandName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.brandTag {
+  font-size: 0.7rem;
+  color: var(--muted-foreground);
+}
+
+.heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.subheading {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.requirements {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--secondary) 8%, var(--muted));
+}
+
+.requirement {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.requirementMet {
+  color: var(--foreground);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.footerLinks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.footerLinks a {
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.footerLinks a:hover {
+  text-decoration: underline;
+}
+
+.artPanel {
+  position: relative;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.18), transparent 26%),
+    linear-gradient(135deg, #0f172a 0%, #1a2a3d 44%, #2f4858 74%, #8c1f28 100%);
+  overflow: hidden;
+}
+
+.artOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0) 0%, rgba(17, 24, 39, 0.42) 100%);
+  display: flex;
+  align-items: flex-end;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.artQuote {
+  max-width: 32rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.errorText {
+  font-size: 0.75rem;
+  color: var(--destructive);
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  .artPanel {
+    display: none;
+  }
+  .formPanel {
+    padding: 1.5rem;
+  }
+}
