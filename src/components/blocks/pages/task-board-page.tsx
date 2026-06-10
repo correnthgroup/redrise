@@ -1,26 +1,18 @@
 ﻿import { useState } from 'react'
-import { ArrowRight, Plus } from 'lucide-react'
+import { ArrowRight, Plus, Trash2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import type { Task, TaskStatus } from '@/types/task'
 
-type Task = { id: string; title: string; status: 'backlog' | 'in-progress' | 'in-review' | 'done' }
-type Status = Task['status']
-
-const PLACEHOLDER_TASKS: Task[] = Array.from({ length: 12 }, (_, i) => ({
-  id: `t${i + 1}`,
-  title: `Task ${i + 1}`,
-  status: (['backlog', 'in-progress', 'in-review', 'done'] as Status[])[i % 4],
-}))
-
-const COLUMNS: { id: Status; title: string }[] = [
+const COLUMNS: { id: TaskStatus; title: string }[] = [
   { id: 'backlog', title: 'Backlog' },
   { id: 'in-progress', title: 'In progress' },
   { id: 'in-review', title: 'In review' },
   { id: 'done', title: 'Done' },
 ]
 
-const STATUS_TONE: Record<Status, string> = {
+const STATUS_TONE: Record<TaskStatus, string> = {
   backlog: 'border-[#2F4858]/20 bg-[#2F4858]/6',
   'in-progress': 'border-primary/18 bg-primary/6',
   'in-review': 'border-[#B7791F]/18 bg-[#FFF4DB]',
@@ -28,17 +20,22 @@ const STATUS_TONE: Record<Status, string> = {
 }
 
 export function TaskBoardPage({
+  tasks,
+  onMoveTask,
+  onDeleteTask,
   onCreateTask,
   onOpenTask,
 }: {
+  tasks: Task[]
+  onMoveTask?: (id: string, status: TaskStatus) => Promise<boolean>
+  onDeleteTask?: (id: string) => Promise<boolean>
   onCreateTask?: () => void
   onOpenTask?: (id: string) => void
 }) {
-  const [tasks, setTasks] = useState(PLACEHOLDER_TASKS)
   const [dragging, setDragging] = useState<string | null>(null)
 
-  function move(id: string, status: Status) {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)))
+  function handleMove(id: string, status: TaskStatus) {
+    onMoveTask?.(id, status)
   }
 
   return (
@@ -60,7 +57,7 @@ export function TaskBoardPage({
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => {
                 if (dragging) {
-                  move(dragging, col.id)
+                  handleMove(dragging, col.id)
                   setDragging(null)
                 }
               }}
@@ -70,22 +67,39 @@ export function TaskBoardPage({
                 <span className="text-xs text-muted-foreground">{items.length}</span>
               </CardHeader>
               <CardContent className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2">
-                {items.map((t) => (
-                  <article
-                    key={t.id}
-                    draggable
-                    onDragStart={() => setDragging(t.id)}
-                    onDragEnd={() => setDragging(null)}
-                    onClick={() => onOpenTask?.(t.id)}
-                    className="cursor-grab rounded-lg border bg-card p-3 text-left text-sm shadow-sm transition-colors hover:bg-accent/40 active:cursor-grabbing"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="font-medium text-foreground">{t.title}</span>
-                      <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    </div>
-                    <div className="mt-2 text-xs text-muted-foreground">Workspace context ready for review and handoff.</div>
-                  </article>
-                ))}
+                {items.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-4">No tasks</p>
+                ) : (
+                  items.map((t) => (
+                    <article
+                      key={t.id}
+                      draggable
+                      onDragStart={() => setDragging(t.id)}
+                      onDragEnd={() => setDragging(null)}
+                      onClick={() => onOpenTask?.(t.id)}
+                      className="cursor-grab rounded-lg border bg-card p-3 text-left text-sm shadow-sm transition-colors hover:bg-accent/40 active:cursor-grabbing"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-medium text-foreground">{t.title}</span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <ArrowRight className="mt-0.5 h-3.5 w-3.5 text-muted-foreground" />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 text-destructive hover:text-destructive"
+                            onClick={(e) => { e.stopPropagation(); onDeleteTask?.(t.id) }}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      {t.brief && (
+                        <div className="mt-2 text-xs text-muted-foreground line-clamp-2">{t.brief}</div>
+                      )}
+                      <div className="mt-1 text-[10px] text-muted-foreground/60 font-mono">ID: {t.id}</div>
+                    </article>
+                  ))
+                )}
               </CardContent>
             </Card>
           )

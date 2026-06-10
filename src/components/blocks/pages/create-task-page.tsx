@@ -6,12 +6,20 @@ import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
 
-const STEPS = ['Basic Info', 'Briefing', 'Team', 'Review'] as const
+const STEPS = ['Basic Info', 'Briefing', 'Review'] as const
 
-export function CreateTaskPage({ onBack }: { onBack?: () => void }) {
+export function CreateTaskPage({
+  onBack,
+  onCreate,
+}: {
+  onBack?: () => void
+  onCreate?: (task: { title: string; brief: string }) => Promise<unknown>
+}) {
   const [step, setStep] = useState(0)
   const [title, setTitle] = useState('')
   const [brief, setBrief] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
@@ -36,8 +44,7 @@ export function CreateTaskPage({ onBack }: { onBack?: () => void }) {
               <Textarea id="t-brief" value={brief} onChange={(e) => setBrief(e.target.value)} placeholder="What needs to happen?" rows={6} />
             </div>
           )}
-          {step === 2 && <div className="rounded-lg border bg-[#2F4858]/6 p-4 text-sm text-muted-foreground">Pick assignees and reviewers with the execution context already in mind.</div>}
-          {step === 3 && (
+          {step === 2 && (
             <div className="space-y-2 rounded-lg border bg-muted/35 p-4 text-sm">
               <div><strong>Title:</strong> {title || 'empty'}</div>
               <div><strong>Briefing:</strong> {brief || 'empty'}</div>
@@ -47,11 +54,32 @@ export function CreateTaskPage({ onBack }: { onBack?: () => void }) {
       </Card>
 
       <footer className="flex justify-between">
-        {onBack && <Button variant="ghost" onClick={onBack}>Cancel</Button>}
+        {onBack && <Button variant="ghost" onClick={onBack} disabled={submitting}>Cancel</Button>}
         <div className="flex gap-2 ml-auto">
-          <Button variant="ghost" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>Back</Button>
-          <Button onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}>
-            {step === STEPS.length - 1 ? 'Finish' : 'Next'}
+          <Button variant="ghost" disabled={step === 0 || submitting} onClick={() => setStep((s) => s - 1)}>Back</Button>
+          {error && <span className="self-center text-xs text-destructive">{error}</span>}
+          <Button
+            disabled={submitting}
+            onClick={async () => {
+              if (step === STEPS.length - 1) {
+                setError(null)
+                setSubmitting(true)
+                try {
+                  const result = await onCreate?.({ title, brief })
+                  if (!result) {
+                    setError('Failed to create task. Please try again.')
+                  }
+                } catch {
+                  setError('Failed to create task. Please try again.')
+                } finally {
+                  setSubmitting(false)
+                }
+                return
+              }
+              setStep((s) => Math.min(STEPS.length - 1, s + 1))
+            }}
+          >
+            {step === STEPS.length - 1 ? (submitting ? 'Creating...' : 'Done') : 'Next'}
           </Button>
         </div>
       </footer>

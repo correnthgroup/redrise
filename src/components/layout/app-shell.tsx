@@ -2,6 +2,7 @@
 import { Plus } from 'lucide-react'
 import { useWorkspaces } from '@/hooks/use-workspaces'
 import { useFlows } from '@/hooks/use-flows'
+import { useTasks } from '@/hooks/use-tasks'
 import { DashboardPage } from '@/components/blocks/pages/dashboard-page'
 import { CreateFlowPage } from '@/components/blocks/pages/create-flow-page'
 import { FlowBuilderPage } from '@/components/blocks/pages/flow-builder-page'
@@ -44,6 +45,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null)
   const { workspaces, addWorkspace, removeWorkspace } = useWorkspaces()
   const { flows, addFlow, removeFlow } = useFlows()
+  const { tasks, addTask, moveTask, removeTask } = useTasks()
 
   function selectPage(next: SidebarKey) {
     setActive(next)
@@ -111,10 +113,19 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
         : <FlowListPage flows={flows} onDelete={removeFlow} onCreate={() => setFlowView('create')} onOpen={() => setFlowView('builder')} />
   } else if (active === 'tasks') {
     body = taskView === 'create'
-      ? <CreateTaskPage onBack={() => setTaskView('board')} />
+      ? <CreateTaskPage
+          onBack={() => setTaskView('board')}
+          onCreate={async ({ title, brief }) => {
+            const result = await addTask({ title, brief })
+            if (result) {
+              setTaskView('board')
+            }
+            return result
+          }}
+        />
       : taskView === 'review'
         ? <ReviewTaskPage onBack={() => setTaskView('board')} />
-        : <TaskBoardPage onCreateTask={() => setTaskView('create')} onOpenTask={() => setTaskView('review')} />
+        : <TaskBoardPage tasks={tasks} onMoveTask={moveTask} onDeleteTask={removeTask} onCreateTask={() => setTaskView('create')} onOpenTask={() => setTaskView('review')} />
   } else if (active === 'agents') {
     body = agentView === 'create'
       ? <AgentCreatePage onBack={() => setAgentView('list')} />
