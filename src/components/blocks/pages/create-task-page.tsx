@@ -7,10 +7,10 @@ import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Upload, X, FileText, ChevronDown, Check, ArrowDown, ArrowUp, Minus, LayoutGrid } from 'lucide-react'
+import { Upload, X, FileText, ChevronDown, Check, ArrowDown, ArrowUp, Minus, LayoutGrid, Calendar, Clock, AlertTriangle } from 'lucide-react'
 import { loadAgents } from '@/lib/agents'
 import type { Agent } from '@/types/agent'
-import type { TaskPriority, TaskStatus } from '@/types/task'
+import type { TaskPriority, TaskStatus, RecurrenceType } from '@/types/task'
 
 const STEPS = ['Briefing', 'Team & Agent', 'Review'] as const
 
@@ -35,6 +35,25 @@ const COLUMNS: { id: TaskStatus; label: string }[] = [
   { id: 'done', label: 'Done' },
 ]
 
+const RECURRENCES: { value: RecurrenceType; label: string }[] = [
+  { value: 'occasionally', label: 'Occasionally' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'monthly', label: 'Monthly' },
+]
+
+const WEEK_DAYS = [
+  { id: 0, label: 'Sun', short: 'S' },
+  { id: 1, label: 'Mon', short: 'M' },
+  { id: 2, label: 'Tue', short: 'T' },
+  { id: 3, label: 'Wed', short: 'W' },
+  { id: 4, label: 'Thu', short: 'T' },
+  { id: 5, label: 'Fri', short: 'F' },
+  { id: 6, label: 'Sat', short: 'S' },
+]
+
+const MONTH_DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
+
 export function CreateTaskPage({
   onBack,
   onCreate,
@@ -50,6 +69,12 @@ export function CreateTaskPage({
     agent_id: string | null
     priority: TaskPriority
     status: TaskStatus
+    schedule_start: string | null
+    schedule_end: string | null
+    schedule_time: string | null
+    recurrence: RecurrenceType
+    recurrence_days: number[]
+    recurrence_monthly_days: number[]
   }) => Promise<unknown>
 }) {
   const [step, setStep] = useState(0)
@@ -60,6 +85,12 @@ export function CreateTaskPage({
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
   const [priority, setPriority] = useState<TaskPriority>('medium')
   const [kanbanColumn, setKanbanColumn] = useState<TaskStatus>('backlog')
+  const [scheduleStart, setScheduleStart] = useState('')
+  const [scheduleEnd, setScheduleEnd] = useState('')
+  const [scheduleTime, setScheduleTime] = useState('09:00')
+  const [recurrence, setRecurrence] = useState<RecurrenceType>('occasionally')
+  const [recurrenceDays, setRecurrenceDays] = useState<number[]>([])
+  const [recurrenceMonthlyDays, setRecurrenceMonthlyDays] = useState<number[]>([])
   const [agents, setAgents] = useState<Agent[]>([])
   const [loadingAgents, setLoadingAgents] = useState(true)
   const [showMemberDropdown, setShowMemberDropdown] = useState(false)
@@ -102,6 +133,18 @@ export function CreateTaskPage({
     setDocuments((prev) => prev.filter((f) => f !== fileName))
   }
 
+  function toggleRecurrenceDay(day: number) {
+    setRecurrenceDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    )
+  }
+
+  function toggleMonthlyDay(day: number) {
+    setRecurrenceMonthlyDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    )
+  }
+
   const selectedAgent = agents.find((a) => a.id === selectedAgentId)
   const selectedMemberNames = PLACEHOLDER_MEMBERS
     .filter((m) => selectedMembers.includes(m.id))
@@ -114,6 +157,8 @@ export function CreateTaskPage({
 
   const selectedPriority = PRIORITIES.find((p) => p.value === priority)
   const selectedColumn = COLUMNS.find((c) => c.id === kanbanColumn)
+  const selectedRecurrence = RECURRENCES.find((r) => r.value === recurrence)
+  const hasDay31 = recurrenceMonthlyDays.includes(31)
 
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise overflow-y-auto">
@@ -199,7 +244,7 @@ export function CreateTaskPage({
             </div>
           )}
 
-          {/* Step 2: Team, Agent, Priority & Column */}
+          {/* Step 2: Team, Agent, Priority, Column & Schedule */}
           {step === 1 && (
             <div className="space-y-6">
               {/* Priority */}
@@ -384,6 +429,130 @@ export function CreateTaskPage({
                   )}
                 </div>
               </div>
+
+              {/* Schedule Section */}
+              <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Label className="text-sm font-semibold">Schedule</Label>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="schedule-start" className="text-xs">Start Date</Label>
+                    <Input
+                      id="schedule-start"
+                      type="date"
+                      value={scheduleStart}
+                      onChange={(e) => setScheduleStart(e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="schedule-end" className="text-xs">End Date</Label>
+                    <Input
+                      id="schedule-end"
+                      type="date"
+                      value={scheduleEnd}
+                      onChange={(e) => setScheduleEnd(e.target.value)}
+                      className="h-9"
+                      disabled={recurrence === 'occasionally'}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="schedule-time" className="text-xs">Time</Label>
+                  <div className="relative">
+                    <Clock className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="schedule-time"
+                      type="time"
+                      value={scheduleTime}
+                      onChange={(e) => setScheduleTime(e.target.value)}
+                      className="h-9 pl-7"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs">Recurrence</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {RECURRENCES.map((r) => (
+                      <button
+                        key={r.value}
+                        type="button"
+                        onClick={() => {
+                          setRecurrence(r.value)
+                          setRecurrenceDays([])
+                          setRecurrenceMonthlyDays([])
+                        }}
+                        className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                          recurrence === r.value
+                            ? 'bg-[#2F4858] text-white border-[#2F4858]'
+                            : 'bg-background hover:bg-accent/40'
+                        }`}
+                      >
+                        {r.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Weekly: Day of week selector */}
+                {recurrence === 'weekly' && (
+                  <div className="space-y-2">
+                    <Label className="text-xs">Days of Week</Label>
+                    <div className="flex gap-1">
+                      {WEEK_DAYS.map((day) => (
+                        <button
+                          key={day.id}
+                          type="button"
+                          onClick={() => toggleRecurrenceDay(day.id)}
+                          className={`h-8 w-8 rounded-md text-xs font-medium transition-colors ${
+                            recurrenceDays.includes(day.id)
+                              ? 'bg-[#2F4858] text-white'
+                              : 'bg-background hover:bg-accent/40 border'
+                          }`}
+                        >
+                          {day.short}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Monthly: Day of month selector */}
+                {recurrence === 'monthly' && (
+                  <div className="space-y-2">
+                    <Label className="text-xs">Days of Month</Label>
+                    <div className="flex flex-wrap gap-1">
+                      {MONTH_DAYS.map((day) => (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => toggleMonthlyDay(day)}
+                          className={`h-7 w-7 rounded-md text-[10px] font-medium transition-colors ${
+                            recurrenceMonthlyDays.includes(day)
+                              ? 'bg-[#2F4858] text-white'
+                              : 'bg-background hover:bg-accent/40 border'
+                          }`}
+                        >
+                          {day}
+                        </button>
+                      ))}
+                    </div>
+                    {hasDay31 && (
+                      <div className="flex items-start gap-2 rounded-md bg-[#B7791F]/10 border border-[#B7791F]/30 p-2 mt-2">
+                        <AlertTriangle className="h-4 w-4 text-[#B7791F] shrink-0 mt-0.5" />
+                        <p className="text-[11px] text-[#8A6116]">
+                          In months with fewer than 31 days, this task will be scheduled for the last day of the month.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -428,16 +597,12 @@ export function CreateTaskPage({
               <div className="rounded-lg border bg-muted/35 p-4 space-y-3">
                 <div>
                   <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Priority</div>
-                  <div className="flex items-center gap-2">
-                    {selectedPriority && (
-                      <>
-                        <span className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${selectedPriority.color}`}>
-                          <selectedPriority.icon className="h-3 w-3" />
-                          {selectedPriority.label}
-                        </span>
-                      </>
-                    )}
-                  </div>
+                  {selectedPriority && (
+                    <span className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium w-fit ${selectedPriority.color}`}>
+                      <selectedPriority.icon className="h-3 w-3" />
+                      {selectedPriority.label}
+                    </span>
+                  )}
                 </div>
 
                 <div>
@@ -479,6 +644,66 @@ export function CreateTaskPage({
                   )}
                 </div>
               </div>
+
+              <div className="rounded-lg border bg-muted/35 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Schedule</div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <div className="text-xs text-muted-foreground">Start</div>
+                    <div>{scheduleStart || 'Not set'}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">End</div>
+                    <div>{recurrence === 'occasionally' ? 'One-time' : scheduleEnd || 'Not set'}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Time</div>
+                    <div>{scheduleTime || 'Not set'}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Recurrence</div>
+                    <div>{selectedRecurrence?.label}</div>
+                  </div>
+                </div>
+
+                {recurrence === 'weekly' && recurrenceDays.length > 0 && (
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">Days of Week</div>
+                    <div className="flex flex-wrap gap-1">
+                      {recurrenceDays.sort().map((dayId) => (
+                        <Badge key={dayId} variant="secondary" className="text-[10px]">
+                          {WEEK_DAYS.find((d) => d.id === dayId)?.label}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {recurrence === 'monthly' && recurrenceMonthlyDays.length > 0 && (
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">Days of Month</div>
+                    <div className="flex flex-wrap gap-1">
+                      {recurrenceMonthlyDays.sort((a, b) => a - b).map((day) => (
+                        <Badge key={day} variant="secondary" className="text-[10px]">
+                          Day {day}
+                        </Badge>
+                      ))}
+                    </div>
+                    {hasDay31 && (
+                      <div className="flex items-start gap-2 mt-2">
+                        <AlertTriangle className="h-3 w-3 text-[#B7791F] shrink-0 mt-0.5" />
+                        <p className="text-[10px] text-[#8A6116]">
+                          Months with fewer than 31 days: scheduled for last day.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </CardContent>
@@ -506,6 +731,12 @@ export function CreateTaskPage({
                     agent_id: selectedAgentId,
                     priority,
                     status: kanbanColumn,
+                    schedule_start: scheduleStart || null,
+                    schedule_end: scheduleEnd || null,
+                    schedule_time: scheduleTime || null,
+                    recurrence,
+                    recurrence_days: recurrenceDays,
+                    recurrence_monthly_days: recurrenceMonthlyDays,
                   })
                   if (!result) {
                     setError('Failed to create task. Please try again.')

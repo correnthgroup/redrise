@@ -76,6 +76,12 @@ export async function createTask(input: CreateTaskInput): Promise<Task | null> {
       agent_id: input.agent_id ?? null,
       priority: input.priority ?? 'medium',
       status: input.status ?? 'backlog',
+      schedule_start: input.schedule_start ?? null,
+      schedule_end: input.schedule_end ?? null,
+      schedule_time: input.schedule_time ?? null,
+      recurrence: input.recurrence ?? 'occasionally',
+      recurrence_days: input.recurrence_days ?? [],
+      recurrence_monthly_days: input.recurrence_monthly_days ?? [],
       created_at: now,
       updated_at: now,
     })
