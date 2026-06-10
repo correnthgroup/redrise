@@ -24,6 +24,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu'
 import { Pencil, Check, X, Keyboard, CheckCircle2, ChevronDown } from 'lucide-react'
+import { useFlowCards } from '@/hooks/use-flow-cards'
 
 type FlowNode = Node<{ label: string; instructions?: string; members?: string[]; agents?: string[] }>
 
@@ -86,23 +87,14 @@ function FlowCardWithEdit({ data, selected, id }: NodeProps<FlowNode>) {
   )
 }
 
-const initialNodes: FlowNode[] = [
-  { id: 'n1', type: 'flowCard', position: { x: 0, y: 0 }, data: { label: 'Step 1: trigger', members: ['Alice Silva'], agents: ['Agent 1'] } },
-  { id: 'n2', type: 'flowCard', position: { x: 220, y: 0 }, data: { label: 'Step 2: enrich', members: ['Bob Santos'], agents: ['Agent 2'] } },
-  { id: 'n3', type: 'flowCard', position: { x: 440, y: 0 }, data: { label: 'Step 3: decide', members: [], agents: [] } },
-  { id: 'n4', type: 'flowCard', position: { x: 660, y: 0 }, data: { label: 'Step 4: deliver', members: [], agents: [] } },
-]
+const defaultNodes: FlowNode[] = []
+const defaultEdges: Edge[] = []
 
-const initialEdges: Edge[] = [
-  { id: 'e1-2', source: 'n1', target: 'n2', animated: true },
-  { id: 'e2-3', source: 'n2', target: 'n3', animated: true },
-  { id: 'e3-4', source: 'n3', target: 'n4', animated: true },
-]
-
-function FlowBuilderContent({ onBack, onSave }: { onBack?: () => void; onSave?: () => void }) {
-  const [nodes, setNodes, onNodesChange] = useNodesState<FlowNode>(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialEdges)
-  const [flowName, setFlowName] = useState('New Flow')
+function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave }: { flowId?: string | null; flowName?: string; onBack?: () => void; onSave?: () => void }) {
+  const { cards, edges: dbEdges, load, save } = useFlowCards(flowId ?? null)
+  const [nodes, setNodes, onNodesChange] = useNodesState<FlowNode>(defaultNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(defaultEdges)
+  const [flowName, setFlowName] = useState(initialFlowName ?? 'New Flow')
   const [editingName, setEditingName] = useState(false)
   const [tempName, setTempName] = useState('')
   const [editingCardId, setEditingCardId] = useState<string | null>(null)
@@ -110,10 +102,53 @@ function FlowBuilderContent({ onBack, onSave }: { onBack?: () => void; onSave?: 
   const [cardInstructions, setCardInstructions] = useState('')
   const [cardMembers, setCardMembers] = useState<string[]>([])
   const [cardAgents, setCardAgents] = useState<string[]>([])
+  const [saving, setSaving] = useState(false)
   const { screenToFlowPosition, getNodes, setNodes: setReactFlowNodes, setEdges: setReactFlowEdges } = useReactFlow()
   const containerRef = useRef<HTMLDivElement>(null)
+  const loadedRef = useRef(false)
 
   const nodeTypes = { flowCard: FlowCardWithEdit }
+
+  // Load data from Supabase
+  useEffect(() => {
+    if (flowId && !loadedRef.current) {
+      loadedRef.current = true
+      load()
+    }
+  }, [flowId, load])
+
+  // Populate React Flow when cards/edges load
+  useEffect(() => {
+    if (cards.length > 0 && !loadedRef.current) return
+    if (cards.length === 0 && dbEdges.length === 0 && nodes.length > 0) return
+
+    if (cards.length > 0) {
+      const flowNodes: FlowNode[] = cards.map((c) => ({
+        id: c.node_id,
+        type: 'flowCard',
+        position: { x: c.position_x, y: c.position_y },
+        data: { label: c.label, instructions: c.instructions, members: c.members, agents: c.agents },
+      }))
+      setReactFlowNodes(flowNodes)
+
+      // Update nodeIdCounter
+      const maxNum = flowNodes.reduce((max, n) => {
+        const num = parseInt(n.id.replace(/\D/g, ''), 10)
+        return num > max ? num : max
+      }, 0)
+      nodeIdCounter = maxNum + 1
+    }
+
+    if (dbEdges.length > 0) {
+      const flowEdges: Edge[] = dbEdges.map((e) => ({
+        id: e.edge_id,
+        source: e.source,
+        target: e.target,
+        animated: e.animated,
+      }))
+      setReactFlowEdges(flowEdges)
+    }
+  }, [cards, dbEdges, setReactFlowNodes, setReactFlowEdges])
 
   function openCardEditor(nodeId: string) {
     const node = nodes.find((n) => n.id === nodeId)
@@ -155,7 +190,7 @@ function FlowBuilderContent({ onBack, onSave }: { onBack?: () => void; onSave?: 
   useEffect(() => {
     if (!initializedRef.current) {
       initializedRef.current = true
-      const current = { nodes: initialNodes, edges: initialEdges }
+      const current = { nodes: defaultNodes, edges: defaultEdges }
       historyRef.current = [current]
       historyIndexRef.current = 0
     }
@@ -291,6 +326,33 @@ function FlowBuilderContent({ onBack, onSave }: { onBack?: () => void; onSave?: 
     setCardAgents((prev) => prev.includes(agent) ? prev.filter((a) => a !== agent) : [...prev, agent])
   }
 
+  async function handleSave() {
+    if (!flowId) {
+      onSave?.()
+      return
+    }
+    setSaving(true)
+    const currentNodes = getNodes() as FlowNode[]
+    const nodeData = currentNodes.map((n) => ({
+      node_id: n.id,
+      label: n.data.label,
+      instructions: n.data.instructions,
+      members: n.data.members,
+      agents: n.data.agents,
+      position_x: n.position.x,
+      position_y: n.position.y,
+    }))
+    const edgeData = edges.map((e) => ({
+      edge_id: e.id,
+      source: e.source,
+      target: e.target,
+      animated: e.animated,
+    }))
+    await save(nodeData, edgeData)
+    setSaving(false)
+    onSave?.()
+  }
+
   return (
     <div ref={containerRef} className="flex h-full min-h-0 flex-col">
       <div className="flex items-center justify-between border-b bg-card/90 p-3 text-sm backdrop-blur">
@@ -344,7 +406,9 @@ function FlowBuilderContent({ onBack, onSave }: { onBack?: () => void; onSave?: 
           {onBack && (
             <Button variant="ghost" size="sm" onClick={onBack}>Cancel</Button>
           )}
-          <Button size="sm" onClick={onSave}>Save</Button>
+          <Button size="sm" onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving...' : 'Save'}
+          </Button>
         </div>
       </div>
       <div className="relative min-h-0 flex-1">
@@ -450,10 +514,10 @@ function FlowBuilderContent({ onBack, onSave }: { onBack?: () => void; onSave?: 
   )
 }
 
-export function FlowBuilderPage({ onBack, onSave }: { onBack?: () => void; onSave?: () => void }) {
+export function FlowBuilderPage({ flowId, flowName, onBack, onSave }: { flowId?: string | null; flowName?: string; onBack?: () => void; onSave?: () => void }) {
   return (
     <ReactFlowProvider>
-      <FlowBuilderContent onBack={onBack} onSave={onSave} />
+      <FlowBuilderContent flowId={flowId} flowName={flowName} onBack={onBack} onSave={onSave} />
     </ReactFlowProvider>
   )
 }
