@@ -133,7 +133,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
       ? <AgentCreatePage onBack={() => setAgentView('list')} />
       : agentView === 'detail'
         ? <AgentDetailPage onBack={() => setAgentView('list')} />
-        : <AgentListPage onCreateAgent={() => setAgentView('create')} onOpenAgent={() => setAgentView('detail')} />
+        : <AgentListPage onOpenAgent={() => setAgentView('detail')} />
   } else if (active === 'analytics') {
     body = <AnalyticsPage />
   } else {
@@ -149,6 +149,11 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
     <Button onClick={() => setFlowView('create')}>
       <Plus className="h-4 w-4" />
       New Flow
+    </Button>
+  ) : active === 'agents' && agentView === 'list' ? (
+    <Button onClick={() => setAgentView('create')}>
+      <Plus className="h-4 w-4" />
+      New Agent
     </Button>
   ) : null
 

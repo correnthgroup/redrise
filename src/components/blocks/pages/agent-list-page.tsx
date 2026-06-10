@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react'
-import { Plus, Search, Pause, Play, RotateCcw, Network, LayoutDashboard } from 'lucide-react'
+import { Search, Pause, Play, RotateCcw, Network, LayoutDashboard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -67,10 +67,8 @@ const FLOW_STATUS_BADGE: Record<string, string> = {
 }
 
 export function AgentListPage({
-  onCreateAgent,
   onOpenAgent,
 }: {
-  onCreateAgent?: () => void
   onOpenAgent?: (id: string) => void
 }) {
   const [query, setQuery] = useState('')
@@ -122,7 +120,6 @@ export function AgentListPage({
             <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search agents" className="pl-7 h-9" />
           </div>
-          <Button onClick={onCreateAgent}><Plus className="h-4 w-4" /> New Agent</Button>
         </div>
 
         <Card className="min-h-0 flex-1 border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
