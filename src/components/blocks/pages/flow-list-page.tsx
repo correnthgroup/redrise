@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react'
-import { Plus, Search, ExternalLink, Pencil, Users, Check, X } from 'lucide-react'
+import { Search, ExternalLink, Pencil, Users, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -105,12 +105,11 @@ export function FlowListPage({ onOpen, onCreate }: { onOpen?: (id: string) => vo
   return (
     <div className="grid h-full min-h-0 grid-cols-1 gap-6 p-6 lg:grid-cols-[2fr_1fr]">
       <div className="flex h-full min-h-0 flex-col gap-4">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           <div className="relative max-w-sm flex-1">
             <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search flows" className="pl-7 h-9" />
           </div>
-          <Button onClick={onCreate}><Plus className="h-4 w-4" /> New Flow</Button>
         </div>
 
         <Card className="min-h-0 flex-1 border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">

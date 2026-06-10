@@ -1,34 +1,36 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
-import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import type { Workspace } from '@/types/workspace'
 
-const STEPS = ['Basic Info', 'Health & Team', 'Review'] as const
+const STEPS = ['Basic Info', 'Review'] as const
 
 const PLACEHOLDER_MEMBERS = ['Alice Silva', 'Bob Santos', 'Carol Oliveira', 'David Costa', 'Eva Lima']
 
-export function CreateWorkspacePage({
+export function CreateFlowPage({
   onBack,
   onCreate,
+  workspaces,
 }: {
   onBack?: () => void
-  onCreate?: (workspace: { name: string; mission: string }) => Promise<unknown>
+  onCreate?: (flow: { name: string; workspaceId: string; members: string[] }) => Promise<unknown>
+  workspaces: Workspace[]
 }) {
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
-  const [mission, setMission] = useState('')
-  const [healthCheck, setHealthCheck] = useState('daily')
-  const [teamSize, setTeamSize] = useState('5')
-  const [initialMembers, setInitialMembers] = useState<string[]>([])
+  const [workspaceId, setWorkspaceId] = useState('')
+  const [members, setMembers] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
+  const selectedWorkspace = workspaces.find((w) => w.id === workspaceId)
+
   function toggleMember(member: string) {
-    setInitialMembers((prev) =>
+    setMembers((prev) =>
       prev.includes(member) ? prev.filter((m) => m !== member) : [...prev, member]
     )
   }
@@ -36,7 +38,7 @@ export function CreateWorkspacePage({
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
       <header>
-        <h1 className="text-lg font-semibold">New Workspace</h1>
+        <h1 className="text-lg font-semibold">New Flow</h1>
         <p className="text-sm text-muted-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</p>
       </header>
       <Progress value={((step + 1) / STEPS.length) * 100} />
@@ -47,37 +49,24 @@ export function CreateWorkspacePage({
           {step === 0 && (
             <>
               <div className="space-y-1">
-                <Label htmlFor="w-name">Name</Label>
-                <Input id="w-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Workspace name" />
+                <Label htmlFor="f-name">Name</Label>
+                <Input id="f-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Flow name" />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="w-mission">Mission</Label>
-                <Textarea id="w-mission" value={mission} onChange={(e) => setMission(e.target.value)} placeholder="Mission statement" rows={4} />
-              </div>
-            </>
-          )}
-          {step === 1 && (
-            <>
-              <div className="space-y-1">
-                <Label>Health Check Frequency</Label>
-                <Select value={healthCheck} onValueChange={setHealthCheck}>
+                <Label>Workspace</Label>
+                <Select value={workspaceId} onValueChange={setWorkspaceId}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select workspace" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="realtime">Realtime</SelectItem>
-                    <SelectItem value="hourly">Hourly</SelectItem>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
+                    {workspaces.map((w) => (
+                      <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label htmlFor="w-team-size">Max Team Size</Label>
-                <Input id="w-team-size" type="number" min="1" max="100" value={teamSize} onChange={(e) => setTeamSize(e.target.value)} />
-              </div>
-              <div className="space-y-1">
-                <Label>Initial Team Members</Label>
+                <Label>Team Members</Label>
                 <div className="flex flex-wrap gap-2">
                   {PLACEHOLDER_MEMBERS.map((member) => (
                     <button
@@ -85,7 +74,7 @@ export function CreateWorkspacePage({
                       type="button"
                       onClick={() => toggleMember(member)}
                       className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
-                        initialMembers.includes(member)
+                        members.includes(member)
                           ? 'border-primary bg-primary/10 text-primary'
                           : 'border-border bg-card text-muted-foreground hover:bg-accent/60'
                       }`}
@@ -94,19 +83,17 @@ export function CreateWorkspacePage({
                     </button>
                   ))}
                 </div>
-                {initialMembers.length > 0 && (
-                  <p className="text-xs text-muted-foreground">{initialMembers.length} member(s) selected</p>
+                {members.length > 0 && (
+                  <p className="text-xs text-muted-foreground">{members.length} member(s) selected</p>
                 )}
               </div>
             </>
           )}
-          {step === 2 && (
+          {step === 1 && (
             <div className="space-y-3 rounded-lg border bg-muted/35 p-4 text-sm">
               <div><strong>Name:</strong> {name || 'empty'}</div>
-              <div><strong>Mission:</strong> {mission || 'empty'}</div>
-              <div><strong>Health Check:</strong> {healthCheck}</div>
-              <div><strong>Max Team Size:</strong> {teamSize}</div>
-              <div><strong>Team Members:</strong> {initialMembers.length > 0 ? initialMembers.join(', ') : 'none'}</div>
+              <div><strong>Workspace:</strong> {selectedWorkspace?.name || 'none'}</div>
+              <div><strong>Team Members:</strong> {members.length > 0 ? members.join(', ') : 'none'}</div>
             </div>
           )}
         </CardContent>
@@ -124,12 +111,12 @@ export function CreateWorkspacePage({
                 setError(null)
                 setSubmitting(true)
                 try {
-                  const result = await onCreate?.({ name, mission })
+                  const result = await onCreate?.({ name, workspaceId, members })
                   if (!result) {
-                    setError('Failed to create workspace. Please try again.')
+                    setError('Failed to create flow. Please try again.')
                   }
                 } catch {
-                  setError('Failed to create workspace. Please try again.')
+                  setError('Failed to create flow. Please try again.')
                 } finally {
                   setSubmitting(false)
                 }

@@ -2,6 +2,7 @@
 import { Plus } from 'lucide-react'
 import { useWorkspaces } from '@/hooks/use-workspaces'
 import { DashboardPage } from '@/components/blocks/pages/dashboard-page'
+import { CreateFlowPage } from '@/components/blocks/pages/create-flow-page'
 import { FlowBuilderPage } from '@/components/blocks/pages/flow-builder-page'
 import { FlowListPage } from '@/components/blocks/pages/flow-list-page'
 import { TaskBoardPage } from '@/components/blocks/pages/task-board-page'
@@ -36,7 +37,7 @@ const PAGE_TITLES: Record<SidebarKey, { title: string; subtitle: string }> = {
 export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShellProps) {
   const [active, setActive] = useState<SidebarKey>(defaultPage)
   const [dashboardView, setDashboardView] = useState<'board' | 'create-workspace' | 'review-workspace'>('board')
-  const [flowView, setFlowView] = useState<'list' | 'builder'>('list')
+  const [flowView, setFlowView] = useState<'list' | 'builder' | 'create'>('list')
   const [taskView, setTaskView] = useState<'board' | 'create' | 'review'>('board')
   const [agentView, setAgentView] = useState<'list' | 'create' | 'detail'>('list')
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null)
@@ -65,8 +66,11 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
           <CreateWorkspacePage
             onBack={() => setDashboardView('board')}
             onCreate={async ({ name, mission }) => {
-              await addWorkspace({ name, mission })
-              setDashboardView('board')
+              const result = await addWorkspace({ name, mission })
+              if (result) {
+                setDashboardView('board')
+              }
+              return result
             }}
           />
         )
@@ -90,7 +94,18 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   } else if (active === 'flow') {
     body = flowView === 'builder'
       ? <FlowBuilderPage onBack={() => setFlowView('list')} onSave={() => setFlowView('list')} />
-      : <FlowListPage onCreate={() => setFlowView('builder')} onOpen={() => setFlowView('builder')} />
+      : flowView === 'create'
+        ? <CreateFlowPage
+            onBack={() => setFlowView('list')}
+            workspaces={workspaces}
+            onCreate={async ({ name, workspaceId, members }) => {
+              // TODO: persist to Supabase in Sprint 6
+              console.log('[createFlow]', { name, workspaceId, members })
+              setFlowView('list')
+              return { id: 'temp', name }
+            }}
+          />
+        : <FlowListPage onCreate={() => setFlowView('create')} onOpen={() => setFlowView('builder')} />
   } else if (active === 'tasks') {
     body = taskView === 'create'
       ? <CreateTaskPage onBack={() => setTaskView('board')} />
@@ -113,6 +128,11 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
     <Button onClick={() => setDashboardView('create-workspace')}>
       <Plus className="h-4 w-4" />
       New Workspace
+    </Button>
+  ) : active === 'flow' && flowView === 'list' ? (
+    <Button onClick={() => setFlowView('create')}>
+      <Plus className="h-4 w-4" />
+      New Flow
     </Button>
   ) : null
 
