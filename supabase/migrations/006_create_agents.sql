@@ -44,8 +44,8 @@ BEGIN
   VALUES (
     'a' || substr(md5(random()::text), 1, 5),
     target_user_id,
-    'Default Agent',
-    'General purpose AI assistant with OpenRouter integration.',
+    'Redrise Default Agent',
+    'Your AI assistant for automation purposes, powered by OpenAI followed by OpenRouter integration and configured by Redrise team as well.',
     'idle',
     'openai/gpt-oss-120b:free',
     'openrouter'
@@ -79,8 +79,8 @@ BEGIN
     VALUES (
       'a' || substr(md5(random()::text), 1, 5),
       user_record.id,
-      'Default Agent',
-      'General purpose AI assistant with OpenRouter integration.',
+      'Redrise Default Agent',
+      'Your AI assistant for automation purposes, powered by OpenAI followed by OpenRouter integration and configured by Redrise team as well.',
       'idle',
       'openai/gpt-oss-120b:free',
       'openrouter'
