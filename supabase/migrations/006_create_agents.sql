@@ -35,9 +35,3 @@ CREATE POLICY "Users can delete own agents"
 
 -- Index for faster queries
 CREATE INDEX idx_agents_user_id ON agents(user_id);
-
--- Insert default agent for all users (will be cloned per user on first login)
--- This is a template; the actual default agent is created via the app
-INSERT INTO agents (id, user_id, name, brief, status, model, provider) VALUES
-  ('a0001', '00000000-0000-0000-0000-000000000000', 'Default Agent', 'General purpose AI assistant with OpenRouter integration.', 'idle', 'openai/gpt-oss-120b:free', 'openrouter')
-ON CONFLICT (id) DO NOTHING;
