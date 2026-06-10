@@ -1,5 +1,5 @@
 ﻿import { useState, type ReactNode } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
 import { useWorkspaces } from '@/hooks/use-workspaces'
 import { useFlows } from '@/hooks/use-flows'
 import { useTasks } from '@/hooks/use-tasks'
@@ -46,10 +46,12 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null)
   const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null)
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
-  const { workspaces, addWorkspace, removeWorkspace } = useWorkspaces()
-  const { flows, addFlow, removeFlow } = useFlows()
-  const { tasks, addTask, moveTask, removeTask } = useTasks()
+  const { workspaces, loading: workspacesLoading, addWorkspace, removeWorkspace } = useWorkspaces()
+  const { flows, loading: flowsLoading, addFlow, removeFlow } = useFlows()
+  const { tasks, loading: tasksLoading, addTask, moveTask, removeTask } = useTasks()
   const { agents, loading: agentsLoading, addAgent, removeAgent } = useAgents()
+
+  const isDataLoading = workspacesLoading || flowsLoading || tasksLoading || agentsLoading
 
   function selectPage(next: SidebarKey) {
     setActive(next)
@@ -71,7 +73,17 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
     : PAGE_TITLES[active]
 
   let body: ReactNode
-  if (active === 'dashboard') {
+
+  if (isDataLoading) {
+    body = (
+      <div className="flex h-full items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-6 w-6 animate-spin text-[#2F4858]" />
+          <p className="text-sm text-muted-foreground">Loading data...</p>
+        </div>
+      </div>
+    )
+  } else if (active === 'dashboard') {
     body = dashboardView === 'create-workspace'
       ? (
           <CreateWorkspacePage
