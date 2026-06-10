@@ -260,25 +260,47 @@ Dashboard (visor de workspaces)
 
 **Arquivo**: `src/components/blocks/pages/flow-list-page.tsx`
 
-**O que e**: Listagem de flows (processos) do workspace.
+**O que e**: Listagem de flows (processos) do workspace, conectada ao Supabase.
 
 **O que o usuario ve**:
-- **Coluna esquerda**: barra de busca + botao "New Flow" + lista de flows placeholder (Sales Qualification, Client Onboarding, Escalation Routing, Delivery Handoff). Cada flow mostra nome, owners (separados por virgula), ID (mono fonte) e badge de status (running/paused/error).
-- **Acoes por flow**: 3 icones — ExternalLink (abrir no editor), Pencil (renomear inline), Users (selecionar owners via multi-select dropdown)
+- **Coluna esquerda**: barra de busca + lista de flows reais do Supabase. Cada flow mostra nome, members (separados por virgula), ID (mono fonte) e badge de status (running/paused/error).
+- **Acoes por flow**: 4 icones — ExternalLink (abrir no editor), Pencil (renomear inline), Users (selecionar members via multi-select dropdown), Trash2 (deletar flow)
 - **Selecao**: clicar em um flow seleciona (highlight com ring primary), um por vez
-- **Coluna direita**: WorkflowPipeline com cards do flow selecionado, checkboxes (padrao quadrado, unchecked), Select All/Deselect All, e controles play/pause/reset
-- **Estado vazio**: quando nenhum flow selecionado, exibe "Select a Flow to Run It"
+- **Coluna direita**: WorkflowPipeline com cards do flow selecionado, checkboxes (padrao quadrado), Select All/Deselect All, e controles play/pause/reset
+- **Estado vazio**: quando nenhum flow existe, exibe "No flows found. Create one to get started."
 
 **Comportamentos**:
 - Busca filtra flows por nome (case-insensitive)
-- Renomear: clique no icone Pencil, edite inline, Enter confirma, Esc cancela, nome vazio invalidado
-- Owners: clique no icone Users, multi-select com dropdown de checkboxes (PLACEHOLDER_MEMBERS)
+- Renomear: clique no icone Pencil, edite inline, Enter confirma, Esc cancela
+- Members: clique no icone Users, multi-select com dropdown de checkboxes
+- Deletar: clique no icone Trash2, remove do Supabase
 - Selecionar flow: clique no card, destaque visual, atualiza Pipeline
-- Clique novamente para desselecionar
 
 **Importancia**: E onde o usuario gerencia todos os processos do workspace. A busca permite encontrar flows rapidamente. O status indica quais estao ativos, pausados ou com erro.
 
-**Conexao**: Clicar no icone ExternalLink ou em um flow abre o FlowBuilderPage. "New Flow" tambem abre o FlowBuilderPage.
+**Conexao**: Clicar no icone ExternalLink ou em um flow abre o FlowBuilderPage. Botao "New Flow" no topbar abre o CreateFlowPage (wizard de 2 passos).
+
+**Status atual**: Conectado ao Supabase. Flows reais sao exibidos, criados e deletados via API.
+
+### 8.1.1 Create Flow (wizard)
+
+**Arquivo**: `src/components/blocks/pages/create-flow-page.tsx`
+
+**O que e**: Wizard de 2 passos para criar um flow.
+
+**Steps**:
+1. **Basic Info** — nome do flow, selecao de workspace (dropdown com workspaces reais do Supabase), selecao de team members (botoes toggle multi-select)
+2. **Review** — resumo com nome, workspace selecionado e members
+
+**Comportamentos**:
+- Footer: `[Cancel]` a esquerda, `[Back] [Next]` a direita (ml-auto)
+- Botao "Done" no ultimo step cria o flow no Supabase
+- Ao criar: salva via `addFlow()`, volta para a lista de flows
+- Workspaces sao buscados do Supabase (lista real da conta)
+
+**Importancia**: Formaliza a criacao de um flow. O nome e o workspace sao os dados obrigatorios.
+
+**Status atual**: Persistido no Supabase. Workspace dropdown busca dados reais.
 
 ### 8.2 Flow Editor
 
@@ -322,7 +344,7 @@ Dashboard (visor de workspaces)
 
 **Importancia**: E o coracao da modelagem visual. O usuario transforma processos mentais em estruturas visuais que podem ser executadas como flows.
 
-**Status atual**: Editor funcional com dados hardcoded. Save retorna para a lista de flows. Sem persistencia no Supabase.
+**Status atual**: Editor funcional com dados hardcoded. Save retorna para a lista de flows. Persistencia no Supabase sera implementada na Sprint 8.
 
 ---
 
@@ -332,7 +354,7 @@ Dashboard (visor de workspaces)
 
 **Arquivo**: `src/components/blocks/pages/task-board-page.tsx`
 
-**O que e**: Kanban board com 4 colunas para gestao de tarefas.
+**O que e**: Kanban board com 4 colunas para gestao de tarefas, conectado ao Supabase.
 
 **Colunas e status**:
 
@@ -344,26 +366,38 @@ Dashboard (visor de workspaces)
 | `done` | Done | borda emerald, fundo emerald claro |
 
 **Comportamentos**:
-- Drag and drop nativo (HTML5) entre colunas
+- Drag and drop nativo (HTML5) entre colunas — atualiza status no Supabase
 - Coluna ativa recebe highlight `ring-1 ring-primary/40`
-- Botao "New Task" leva ao CreateTaskPage
+- Botao "New Task" leva ao CreateTaskPage (wizard de 3 passos)
 - Clicar em uma task leva ao ReviewTaskPage
+- Botao Trash2 em cada task remove do Supabase
+- Estado vazio: "No tasks" quando a coluna esta vazia
+- Cada task mostra titulo, brief (se existir, com line-clamp-2) e ID
 
 **Importancia**: E a tela de execucao operacional. O usuario ve todo o trabalho pendente, em progresso, em revisao e concluido. O drag and drop permite mudar status visualmente.
+
+**Status atual**: Conectado ao Supabase. Tasks reais sao exibidas, criadas, movidas e deletadas via API.
 
 ### 9.2 Create Task
 
 **Arquivo**: `src/components/blocks/pages/create-task-page.tsx`
 
-**O que e**: Wizard de 4 steps para criar uma task.
+**O que e**: Wizard de 3 steps para criar uma task, persistido no Supabase.
 
 **Steps**:
 1. **Basic Info** — campo Titulo
 2. **Briefing** — textarea "O que precisa acontecer?"
-3. **Team** — placeholder para selecionar responsaveis e revisores
-4. **Review** — resumo com Titulo e Briefing
+3. **Review** — resumo com Titulo e Briefing
+
+**Comportamentos**:
+- Footer: `[Cancel]` a esquerda, `[Back] [Next]` a direita (ml-auto)
+- Botao "Done" no ultimo step cria a task no Supabase
+- Ao criar: salva via `addTask()`, volta para o Task Board
+- Tasks sao criadas com status `backlog` por padrao
 
 **Importancia**: Formaliza o trabalho que precisa ser feito. O briefing e o contrato mental entre quem pede e quem executa.
+
+**Status atual**: Persistido no Supabase. Tasks sao criadas e aparecem no Task Board.
 
 ### 9.3 Review Task
 
@@ -373,7 +407,7 @@ Dashboard (visor de workspaces)
 
 **Importancia**: Permite revisar todos os detalhes antes de iniciar a execucao.
 
-**Status atual**: Tasks sao mockadas (12 tasks distribuidas entre colunas). Sem persistencia real.
+**Status atual**: Componente funcional com dados mockados. Conexao com dados reais do Supabase pendente.
 
 ---
 
@@ -536,7 +570,7 @@ AppShell
 
 ## 15. Estado atual e proximos passos
 
-### O que ja existe (Sprint 0 + Sprint 1 + Sprint 2 + Sprint 3 + Sprint 4)
+### O que ja existe (Sprint 0-7)
 
 - Shell completo com navegacao funcional
 - Sidebar com animacao suave e persistencia
@@ -546,20 +580,19 @@ AppShell
 - **Sprint 2**: Dashboard conectado ao Supabase — workspaces reais exibidos, criados e deletados via API
 - **Sprint 3**: Wizard de criacao de workspace persistido — cria workspaces no Supabase que sobrevivem a reload
 - **Sprint 4**: Review Workspace conectado a dados reais — status badge, health card, topbar mostra nome do workspace, dialog fecha apos delete
-- **Flow List**: lista com busca, selecao, edicao de nome/owners, IDs visiveis
-- **Flow Editor**: editor React Flow com cards que mostram titulo/members/agents/ID, dialog de edicao completo, atalhos de teclado, arestas animadas
+- **Sprint 5**: Wizard New Flow (2 passos) — nome, workspace dropdown (reais), team members multi-select
+- **Sprint 6**: Flows persistidos no Supabase — CRUD completo, migration 003, useFlows hook
+- **Sprint 7**: Tasks persistidas no Supabase — CRUD completo, drag-and-drop entre colunas, migration 004, useTasks hook
+- **Flow List**: lista com busca, selecao, edicao de nome/members, delete, IDs visiveis, dados reais do Supabase
+- **Flow Editor**: editor React Flow com cards que mostram titulo/members/agents/ID, dialog de edicao completo, atalhos de teclado, arestas animadas (persistencia pendente Sprint 8)
 - **WorkflowPipeline**: checkboxes quadrados, Select All, members/agents por card, controles play/pause/reset
 - **IDs visiveis**: workspace ID (dashboard, review), flow ID (flow list), card ID (flow editor, pipeline)
 
-### O que falta (Sprint 4+)
+### O que falta (Sprint 8+)
 
 | Sprint | O que entrega | Por que importa |
 |--------|--------------|-----------------|
-| Sprint 4 | Review Workspace conectado a dados reais | Fecha o ciclo Dashboard -> Create -> Review |
-| Sprint 5 | Flow List por workspace | Abre a camada de modelagem visual |
-| Sprint 6 | Flow Editor persistido | Permite salvar e recarregar flows |
-| Sprint 7 | Task Board persistido | Liga modelagem a execucao operacional |
-| Sprint 8 | Create/Review Task persistido | Fecha o ciclo de tasks |
+| Sprint 8 | Flow Editor persistido | Salva e recarrega flows do Supabase |
 | Sprint 9 | Agents base | Prepara a camada de IA |
 | Sprint 10 | IA com HITL | Entrega a primeira acao de IA com aprovacao humana |
 | Sprint 11 | Analytics basico | Torna a operacao observavel |
@@ -572,6 +605,9 @@ AppShell
 
 - **Backend**: Supabase (projeto `ndfsselzilmdzywcdyoo`)
 - **Autenticacao**: GitHub + email/password via Supabase Auth
-- **RLS**: habilitado na tabela `workspaces` com 4 politicas baseadas em `user_id`
+- **RLS**: habilitado nas tabelas `workspaces`, `flows` e `tasks` com 4 politicas baseadas em `user_id` cada
+- **Migrations**: 001 (workspaces), 002 (id type fix), 003 (flows), 004 (tasks)
 - **State management**: React + localStorage (sem Redux/Zustand)
 - **Package manager**: yarn via corepack (nao pnpm, nao npm)
+- **IDs**: formato curto (prefixo + 5 chars) — workspaces=`w`, flows=`f`, tasks=`t`
+- **Testes E2E**: 15 testes Playwright passando (smoke, auth, navigation, workspaces)
