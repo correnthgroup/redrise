@@ -74,7 +74,8 @@ export async function createTask(input: CreateTaskInput): Promise<Task | null> {
       documents: input.documents ?? [],
       team_members: input.team_members ?? [],
       agent_id: input.agent_id ?? null,
-      status: 'backlog',
+      priority: input.priority ?? 'medium',
+      status: input.status ?? 'backlog',
       created_at: now,
       updated_at: now,
     })

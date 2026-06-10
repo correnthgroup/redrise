@@ -7,9 +7,10 @@ import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Upload, X, FileText, ChevronDown, Check } from 'lucide-react'
+import { Upload, X, FileText, ChevronDown, Check, ArrowDown, ArrowUp, Minus, LayoutGrid } from 'lucide-react'
 import { loadAgents } from '@/lib/agents'
 import type { Agent } from '@/types/agent'
+import type { TaskPriority, TaskStatus } from '@/types/task'
 
 const STEPS = ['Briefing', 'Team & Agent', 'Review'] as const
 
@@ -19,6 +20,19 @@ const PLACEHOLDER_MEMBERS = [
   { id: 'm3', name: 'Ana Oliveira' },
   { id: 'm4', name: 'Pedro Costa' },
   { id: 'm5', name: 'Lucia Ferreira' },
+]
+
+const PRIORITIES: { value: TaskPriority; label: string; color: string; icon: typeof ArrowDown }[] = [
+  { value: 'low', label: 'Min', color: 'text-[#2F4858] bg-[#2F4858]/10', icon: ArrowDown },
+  { value: 'medium', label: 'Med', color: 'text-[#B7791F] bg-[#B7791F]/10', icon: Minus },
+  { value: 'high', label: 'High', color: 'text-[#8c1f28] bg-[#8c1f28]/10', icon: ArrowUp },
+]
+
+const COLUMNS: { id: TaskStatus; label: string }[] = [
+  { id: 'backlog', label: 'Backlog' },
+  { id: 'in-progress', label: 'In Progress' },
+  { id: 'in-review', label: 'In Review' },
+  { id: 'done', label: 'Done' },
 ]
 
 export function CreateTaskPage({
@@ -34,6 +48,8 @@ export function CreateTaskPage({
     documents: string[]
     team_members: string[]
     agent_id: string | null
+    priority: TaskPriority
+    status: TaskStatus
   }) => Promise<unknown>
 }) {
   const [step, setStep] = useState(0)
@@ -42,10 +58,13 @@ export function CreateTaskPage({
   const [documents, setDocuments] = useState<string[]>([])
   const [selectedMembers, setSelectedMembers] = useState<string[]>([])
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
+  const [priority, setPriority] = useState<TaskPriority>('medium')
+  const [kanbanColumn, setKanbanColumn] = useState<TaskStatus>('backlog')
   const [agents, setAgents] = useState<Agent[]>([])
   const [loadingAgents, setLoadingAgents] = useState(true)
   const [showMemberDropdown, setShowMemberDropdown] = useState(false)
   const [showAgentDropdown, setShowAgentDropdown] = useState(false)
+  const [showColumnDropdown, setShowColumnDropdown] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -92,6 +111,9 @@ export function CreateTaskPage({
     if (text.length <= maxLength) return text
     return text.slice(0, maxLength) + '...'
   }
+
+  const selectedPriority = PRIORITIES.find((p) => p.value === priority)
+  const selectedColumn = COLUMNS.find((c) => c.id === kanbanColumn)
 
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise overflow-y-auto">
@@ -177,9 +199,76 @@ export function CreateTaskPage({
             </div>
           )}
 
-          {/* Step 2: Team & Agent */}
+          {/* Step 2: Team, Agent, Priority & Column */}
           {step === 1 && (
             <div className="space-y-6">
+              {/* Priority */}
+              <div className="space-y-2">
+                <Label>Priority</Label>
+                <div className="flex gap-2">
+                  {PRIORITIES.map((p) => {
+                    const Icon = p.icon
+                    return (
+                      <button
+                        key={p.value}
+                        type="button"
+                        onClick={() => setPriority(p.value)}
+                        className={`flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors ${
+                          priority === p.value
+                            ? `${p.color} border-current`
+                            : 'bg-background hover:bg-accent/40'
+                        }`}
+                      >
+                        <Icon className="h-4 w-4" />
+                        {p.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Kanban Column */}
+              <div className="space-y-2">
+                <Label>Initial Column</Label>
+                <div className="relative">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full justify-between"
+                    onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+                      <span>{selectedColumn?.label ?? 'Select column...'}</span>
+                    </div>
+                    <ChevronDown className="h-4 w-4 opacity-50" />
+                  </Button>
+                  {showColumnDropdown && (
+                    <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                      <div className="p-1">
+                        {COLUMNS.map((col) => (
+                          <button
+                            key={col.id}
+                            type="button"
+                            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                            onClick={() => {
+                              setKanbanColumn(col.id)
+                              setShowColumnDropdown(false)
+                            }}
+                          >
+                            <span className="flex-1 text-left">{col.label}</span>
+                            {kanbanColumn === col.id && (
+                              <Check className="h-4 w-4 text-[#2F4858]" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Team Members */}
               <div className="space-y-2">
                 <Label>Team Members</Label>
                 <div className="relative">
@@ -244,6 +333,7 @@ export function CreateTaskPage({
                 )}
               </div>
 
+              {/* Agent */}
               <div className="space-y-2">
                 <Label>Agent</Label>
                 <div className="relative">
@@ -337,6 +427,28 @@ export function CreateTaskPage({
 
               <div className="rounded-lg border bg-muted/35 p-4 space-y-3">
                 <div>
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Priority</div>
+                  <div className="flex items-center gap-2">
+                    {selectedPriority && (
+                      <>
+                        <span className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${selectedPriority.color}`}>
+                          <selectedPriority.icon className="h-3 w-3" />
+                          {selectedPriority.label}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Kanban Column</div>
+                  <div className="flex items-center gap-2">
+                    <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">{selectedColumn?.label}</span>
+                  </div>
+                </div>
+
+                <div>
                   <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Team Members</div>
                   {selectedMemberNames.length === 0 ? (
                     <div className="text-sm text-muted-foreground">No team members selected</div>
@@ -392,6 +504,8 @@ export function CreateTaskPage({
                     documents,
                     team_members: selectedMembers,
                     agent_id: selectedAgentId,
+                    priority,
+                    status: kanbanColumn,
                   })
                   if (!result) {
                     setError('Failed to create task. Please try again.')
