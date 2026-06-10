@@ -5,8 +5,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-const STEPS = ['Basic Info', 'Health & Team', 'Flows', 'Review'] as const
+const STEPS = ['Basic Info', 'Health & Team', 'Review'] as const
+
+const PLACEHOLDER_MEMBERS = ['Alice Silva', 'Bob Santos', 'Carol Oliveira', 'David Costa', 'Eva Lima']
 
 export function CreateWorkspacePage({
   onBack,
@@ -18,6 +21,15 @@ export function CreateWorkspacePage({
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
   const [mission, setMission] = useState('')
+  const [healthCheck, setHealthCheck] = useState('daily')
+  const [teamSize, setTeamSize] = useState('5')
+  const [initialMembers, setInitialMembers] = useState<string[]>([])
+
+  function toggleMember(member: string) {
+    setInitialMembers((prev) =>
+      prev.includes(member) ? prev.filter((m) => m !== member) : [...prev, member]
+    )
+  }
 
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
@@ -29,7 +41,7 @@ export function CreateWorkspacePage({
 
       <Card className="flex-1 border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
         <CardHeader><CardTitle className="text-sm font-semibold">{STEPS[step]}</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           {step === 0 && (
             <>
               <div className="space-y-1">
@@ -42,12 +54,57 @@ export function CreateWorkspacePage({
               </div>
             </>
           )}
-          {step === 1 && <div className="rounded-lg border bg-[#2F4858]/6 p-4 text-sm text-muted-foreground">Pick health metrics and the initial team with a compact operational setup.</div>}
-          {step === 2 && <div className="rounded-lg border bg-muted/35 p-4 text-sm text-muted-foreground">Choose the flows that will power this workspace before the review step.</div>}
-          {step === 3 && (
-            <div className="space-y-2 rounded-lg border bg-muted/35 p-4 text-sm">
+          {step === 1 && (
+            <>
+              <div className="space-y-1">
+                <Label>Health Check Frequency</Label>
+                <Select value={healthCheck} onValueChange={setHealthCheck}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="realtime">Realtime</SelectItem>
+                    <SelectItem value="hourly">Hourly</SelectItem>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="w-team-size">Max Team Size</Label>
+                <Input id="w-team-size" type="number" min="1" max="100" value={teamSize} onChange={(e) => setTeamSize(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label>Initial Team Members</Label>
+                <div className="flex flex-wrap gap-2">
+                  {PLACEHOLDER_MEMBERS.map((member) => (
+                    <button
+                      key={member}
+                      type="button"
+                      onClick={() => toggleMember(member)}
+                      className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
+                        initialMembers.includes(member)
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-card text-muted-foreground hover:bg-accent/60'
+                      }`}
+                    >
+                      {member}
+                    </button>
+                  ))}
+                </div>
+                {initialMembers.length > 0 && (
+                  <p className="text-xs text-muted-foreground">{initialMembers.length} member(s) selected</p>
+                )}
+              </div>
+            </>
+          )}
+          {step === 2 && (
+            <div className="space-y-3 rounded-lg border bg-muted/35 p-4 text-sm">
               <div><strong>Name:</strong> {name || 'empty'}</div>
               <div><strong>Mission:</strong> {mission || 'empty'}</div>
+              <div><strong>Health Check:</strong> {healthCheck}</div>
+              <div><strong>Max Team Size:</strong> {teamSize}</div>
+              <div><strong>Team Members:</strong> {initialMembers.length > 0 ? initialMembers.join(', ') : 'none'}</div>
             </div>
           )}
         </CardContent>
@@ -58,13 +115,11 @@ export function CreateWorkspacePage({
         <div className="flex gap-2 ml-auto">
           <Button variant="ghost" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>Back</Button>
           <Button
-            className="min-w-[120px]"
             onClick={() => {
               if (step === STEPS.length - 1) {
                 onCreate?.({ name, mission })
                 return
               }
-
               setStep((s) => Math.min(STEPS.length - 1, s + 1))
             }}
           >
