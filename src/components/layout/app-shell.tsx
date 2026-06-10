@@ -53,8 +53,10 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
     if (next !== 'agents') setAgentView('list')
   }
 
-  const pageMeta = PAGE_TITLES[active]
   const selectedWorkspace = workspaces.find((workspace) => workspace.id === selectedWorkspaceId)
+  const pageMeta = active === 'dashboard' && dashboardView === 'review-workspace' && selectedWorkspace
+    ? { title: selectedWorkspace.name, subtitle: 'Workspace details' }
+    : PAGE_TITLES[active]
 
   let body: ReactNode
   if (active === 'dashboard') {
