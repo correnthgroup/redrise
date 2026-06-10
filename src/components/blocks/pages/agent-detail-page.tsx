@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
+import { Brain, Code, FileText, BarChart3, Lightbulb, Zap, Globe, Shield } from 'lucide-react'
 import type { Agent } from '@/types/agent'
 import { loadAgent } from '@/lib/agents'
 
@@ -155,68 +156,210 @@ export function AgentDetailPage({
         </TabsList>
 
         <TabsContent value="benchmark" className="min-h-0 flex-1">
-          <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold">Model Benchmark — gpt-oss-120b</CardTitle>
-                {benchmark.lastUpdated && (
-                  <span className="text-[10px] text-muted-foreground">
-                    Updated: {new Date(benchmark.lastUpdated).toLocaleTimeString()}
-                  </span>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {benchmark.loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <p className="text-sm text-muted-foreground">Loading benchmark data...</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                  <div className="rounded-lg border bg-muted/35 p-4">
-                    <div className="text-xs text-muted-foreground">Quality Index</div>
-                    <div className="mt-1 text-2xl font-bold text-[#2F4858]">{benchmark.qualityIndex ?? '—'}</div>
-                    <div className="text-[10px] text-muted-foreground">Artificial Analysis Score</div>
-                  </div>
-                  <div className="rounded-lg border bg-muted/35 p-4">
-                    <div className="text-xs text-muted-foreground">Price per 1M tokens</div>
-                    <div className="mt-1 text-2xl font-bold text-[#2F4858]">
-                      {benchmark.pricePerToken === 0 ? 'Free' : `$${((benchmark.pricePerToken ?? 0) * 1000).toFixed(2)}`}
+          <div className="space-y-4">
+            {/* Model Overview Card */}
+            <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2F4858]/10">
+                      <Brain className="h-4 w-4 text-[#2F4858]" />
                     </div>
-                    <div className="text-[10px] text-muted-foreground">OpenRouter pricing</div>
-                  </div>
-                  <div className="rounded-lg border bg-muted/35 p-4">
-                    <div className="text-xs text-muted-foreground">Latency (TTFT)</div>
-                    <div className="mt-1 text-2xl font-bold text-[#2F4858]">{benchmark.latency ?? '—'} ms</div>
-                    <div className="text-[10px] text-muted-foreground">Time to first token</div>
-                  </div>
-                  <div className="rounded-lg border bg-muted/35 p-4">
-                    <div className="text-xs text-muted-foreground">Throughput</div>
-                    <div className="mt-1 text-2xl font-bold text-[#2F4858]">{benchmark.throughput ?? '—'} tok/s</div>
-                    <div className="text-[10px] text-muted-foreground">Output tokens per second</div>
-                  </div>
-                  <div className="rounded-lg border bg-muted/35 p-4">
-                    <div className="text-xs text-muted-foreground">Context Window</div>
-                    <div className="mt-1 text-2xl font-bold text-[#2F4858]">
-                      {benchmark.contextWindow ? `${(benchmark.contextWindow / 1000).toFixed(0)}K` : '—'}
+                    <div>
+                      <CardTitle className="text-sm font-semibold">gpt-oss-120b</CardTitle>
+                      <p className="text-[10px] text-muted-foreground">OpenAI via OpenRouter • Free Tier</p>
                     </div>
-                    <div className="text-[10px] text-muted-foreground">Maximum input tokens</div>
                   </div>
-                  <div className="rounded-lg border bg-[#2F4858]/6 p-4">
-                    <div className="text-xs text-muted-foreground">Provider</div>
-                    <div className="mt-1 text-2xl font-bold text-[#2F4858]">OpenRouter</div>
-                    <div className="text-[10px] text-muted-foreground">via Redrise</div>
-                  </div>
+                  {benchmark.lastUpdated && (
+                    <span className="text-[10px] text-muted-foreground">
+                      Updated: {new Date(benchmark.lastUpdated).toLocaleTimeString()}
+                    </span>
+                  )}
                 </div>
-              )}
-              <div className="mt-4 rounded-lg border bg-muted/20 p-3">
-                <p className="text-xs text-muted-foreground">
-                  Data sourced from <a href="https://artificialanalysis.ai/models/gpt-oss-120b" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">Artificial Analysis</a>. 
-                  Benchmark refreshes every 3 hours.
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  A powerful 120-billion parameter open-source model from OpenAI. Designed for complex reasoning tasks, 
+                  code generation, and multi-step analysis. Optimized for enterprise-grade workflows with strong 
+                  performance across benchmark evaluations.
                 </p>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            {/* Performance Metrics */}
+            <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
+              <CardHeader>
+                <CardTitle className="text-sm font-semibold">Performance Metrics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {benchmark.loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <p className="text-sm text-muted-foreground">Loading benchmark data...</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                    <div className="rounded-lg border bg-muted/35 p-4">
+                      <div className="text-xs text-muted-foreground">Quality Index</div>
+                      <div className="mt-1 text-2xl font-bold text-[#2F4858]">{benchmark.qualityIndex ?? '—'}</div>
+                      <div className="text-[10px] text-muted-foreground">Artificial Analysis Score</div>
+                    </div>
+                    <div className="rounded-lg border bg-muted/35 p-4">
+                      <div className="text-xs text-muted-foreground">Price per 1M tokens</div>
+                      <div className="mt-1 text-2xl font-bold text-[#2F4858]">
+                        {benchmark.pricePerToken === 0 ? 'Free' : `$${((benchmark.pricePerToken ?? 0) * 1000).toFixed(2)}`}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">OpenRouter pricing</div>
+                    </div>
+                    <div className="rounded-lg border bg-muted/35 p-4">
+                      <div className="text-xs text-muted-foreground">Latency (TTFT)</div>
+                      <div className="mt-1 text-2xl font-bold text-[#2F4858]">{benchmark.latency ?? '—'} ms</div>
+                      <div className="text-[10px] text-muted-foreground">Time to first token</div>
+                    </div>
+                    <div className="rounded-lg border bg-muted/35 p-4">
+                      <div className="text-xs text-muted-foreground">Throughput</div>
+                      <div className="mt-1 text-2xl font-bold text-[#2F4858]">{benchmark.throughput ?? '—'} tok/s</div>
+                      <div className="text-[10px] text-muted-foreground">Output tokens per second</div>
+                    </div>
+                    <div className="rounded-lg border bg-muted/35 p-4">
+                      <div className="text-xs text-muted-foreground">Context Window</div>
+                      <div className="mt-1 text-2xl font-bold text-[#2F4858]">
+                        {benchmark.contextWindow ? `${(benchmark.contextWindow / 1000).toFixed(0)}K` : '—'}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">Maximum input tokens</div>
+                    </div>
+                    <div className="rounded-lg border bg-[#2F4858]/6 p-4">
+                      <div className="text-xs text-muted-foreground">Provider</div>
+                      <div className="mt-1 text-2xl font-bold text-[#2F4858]">OpenRouter</div>
+                      <div className="text-[10px] text-muted-foreground">via Redrise</div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Capabilities & Best Use Cases */}
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Capabilities */}
+              <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
+                <CardHeader>
+                  <CardTitle className="text-sm font-semibold">Capabilities</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F4858]/10 shrink-0">
+                        <Brain className="h-3.5 w-3.5 text-[#2F4858]" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">Advanced Reasoning</div>
+                        <div className="text-xs text-muted-foreground">Multi-step logical analysis and complex problem solving</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F4858]/10 shrink-0">
+                        <Code className="h-3.5 w-3.5 text-[#2F4858]" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">Code Generation</div>
+                        <div className="text-xs text-muted-foreground">Write, debug, and refactor code across multiple languages</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F4858]/10 shrink-0">
+                        <FileText className="h-3.5 w-3.5 text-[#2F4858]" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">Document Analysis</div>
+                        <div className="text-xs text-muted-foreground">Extract insights from long documents and reports</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F4858]/10 shrink-0">
+                        <BarChart3 className="h-3.5 w-3.5 text-[#2F4858]" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">Data Analysis</div>
+                        <div className="text-xs text-muted-foreground">Process structured data and generate insights</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F4858]/10 shrink-0">
+                        <Lightbulb className="h-3.5 w-3.5 text-[#2F4858]" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">Creative Writing</div>
+                        <div className="text-xs text-muted-foreground">Generate content, summaries, and creative text</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Best Use Cases */}
+              <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
+                <CardHeader>
+                  <CardTitle className="text-sm font-semibold">Best Use Cases</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#8c1f28]/10 shrink-0">
+                        <Zap className="h-3.5 w-3.5 text-[#8c1f28]" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">Workflow Automation</div>
+                        <div className="text-xs text-muted-foreground">Automate complex business processes with AI-driven decisions</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#8c1f28]/10 shrink-0">
+                        <Globe className="h-3.5 w-3.5 text-[#8c1f28]" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">Customer Support</div>
+                        <div className="text-xs text-muted-foreground">Intelligent ticket routing and response generation</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#8c1f28]/10 shrink-0">
+                        <Shield className="h-3.5 w-3.5 text-[#8c1f28]" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">Compliance & Review</div>
+                        <div className="text-xs text-muted-foreground">Automated document review and compliance checking</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#8c1f28]/10 shrink-0">
+                        <Brain className="h-3.5 w-3.5 text-[#8c1f28]" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">Research & Analysis</div>
+                        <div className="text-xs text-muted-foreground">Deep analysis of market data, reports, and trends</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#8c1f28]/10 shrink-0">
+                        <Code className="h-3.5 w-3.5 text-[#8c1f28]" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">Code Assistant</div>
+                        <div className="text-xs text-muted-foreground">Code review, refactoring, and documentation generation</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Footer */}
+            <div className="rounded-lg border bg-muted/20 p-3">
+              <p className="text-xs text-muted-foreground">
+                Data sourced from <a href="https://artificialanalysis.ai/models/gpt-oss-120b" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">Artificial Analysis</a>. 
+                Benchmark refreshes every 3 hours.
+              </p>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="logs" className="min-h-0 flex-1">
