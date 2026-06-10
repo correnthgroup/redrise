@@ -53,6 +53,8 @@ export async function createWorkspace(input: CreateWorkspaceInput): Promise<Work
 
   const id = await generateUniqueId()
 
+  const now = new Date().toISOString()
+
   const { data, error } = await supabase
     .from('workspaces')
     .insert({
@@ -62,6 +64,8 @@ export async function createWorkspace(input: CreateWorkspaceInput): Promise<Work
       mission: input.mission || '',
       status: 'pending',
       flows: 0,
+      created_at: now,
+      updated_at: now,
     })
     .select()
     .single()
