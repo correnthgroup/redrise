@@ -344,7 +344,7 @@ Dashboard (visor de workspaces)
 
 **Importancia**: E o coracao da modelagem visual. O usuario transforma processos mentais em estruturas visuais que podem ser executadas como flows.
 
-**Status atual**: Editor funcional com dados hardcoded. Save retorna para a lista de flows. Persistencia no Supabase sera implementada na Sprint 8.
+**Status atual**: Editor funcional. Conectado ao Supabase — cards e edges sao salvos e recarregados por flow. Persistencia completa na Sprint 8.
 
 ---
 
@@ -570,7 +570,7 @@ AppShell
 
 ## 15. Estado atual e proximos passos
 
-### O que ja existe (Sprint 0-7)
+### O que ja existe (Sprint 0-8)
 
 - Shell completo com navegacao funcional
 - Sidebar com animacao suave e persistencia
@@ -583,16 +583,16 @@ AppShell
 - **Sprint 5**: Wizard New Flow (2 passos) — nome, workspace dropdown (reais), team members multi-select
 - **Sprint 6**: Flows persistidos no Supabase — CRUD completo, migration 003, useFlows hook
 - **Sprint 7**: Tasks persistidas no Supabase — CRUD completo, drag-and-drop entre colunas, migration 004, useTasks hook
+- **Sprint 8**: Flow Editor persistido no Supabase — cards e edges salvos/recarregados por flow, migration 005, useFlowCards hook
 - **Flow List**: lista com busca, selecao, edicao de nome/members, delete, IDs visiveis, dados reais do Supabase
-- **Flow Editor**: editor React Flow com cards que mostram titulo/members/agents/ID, dialog de edicao completo, atalhos de teclado, arestas animadas (persistencia pendente Sprint 8)
+- **Flow Editor**: editor React Flow com cards que mostram titulo/members/agents/ID, dialog de edicao completo, atalhos de teclado, arestas animadas — tudo persistido no Supabase
 - **WorkflowPipeline**: checkboxes quadrados, Select All, members/agents por card, controles play/pause/reset
 - **IDs visiveis**: workspace ID (dashboard, review), flow ID (flow list), card ID (flow editor, pipeline)
 
-### O que falta (Sprint 8+)
+### O que falta (Sprint 9+)
 
 | Sprint | O que entrega | Por que importa |
 |--------|--------------|-----------------|
-| Sprint 8 | Flow Editor persistido | Salva e recarrega flows do Supabase |
 | Sprint 9 | Agents base | Prepara a camada de IA |
 | Sprint 10 | IA com HITL | Entrega a primeira acao de IA com aprovacao humana |
 | Sprint 11 | Analytics basico | Torna a operacao observavel |
@@ -605,9 +605,9 @@ AppShell
 
 - **Backend**: Supabase (projeto `ndfsselzilmdzywcdyoo`)
 - **Autenticacao**: GitHub + email/password via Supabase Auth
-- **RLS**: habilitado nas tabelas `workspaces`, `flows` e `tasks` com 4 politicas baseadas em `user_id` cada
-- **Migrations**: 001 (workspaces), 002 (id type fix), 003 (flows), 004 (tasks)
+- **RLS**: habilitado nas tabelas `workspaces`, `flows`, `tasks`, `flow_cards` e `flow_edges` com 4 politicas baseadas em `user_id` cada
+- **Migrations**: 001 (workspaces), 002 (id type fix), 003 (flows), 004 (tasks), 005 (flow_cards + flow_edges)
 - **State management**: React + localStorage (sem Redux/Zustand)
 - **Package manager**: yarn via corepack (nao pnpm, nao npm)
-- **IDs**: formato curto (prefixo + 5 chars) — workspaces=`w`, flows=`f`, tasks=`t`
+- **IDs**: formato curto (prefixo + 5 chars) — workspaces=`w`, flows=`f`, tasks=`t`, cards=`c`, edges=`e`
 - **Testes E2E**: 15 testes Playwright passando (smoke, auth, navigation, workspaces)
