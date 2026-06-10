@@ -46,6 +46,9 @@
 | Flow editor | `@xyflow/react` (React Flow v12+) |
 | Routing | State-machine no `AppShell` via `SidebarKey` |
 | State | Pure React + `localStorage` |
+| Backend | Supabase (projeto `ndfsselzilmdzywcdyoo`) |
+| Auth | Supabase Auth (GitHub + email/password) |
+| Database | Supabase PostgreSQL com RLS |
 | Package manager | `yarn` via `corepack` |
 | Testes | Vitest (unit) + Playwright (e2e) |
 | Paleta | **Sugestao 2** — primary=#8c1f28, header=#0F172A, secondary=#2F4858 |
@@ -106,7 +109,7 @@ Dashboard (visor de workspaces)
 
 **Conexao com outros modulos**: Ao autenticar, o usuario e redirecionado para o `AppShell` que mostra o Dashboard.
 
-**Status atual**: Funcional com dados mockados. Nao ha backend real — qualquer email/senha valida autentica.
+**Status atual**: Conectado ao Supabase Auth. Suporta GitHub OAuth e email/password. Sessao gerenciada pelo Supabase.
 
 ---
 
@@ -122,7 +125,7 @@ Dashboard (visor de workspaces)
 
 **Importancia no fluxo**: E a espinha dorsal do produto. Todas as paginas autenticadas vivem dentro dele. O state-machine do `AppShell` controla qual pagina e exibida com base na navegacao da sidebar.
 
-**Estado atual**: Completo e funcional. Navegacao entre 6 modulos + sub-estados funciona.
+**Estado atual**: Completo e funcional. Navegacao entre 6 modulos + sub-estados funciona. Conectado ao Supabase para workspaces (load, create, delete).
 
 ---
 
@@ -166,10 +169,55 @@ Dashboard (visor de workspaces)
 ### 7.1 OnboardingEmpty — Visao de workspaces
 - Cartao de boas-vindas com icone Sparkles
 - 3 colunas de status: Healthy, Maintenance, Pending
-- Cada workspace mostra nome, missao (2 linhas), owner, quantidade de flows
+- Cada workspace mostra nome, missao (2 linhas), ID (mono fonte), data de criacao e quantidade de flows
 - Clicar em um workspace abre o ReviewWorkspacePage
 
 **Importancia**: E o ponto de entrada para cada workspace. O usuario ve todos os seus workspaces organizados por saude e pode acessar qualquer um deles.
+
+**Status atual**: Conectado ao Supabase. Workspaces reais sao exibidos (ou lista vazia se nenhum existir).
+
+### 7.1.1 Create Workspace (wizard)
+
+**Arquivo**: `src/components/blocks/pages/create-workspace-page.tsx`
+
+**O que e**: Wizard de 4 steps para criar um workspace.
+
+**Steps**:
+1. **Basic Info** — nome e missao do workspace (campos obrigatorios)
+2. **Health & Team** — placeholder para metricas de saude e equipe inicial
+3. **Flows** — placeholder para flows que o workspace tera
+4. **Review** — resumo com nome e missao
+
+**Comportamentos**:
+- Footer: `[Cancel]` a esquerda, `[Back] [Next]` a direita (ml-auto)
+- Botao "Done" no ultimo step (min-w-[120px] para evitar shift de largura)
+- Ao criar: salva no Supabase via `addWorkspace()`, exibe ReviewWorkspace
+
+**Importancia**: Formaliza a criacao de um workspace. O nome e a missao sao os dados obrigatorios.
+
+**Status atual**: Persistido no Supabase. Steps 2 e 3 ainda sao placeholders.
+
+### 7.1.2 Review Workspace
+
+**Arquivo**: `src/components/blocks/pages/review-workspace-page.tsx`
+
+**O que e**: Detalhe do workspace com 4 cards: Identity, Mission, Health, Flows.
+
+**O que o usuario ve**:
+- Card Identity: ID (mono fonte), nome, status, data de criacao
+- Card Mission: texto da missao
+- Card Health: placeholder de metricas
+- Card Flows: quantidade de flows configurados
+- Botao Delete ( Trash2 ) no header: abre dialog de confirmacao
+
+**Comportamentos**:
+- Delete: exige digitar "DELETE" para confirmar, botoes OK/Cancel
+- Ao deletar: remove do Supabase via `removeWorkspace()`, volta para Dashboard
+- Botao Cancel: volta para Dashboard
+
+**Importancia**: Permite revisar todos os detalhes do workspace e excluir se necessario.
+
+**Status atual**: Conectado ao Supabase. Dados reais exibidos.
 
 ### 7.2 KPI Cards — Metricas operacionais
 - 7 cards: Active workspaces, Flow runs, Health score, Blocked tasks, AI requests, Approval rate, Error rate
@@ -197,7 +245,7 @@ Dashboard (visor de workspaces)
 
 **Conexao com outros modulos**: O Dashboard e o hub. Workspaces levam ao ReviewWorkspace, que liga a Flow e Tasks. O botao "New Workspace" leva ao CreateWorkspacePage.
 
-**Status atual**: Todos os dados sao mockados. 3 workspaces default: Atlas, Beacon, Comet.
+**Status atual**: Workspaces reais do Supabase sao exibidos no OnboardingEmpty. KPI Cards, ChartTabs, OperationsGrid e ActivityFeed ainda usam dados mockados.
 
 ---
 
@@ -210,12 +258,22 @@ Dashboard (visor de workspaces)
 **O que e**: Listagem de flows (processos) do workspace.
 
 **O que o usuario ve**:
-- **Coluna esquerda**: barra de busca + botao "New Flow" + lista de 4 flows placeholder (Sales Qualification, Client Onboarding, Escalation Routing, Delivery Handoff). Cada flow mostra nome, owner e badge de status (running/paused/error).
-- **Coluna direita**: WorkflowPipeline com 5 nos e controles play/pause/reset.
+- **Coluna esquerda**: barra de busca + botao "New Flow" + lista de flows placeholder (Sales Qualification, Client Onboarding, Escalation Routing, Delivery Handoff). Cada flow mostra nome, owners (separados por virgula), ID (mono fonte) e badge de status (running/paused/error).
+- **Acoes por flow**: 3 icones — ExternalLink (abrir no editor), Pencil (renomear inline), Users (selecionar owners via multi-select dropdown)
+- **Selecao**: clicar em um flow seleciona (highlight com ring primary), um por vez
+- **Coluna direita**: WorkflowPipeline com cards do flow selecionado, checkboxes (padrao quadrado, unchecked), Select All/Deselect All, e controles play/pause/reset
+- **Estado vazio**: quando nenhum flow selecionado, exibe "Select a Flow to Run It"
+
+**Comportamentos**:
+- Busca filtra flows por nome (case-insensitive)
+- Renomear: clique no icone Pencil, edite inline, Enter confirma, Esc cancela, nome vazio invalidado
+- Owners: clique no icone Users, multi-select com dropdown de checkboxes (PLACEHOLDER_MEMBERS)
+- Selecionar flow: clique no card, destaque visual, atualiza Pipeline
+- Clique novamente para desselecionar
 
 **Importancia**: E onde o usuario gerencia todos os processos do workspace. A busca permite encontrar flows rapidamente. O status indica quais estao ativos, pausados ou com erro.
 
-**Conexao**: Clicar em um flow abre o FlowBuilderPage. "New Flow" tambem abre o FlowBuilderPage.
+**Conexao**: Clicar no icone ExternalLink ou em um flow abre o FlowBuilderPage. "New Flow" tambem abre o FlowBuilderPage.
 
 ### 8.2 Flow Editor
 
@@ -226,19 +284,40 @@ Dashboard (visor de workspaces)
 **O que o usuario ve**:
 - Canvas com fundo de grid pontilhado
 - 4 nos iniciais em cadeia horizontal: trigger -> enrich -> decide -> deliver
-- Cada no e um `FlowCard` (180px, com handles de entrada/saida)
-- Barra superior com "Validate" e "Save" (botoes decorativos)
-- Controles de zoom (inferior esquerdo) + MiniMap (inferior direito)
+- Cada no e um `FlowCard` (180px, com handles de entrada/saida) que mostra:
+  - Titulo do card
+  - Members (se selecionados, "Members: nome1, nome2")
+  - Agents (se selecionados, "Agents: agent1, agent2")
+  - "Undefined" quando nenhum member/agent selecionado
+  - ID do card (mono fonte, ex: "ID: n1")
+- Barra superior com icone de edicao (Pencil) ao lado do titulo, atalhos de teclado (Keyboard), e botoes Cancel/Save
+- Edicao inline do titulo do flow (clique no Pencil, Enter confirma, Esc cancela)
+- Dialog "Edit Card" (clique no icone CheckCircle2 verde-escuro no card):
+  - Titulo do card (input)
+  - Instrucoes (textarea)
+  - Members e Agents lado a lado (grid-cols-2, multi-select dropdowns)
+  - ID do card (mono fonte, em baixo)
+- Botoes Cancel e Save (Save retorna para a lista de flows)
 
 **Comportamentos**:
 - Arrastar nos para reposicionar
-- Conectar handles para criar arestas
-- Zoom/pan no canvas
+- Conectar handles para criar arestas (animadas)
+- Zoom via scroll do mouse
 - MiniMap para navegacao rapida
+- Atalhos de teclado:
+  | Atalho | Acao |
+  |--------|------|
+  | `N` | Criar novo card |
+  | `Del` | Deletar card selecionado |
+  | `Ctrl+A` | Selecionar todos |
+  | `Ctrl+C` | Copiar selecionados |
+  | `Ctrl+V` | Colar copiados |
+  | `Ctrl+Z` | Desfazer |
+  | `Ctrl+Shift+Z` | Refazer |
 
 **Importancia**: E o coracao da modelagem visual. O usuario transforma processos mentais em estruturas visuais que podem ser executadas como flows.
 
-**Status atual**: Editor funcional com dados hardcoded. Save e Validate sao no-ops. Sem persistencia.
+**Status atual**: Editor funcional com dados hardcoded. Save retorna para a lista de flows. Sem persistencia no Supabase.
 
 ---
 
@@ -394,7 +473,7 @@ Estes componentes sao reutilizados em multiplos modulos:
 | `OperationsGrid` | Dashboard | Detalhes operacionais |
 | `ActivityFeed` | Dashboard | Feed de atividade |
 | `OnboardingEmpty` | Dashboard | Visao de workspaces |
-| `WorkflowPipeline` | Flow List | Pipeline visual |
+| `WorkflowPipeline` | Flow List | Pipeline visual com checkboxes (padrao quadrado), Select All, members/agents por card, status badge, controles play/pause/reset |
 | `SessionsList` | Settings, Agent Detail | Gestao de sessoes |
 | `ApiKeysManager` | Settings, Agent Detail | Gestao de chaves |
 | `ChangePassword` | Settings, Agent Detail | Alteracao de senha |
@@ -452,20 +531,24 @@ AppShell
 
 ## 15. Estado atual e proximos passos
 
-### O que ja existe (Sprint 0 + Sprint 1)
+### O que ja existe (Sprint 0 + Sprint 1 + Sprint 2 + Sprint 3)
 
 - Shell completo com navegacao funcional
 - Sidebar com animacao suave e persistencia
 - 14 paginas com placeholders ricos
 - Visual consistente com paleta Sugestao 2
 - Pipeline de qualidade (lint, typecheck, test, build, test:e2e)
+- **Sprint 2**: Dashboard conectado ao Supabase — workspaces reais exibidos, criados e deletados via API
+- **Sprint 3**: Wizard de criacao de workspace persistido — cria workspaces no Supabase que sobrevivem a reload
+- **Flow List**: lista com busca, selecao, edicao de nome/owners, IDs visiveis
+- **Flow Editor**: editor React Flow com cards que mostram titulo/members/agents/ID, dialog de edicao completo, atalhos de teclado, arestas animadas
+- **WorkflowPipeline**: checkboxes quadrados, Select All, members/agents por card, controles play/pause/reset
+- **IDs visiveis**: workspace ID (dashboard, review), flow ID (flow list), card ID (flow editor, pipeline)
 
-### O que falta (Sprint 2+)
+### O que falta (Sprint 4+)
 
 | Sprint | O que entrega | Por que importa |
 |--------|--------------|-----------------|
-| Sprint 2 | Dashboard real com listagem de workspaces | Transforma dados mockados em dados reais |
-| Sprint 3 | Wizard de criacao de workspace persistido | Permite criar workspaces que sobrevivem a reload |
 | Sprint 4 | Review Workspace conectado a dados reais | Fecha o ciclo Dashboard -> Create -> Review |
 | Sprint 5 | Flow List por workspace | Abre a camada de modelagem visual |
 | Sprint 6 | Flow Editor persistido | Permite salvar e recarregar flows |
@@ -479,6 +562,10 @@ AppShell
 | Sprint 14 | Multi-tenant e seguranca | Prepara para uso serio |
 | Sprint 15 | Templates | Acelera onboarding de novos usuarios |
 
-### Decisao pendente
+### Decisoes tomadas
 
-**Persistencia**: O app atual usa `localStorage` + dados mockados. A decisao de usar `Supabase` (ou outro backend) precisa ser tomada antes da Sprint 2, pois afeta todas as entidades (workspace, flow, task, agent, membership, etc.).
+- **Backend**: Supabase (projeto `ndfsselzilmdzywcdyoo`)
+- **Autenticacao**: GitHub + email/password via Supabase Auth
+- **RLS**: habilitado na tabela `workspaces` com 4 politicas baseadas em `user_id`
+- **State management**: React + localStorage (sem Redux/Zustand)
+- **Package manager**: yarn via corepack (nao pnpm, nao npm)
