@@ -65,11 +65,8 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
           <CreateWorkspacePage
             onBack={() => setDashboardView('board')}
             onCreate={async ({ name, mission }) => {
-              const workspace = await addWorkspace({ name, mission })
-              if (workspace) {
-                setSelectedWorkspaceId(workspace.id)
-                setDashboardView('review-workspace')
-              }
+              await addWorkspace({ name, mission })
+              setDashboardView('board')
             }}
           />
         )
