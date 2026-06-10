@@ -40,13 +40,6 @@ export function TaskBoardPage({
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4 p-6 animate-app-rise">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h2 className="text-sm font-semibold text-foreground">Task Board</h2>
-          <p className="text-xs text-muted-foreground">Operational board with workspace-aware states and a colder SaaS visual rhythm.</p>
-        </div>
-        <Button onClick={onCreateTask}><Plus className="h-4 w-4" /> New Task</Button>
-      </div>
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {COLUMNS.map((col) => {
           const items = tasks.filter((t) => t.status === col.id)

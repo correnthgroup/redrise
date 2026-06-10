@@ -175,6 +175,11 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
       <Plus className="h-4 w-4" />
       New Flow
     </Button>
+  ) : active === 'tasks' && taskView === 'board' ? (
+    <Button onClick={() => setTaskView('create')}>
+      <Plus className="h-4 w-4" />
+      New Task
+    </Button>
   ) : active === 'agents' && agentView === 'list' ? (
     <Button onClick={() => setAgentView('create')}>
       <Plus className="h-4 w-4" />
