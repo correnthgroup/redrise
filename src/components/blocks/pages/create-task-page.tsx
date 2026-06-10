@@ -97,6 +97,9 @@ export function CreateTaskPage({
   const [showAgentDropdown, setShowAgentDropdown] = useState(false)
   const [showColumnDropdown, setShowColumnDropdown] = useState(false)
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false)
+  const [showRecurrenceDropdown, setShowRecurrenceDropdown] = useState(false)
+  const [showWeekDayDropdown, setShowWeekDayDropdown] = useState(false)
+  const [showMonthDayDropdown, setShowMonthDayDropdown] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -489,169 +492,187 @@ export function CreateTaskPage({
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <Label htmlFor="schedule-time" className="text-xs text-[#8c1f28]">
-                    Time <span className="text-[#8c1f28]">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Clock className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="schedule-time"
-                      type="time"
-                      value={scheduleTime}
-                      onChange={(e) => setScheduleTime(e.target.value)}
-                      className="h-9 pl-7"
-                    />
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="schedule-time" className="text-xs text-[#8c1f28]">
+                      Time <span className="text-[#8c1f28]">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Clock className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        id="schedule-time"
+                        type="time"
+                        value={scheduleTime}
+                        onChange={(e) => setScheduleTime(e.target.value)}
+                        className="h-9 pl-7"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label className="text-xs">Recurrence</Label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {RECURRENCES.map((r) => (
-                      <button
-                        key={r.value}
-                        type="button"
-                        onClick={() => {
-                          setRecurrence(r.value)
-                          setRecurrenceDays([])
-                          setRecurrenceMonthlyDays([])
-                        }}
-                        className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
-                          recurrence === r.value
-                            ? 'bg-[#2F4858] text-white border-[#2F4858]'
-                            : 'bg-background hover:bg-accent/40'
-                        }`}
-                      >
-                        {r.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Weekly: Day of week selector */}
-                {recurrence === 'weekly' && (
-                  <div className="space-y-2">
-                    <Label className="text-xs">Days of Week</Label>
+                  {/* Recurrence */}
+                  <div className="space-y-1">
+                    <Label className="text-xs">Recurrence</Label>
                     <div className="relative">
                       <Button
                         type="button"
                         variant="outline"
                         className="w-full justify-between h-9"
-                        onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                        onClick={() => setShowRecurrenceDropdown(!showRecurrenceDropdown)}
                       >
-                        <span className="text-muted-foreground">
-                          {recurrenceDays.length === 0 ? 'Select days...' : `${recurrenceDays.length} days selected`}
+                        <span className={recurrence ? 'text-foreground' : 'text-muted-foreground'}>
+                          {selectedRecurrence?.label ?? 'Select recurrence...'}
                         </span>
                         <ChevronDown className="h-4 w-4 opacity-50" />
                       </Button>
-                      {showColumnDropdown && (
+                      {showRecurrenceDropdown && (
                         <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
                           <div className="p-1">
-                            {/* Select All */}
-                            <button
-                              type="button"
-                              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent border-b"
-                              onClick={() => {
-                                if (recurrenceDays.length === WEEK_DAYS.length) {
+                            {RECURRENCES.map((r) => (
+                              <button
+                                key={r.value}
+                                type="button"
+                                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                                onClick={() => {
+                                  setRecurrence(r.value)
                                   setRecurrenceDays([])
-                                } else {
-                                  setRecurrenceDays(WEEK_DAYS.map((d) => d.id))
-                                }
-                              }}
-                            >
-                              <Checkbox
-                                checked={recurrenceDays.length === WEEK_DAYS.length}
-                                className="rounded-[2px]"
-                              />
-                              <span className="font-medium">Select All</span>
-                            </button>
-                            {WEEK_DAYS.map((day) => (
-                              <button
-                                key={day.id}
-                                type="button"
-                                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                                onClick={() => toggleRecurrenceDay(day.id)}
-                              >
-                                <Checkbox
-                                  checked={recurrenceDays.includes(day.id)}
-                                  className="rounded-[2px]"
-                                />
-                                <span>{day.label}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Monthly: Day of month selector */}
-                {recurrence === 'monthly' && (
-                  <div className="space-y-2">
-                    <Label className="text-xs">Days of Month</Label>
-                    <div className="relative">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full justify-between h-9"
-                        onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                      >
-                        <span className="text-muted-foreground">
-                          {recurrenceMonthlyDays.length === 0 ? 'Select days...' : `${recurrenceMonthlyDays.length} days selected`}
-                        </span>
-                        <ChevronDown className="h-4 w-4 opacity-50" />
-                      </Button>
-                      {showColumnDropdown && (
-                        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
-                          <div className="max-h-60 overflow-y-auto p-1">
-                            {/* Select All */}
-                            <button
-                              type="button"
-                              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent border-b"
-                              onClick={() => {
-                                if (recurrenceMonthlyDays.length === MONTH_DAYS.length) {
                                   setRecurrenceMonthlyDays([])
-                                } else {
-                                  setRecurrenceMonthlyDays([...MONTH_DAYS])
-                                }
-                              }}
-                            >
-                              <Checkbox
-                                checked={recurrenceMonthlyDays.length === MONTH_DAYS.length}
-                                className="rounded-[2px]"
-                              />
-                              <span className="font-medium">Select All</span>
-                            </button>
-                            {MONTH_DAYS.map((day) => (
-                              <button
-                                key={day}
-                                type="button"
-                                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                                onClick={() => toggleMonthlyDay(day)}
+                                  setShowRecurrenceDropdown(false)
+                                }}
                               >
-                                <Checkbox
-                                  checked={recurrenceMonthlyDays.includes(day)}
-                                  className="rounded-[2px]"
-                                />
-                                <span>Day {day}</span>
+                                <span className="flex-1 text-left">{r.label}</span>
+                                {recurrence === r.value && (
+                                  <Check className="h-4 w-4 text-[#2F4858]" />
+                                )}
                               </button>
                             ))}
                           </div>
                         </div>
                       )}
-                      {hasDay31 && (
-                        <div className="flex items-start gap-2 rounded-md bg-[#B7791F]/10 border border-[#B7791F]/30 p-2 mt-2">
-                          <AlertTriangle className="h-4 w-4 text-[#B7791F] shrink-0 mt-0.5" />
-                          <p className="text-[11px] text-[#8A6116]">
-                            In months with fewer than 31 days, this task will be scheduled for the last day of the month.
-                          </p>
-                        </div>
-                      )}
                     </div>
                   </div>
-                )}
+
+                  {/* Days of Week (when Weekly) */}
+                  {recurrence === 'weekly' && (
+                    <div className="space-y-1">
+                      <Label className="text-xs">Days of Week</Label>
+                      <div className="relative">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full justify-between h-9"
+                          onClick={() => setShowWeekDayDropdown(!showWeekDayDropdown)}
+                        >
+                          <span className="text-muted-foreground">
+                            {recurrenceDays.length === 0 ? 'Select days...' : `${recurrenceDays.length} days selected`}
+                          </span>
+                          <ChevronDown className="h-4 w-4 opacity-50" />
+                        </Button>
+                        {showWeekDayDropdown && (
+                          <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                            <div className="p-1">
+                              <button
+                                type="button"
+                                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent border-b"
+                                onClick={() => {
+                                  if (recurrenceDays.length === WEEK_DAYS.length) {
+                                    setRecurrenceDays([])
+                                  } else {
+                                    setRecurrenceDays(WEEK_DAYS.map((d) => d.id))
+                                  }
+                                }}
+                              >
+                                <Checkbox
+                                  checked={recurrenceDays.length === WEEK_DAYS.length}
+                                  className="rounded-[2px]"
+                                />
+                                <span className="font-medium">Select All</span>
+                              </button>
+                              {WEEK_DAYS.map((day) => (
+                                <button
+                                  key={day.id}
+                                  type="button"
+                                  className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                                  onClick={() => toggleRecurrenceDay(day.id)}
+                                >
+                                  <Checkbox
+                                    checked={recurrenceDays.includes(day.id)}
+                                    className="rounded-[2px]"
+                                  />
+                                  <span>{day.label}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Days of Month (when Monthly) */}
+                  {recurrence === 'monthly' && (
+                    <div className="space-y-1">
+                      <Label className="text-xs">Days of Month</Label>
+                      <div className="relative">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full justify-between h-9"
+                          onClick={() => setShowMonthDayDropdown(!showMonthDayDropdown)}
+                        >
+                          <span className="text-muted-foreground">
+                            {recurrenceMonthlyDays.length === 0 ? 'Select days...' : `${recurrenceMonthlyDays.length} days selected`}
+                          </span>
+                          <ChevronDown className="h-4 w-4 opacity-50" />
+                        </Button>
+                        {showMonthDayDropdown && (
+                          <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                            <div className="max-h-60 overflow-y-auto p-1">
+                              <button
+                                type="button"
+                                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent border-b"
+                                onClick={() => {
+                                  if (recurrenceMonthlyDays.length === MONTH_DAYS.length) {
+                                    setRecurrenceMonthlyDays([])
+                                  } else {
+                                    setRecurrenceMonthlyDays([...MONTH_DAYS])
+                                  }
+                                }}
+                              >
+                                <Checkbox
+                                  checked={recurrenceMonthlyDays.length === MONTH_DAYS.length}
+                                  className="rounded-[2px]"
+                                />
+                                <span className="font-medium">Select All</span>
+                              </button>
+                              {MONTH_DAYS.map((day) => (
+                                <button
+                                  key={day}
+                                  type="button"
+                                  className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                                  onClick={() => toggleMonthlyDay(day)}
+                                >
+                                  <Checkbox
+                                    checked={recurrenceMonthlyDays.includes(day)}
+                                    className="rounded-[2px]"
+                                  />
+                                  <span>Day {day}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {hasDay31 && (
+                          <div className="flex items-start gap-2 rounded-md bg-[#B7791F]/10 border border-[#B7791F]/30 p-2 mt-2">
+                            <AlertTriangle className="h-4 w-4 text-[#B7791F] shrink-0 mt-0.5" />
+                            <p className="text-[11px] text-[#8A6116]">
+                              In months with fewer than 31 days, this task will be scheduled for the last day of the month.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
