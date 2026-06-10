@@ -1,6 +1,7 @@
 ﻿import { useState, type ReactNode } from 'react'
 import { Plus } from 'lucide-react'
 import { useWorkspaces } from '@/hooks/use-workspaces'
+import { useFlows } from '@/hooks/use-flows'
 import { DashboardPage } from '@/components/blocks/pages/dashboard-page'
 import { CreateFlowPage } from '@/components/blocks/pages/create-flow-page'
 import { FlowBuilderPage } from '@/components/blocks/pages/flow-builder-page'
@@ -42,6 +43,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const [agentView, setAgentView] = useState<'list' | 'create' | 'detail'>('list')
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null)
   const { workspaces, addWorkspace, removeWorkspace } = useWorkspaces()
+  const { flows, addFlow, removeFlow } = useFlows()
 
   function selectPage(next: SidebarKey) {
     setActive(next)
@@ -99,13 +101,14 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
             onBack={() => setFlowView('list')}
             workspaces={workspaces}
             onCreate={async ({ name, workspaceId, members }) => {
-              // TODO: persist to Supabase in Sprint 6
-              console.log('[createFlow]', { name, workspaceId, members })
-              setFlowView('list')
-              return { id: 'temp', name }
+              const result = await addFlow({ name, workspace_id: workspaceId, members })
+              if (result) {
+                setFlowView('list')
+              }
+              return result
             }}
           />
-        : <FlowListPage onCreate={() => setFlowView('create')} onOpen={() => setFlowView('builder')} />
+        : <FlowListPage flows={flows} onDelete={removeFlow} onCreate={() => setFlowView('create')} onOpen={() => setFlowView('builder')} />
   } else if (active === 'tasks') {
     body = taskView === 'create'
       ? <CreateTaskPage onBack={() => setTaskView('board')} />

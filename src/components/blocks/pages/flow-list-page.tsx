@@ -1,11 +1,12 @@
 ﻿import { useState } from 'react'
-import { Search, ExternalLink, Pencil, Users, Check, X } from 'lucide-react'
+import { Search, ExternalLink, Pencil, Users, Check, X, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { WorkflowPipeline } from '../shared/workflow-pipeline'
 import { Badge } from '@/components/ui/badge'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import type { Flow } from '@/types/flow'
 
 const PLACEHOLDER_MEMBERS = ['Alice Silva', 'Bob Santos', 'Carol Oliveira', 'David Costa', 'Eva Lima']
 
@@ -38,20 +39,6 @@ const PLACEHOLDER_FLOW_CARDS: Record<string, FlowCard[]> = {
   ],
 }
 
-interface Flow {
-  id: string
-  name: string
-  status: string
-  owners: string[]
-}
-
-const INITIAL_FLOWS: Flow[] = [
-  { id: 'f1', name: 'Sales Qualification', status: 'running', owners: ['Alice Silva'] },
-  { id: 'f2', name: 'Client Onboarding', status: 'paused', owners: ['Bob Santos', 'Carol Oliveira'] },
-  { id: 'f3', name: 'Escalation Routing', status: 'error', owners: ['David Costa'] },
-  { id: 'f4', name: 'Delivery Handoff', status: 'running', owners: ['Eva Lima', 'Alice Silva'] },
-]
-
 function badgeClassName(status: string) {
   switch (status) {
     case 'running':
@@ -63,9 +50,18 @@ function badgeClassName(status: string) {
   }
 }
 
-export function FlowListPage({ onOpen, onCreate }: { onOpen?: (id: string) => void; onCreate?: () => void }) {
+export function FlowListPage({
+  flows,
+  onDelete,
+  onOpen,
+  onCreate,
+}: {
+  flows: Flow[]
+  onDelete?: (id: string, workspaceId: string) => Promise<boolean>
+  onOpen?: (id: string) => void
+  onCreate?: () => void
+}) {
   const [query, setQuery] = useState('')
-  const [flows, setFlows] = useState<Flow[]>(INITIAL_FLOWS)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
@@ -78,22 +74,12 @@ export function FlowListPage({ onOpen, onCreate }: { onOpen?: (id: string) => vo
   }
 
   function confirmRename(id: string) {
-    if (editingName.trim()) {
-      setFlows((prev) => prev.map((f) => (f.id === id ? { ...f, name: editingName.trim() } : f)))
-    }
+    // TODO: persist rename in Sprint 7
     setEditingId(null)
   }
 
   function cancelRename() {
     setEditingId(null)
-  }
-
-  function toggleOwner(flowId: string, member: string) {
-    setFlows((prev) => prev.map((f) => {
-      if (f.id !== flowId) return f
-      const has = f.owners.includes(member)
-      return { ...f, owners: has ? f.owners.filter((o) => o !== member) : [...f.owners, member] }
-    }))
   }
 
   function selectFlow(id: string) {
@@ -115,80 +101,94 @@ export function FlowListPage({ onOpen, onCreate }: { onOpen?: (id: string) => vo
         <Card className="min-h-0 flex-1 border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
           <CardHeader><CardTitle className="text-sm font-semibold">Flows</CardTitle></CardHeader>
           <CardContent>
-            <ul className="space-y-2">
-              {filtered.map((f) => (
-                <li key={f.id}>
-                  <div
-                    onClick={() => selectFlow(f.id)}
-                    className={`flex w-full items-center justify-between rounded-md border bg-card p-3 text-left text-sm cursor-pointer transition-colors ${
-                      selectedId === f.id
-                        ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/20'
-                        : 'hover:bg-accent/60'
-                    }`}
-                  >
-                    <div className="flex-1 min-w-0">
-                      {editingId === f.id ? (
-                        <div className="flex items-center gap-1">
-                          <Input
-                            value={editingName}
-                            onChange={(e) => setEditingName(e.target.value)}
-                            className="h-7 text-sm"
-                            onClick={(e) => e.stopPropagation()}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') confirmRename(f.id)
-                              if (e.key === 'Escape') cancelRename()
-                            }}
-                            autoFocus
-                          />
-                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => { e.stopPropagation(); confirmRename(f.id) }} disabled={!editingName.trim()}>
-                            <Check className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => { e.stopPropagation(); cancelRename() }}>
-                            <X className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="font-medium truncate">{f.name}</div>
-                          <div className="mt-0.5 text-xs text-muted-foreground truncate">Owner: {f.owners.join(', ') || 'None'}</div>
-                          <div className="mt-0.5 text-[10px] text-muted-foreground/60 font-mono">ID: {f.id}</div>
-                        </>
-                      )}
-                    </div>
+            {filtered.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No flows found. Create one to get started.</p>
+            ) : (
+              <ul className="space-y-2">
+                {filtered.map((f) => (
+                  <li key={f.id}>
+                    <div
+                      onClick={() => selectFlow(f.id)}
+                      className={`flex w-full items-center justify-between rounded-md border bg-card p-3 text-left text-sm cursor-pointer transition-colors ${
+                        selectedId === f.id
+                          ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/20'
+                          : 'hover:bg-accent/60'
+                      }`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        {editingId === f.id ? (
+                          <div className="flex items-center gap-1">
+                            <Input
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              className="h-7 text-sm"
+                              onClick={(e) => e.stopPropagation()}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') confirmRename(f.id)
+                                if (e.key === 'Escape') cancelRename()
+                              }}
+                              autoFocus
+                            />
+                            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => { e.stopPropagation(); confirmRename(f.id) }} disabled={!editingName.trim()}>
+                              <Check className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => { e.stopPropagation(); cancelRename() }}>
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="font-medium truncate">{f.name}</div>
+                            <div className="mt-0.5 text-xs text-muted-foreground truncate">Members: {f.members?.join(', ') || 'None'}</div>
+                            <div className="mt-0.5 text-[10px] text-muted-foreground/60 font-mono">ID: {f.id}</div>
+                          </>
+                        )}
+                      </div>
 
-                    <div className="flex items-center gap-1 shrink-0 ml-2" onClick={(e) => e.stopPropagation()}>
-                      <Badge variant="outline" className={`text-[10px] uppercase ${badgeClassName(f.status)}`}>{f.status}</Badge>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onOpen?.(f.id)}>
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startRename(f)}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7">
-                            <Users className="h-3.5 w-3.5" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56">
-                          <DropdownMenuLabel>Select owners</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          {PLACEHOLDER_MEMBERS.map((member) => (
-                            <DropdownMenuCheckboxItem
-                              key={member}
-                              checked={f.owners.includes(member)}
-                              onCheckedChange={() => toggleOwner(f.id, member)}
-                            >
-                              {member}
-                            </DropdownMenuCheckboxItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex items-center gap-1 shrink-0 ml-2" onClick={(e) => e.stopPropagation()}>
+                        <Badge variant="outline" className={`text-[10px] uppercase ${badgeClassName(f.status)}`}>{f.status}</Badge>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onOpen?.(f.id)}>
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startRename(f)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                              <Users className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-56">
+                            <DropdownMenuLabel>Select members</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {PLACEHOLDER_MEMBERS.map((member) => (
+                              <DropdownMenuCheckboxItem
+                                key={member}
+                                checked={f.members?.includes(member) ?? false}
+                                onCheckedChange={() => {
+                                  // TODO: persist member change in Sprint 7
+                                }}
+                              >
+                                {member}
+                              </DropdownMenuCheckboxItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive hover:text-destructive"
+                          onClick={() => onDelete?.(f.id, f.workspace_id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
       </div>
