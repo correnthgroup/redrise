@@ -78,6 +78,26 @@ describe('workspaces persistence (Supabase)', () => {
     expect(chain.single).toHaveBeenCalled()
   })
 
+  it('createWorkspace includes required fields in insert', async () => {
+    const chain = setupQueryChain()
+    chain.single.mockResolvedValue({ data: { id: 'w2' }, error: null })
+    mockFrom.mockReturnValue(chain as never)
+
+    await createWorkspace({ name: 'My Workspace', mission: 'My mission' })
+
+    const insertPayload = chain.insert.mock.calls[0][0] as Record<string, unknown>
+    expect(insertPayload).toHaveProperty('id')
+    expect(insertPayload).toHaveProperty('user_id', 'user-1')
+    expect(insertPayload).toHaveProperty('name', 'My Workspace')
+    expect(insertPayload).toHaveProperty('mission', 'My mission')
+    expect(insertPayload).toHaveProperty('status', 'pending')
+    expect(insertPayload).toHaveProperty('flows', 0)
+    expect(insertPayload).toHaveProperty('created_at')
+    expect(insertPayload).toHaveProperty('updated_at')
+    expect(typeof insertPayload.created_at).toBe('string')
+    expect(typeof insertPayload.updated_at).toBe('string')
+  })
+
   it('getWorkspace queries by id', async () => {
     const mockWorkspace = { id: 'w1', name: 'Found' }
     const chain = setupQueryChain()
