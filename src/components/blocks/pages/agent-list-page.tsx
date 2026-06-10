@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react'
-import { Plus, Search, Pause, Play, RotateCcw } from 'lucide-react'
+import { Plus, Search, Pause, Play, RotateCcw, Network, LayoutDashboard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +13,38 @@ const PLACEHOLDER_AGENTS: Agent[] = Array.from({ length: 10 }, (_, i) => ({
   status: (['active', 'paused', 'error', 'idle'] as const)[i % 4],
   model: ['Model A', 'Model B', 'Model C'][i % 3],
 }))
+
+type AgentFlow = { flowId: string; flowName: string; workspaceId: string; workspaceName: string; flowStatus: string }
+
+const PLACEHOLDER_AGENT_FLOWS: Record<string, AgentFlow[]> = {
+  a1: [
+    { flowId: 'f1a2b', flowName: 'Sales Qualification', workspaceId: 'w3k7m', workspaceName: 'Sales Ops', flowStatus: 'running' },
+    { flowId: 'f2b3c', flowName: 'Lead Scoring', workspaceId: 'w3k7m', workspaceName: 'Sales Ops', flowStatus: 'paused' },
+  ],
+  a2: [
+    { flowId: 'f3c4d', flowName: 'Client Onboarding', workspaceId: 'w8j2n', workspaceName: 'Client Success', flowStatus: 'running' },
+  ],
+  a3: [
+    { flowId: 'f4d5e', flowName: 'Escalation Routing', workspaceId: 'w5h9p', workspaceName: 'Support', flowStatus: 'error' },
+    { flowId: 'f5e6f', flowName: 'Ticket Triage', workspaceId: 'w5h9p', workspaceName: 'Support', flowStatus: 'running' },
+    { flowId: 'f6f7g', flowName: ' SLA Monitor', workspaceId: 'w5h9p', workspaceName: 'Support', flowStatus: 'running' },
+  ],
+  a4: [
+    { flowId: 'f7g8h', flowName: 'Delivery Handoff', workspaceId: 'w1m4q', workspaceName: 'Logistics', flowStatus: 'running' },
+  ],
+  a5: [],
+  a6: [
+    { flowId: 'f1a2b', flowName: 'Sales Qualification', workspaceId: 'w3k7m', workspaceName: 'Sales Ops', flowStatus: 'running' },
+  ],
+  a7: [
+    { flowId: 'f8h9i', flowName: 'Invoice Processing', workspaceId: 'w2n6r', workspaceName: 'Finance', flowStatus: 'paused' },
+  ],
+  a8: [],
+  a9: [
+    { flowId: 'f9i0j', flowName: 'Compliance Check', workspaceId: 'w4k8s', workspaceName: 'Legal', flowStatus: 'running' },
+  ],
+  a10: [],
+}
 
 const STATUS_COLOR: Record<Agent['status'], string> = {
   active: 'bg-[#2F4858]',
@@ -28,17 +60,10 @@ const STATUS_BADGE: Record<Agent['status'], string> = {
   idle: 'border-slate-200 bg-slate-50 text-slate-600',
 }
 
-const PIPELINE_STATUS: Record<Agent['status'], 'ok' | 'warn' | 'error'> = {
-  active: 'ok',
-  paused: 'warn',
-  error: 'error',
-  idle: 'ok',
-}
-
-const STATUS_STYLES: Record<string, string> = {
-  ok: 'bg-emerald-500',
-  warn: 'bg-amber-500',
-  error: 'bg-rose-500',
+const FLOW_STATUS_BADGE: Record<string, string> = {
+  running: 'border-[#2F4858]/25 bg-[#2F4858]/8 text-[#2F4858]',
+  paused: 'border-[#B7791F]/18 bg-[#FFF4DB] text-[#8A6116]',
+  error: 'border-primary/18 bg-primary/8 text-primary',
 }
 
 export function AgentListPage({
@@ -50,40 +75,13 @@ export function AgentListPage({
 }) {
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
 
   const filtered = PLACEHOLDER_AGENTS.filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
   const selectedAgent = PLACEHOLDER_AGENTS.find((a) => a.id === selectedId)
-
-  const pipelineNodes = selectedAgent
-    ? [{ id: selectedAgent.id, name: selectedAgent.name, status: PIPELINE_STATUS[selectedAgent.status], model: selectedAgent.model }]
-    : []
-
-  const allSelected = pipelineNodes.length > 0 && pipelineNodes.every((n) => checkedIds.has(n.id))
-
-  function toggleCheck(id: string) {
-    setCheckedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-      return next
-    })
-  }
-
-  function toggleAll() {
-    if (allSelected) {
-      setCheckedIds(new Set())
-    } else {
-      setCheckedIds(new Set(pipelineNodes.map((n) => n.id)))
-    }
-  }
+  const agentFlows = selectedId ? (PLACEHOLDER_AGENT_FLOWS[selectedId] ?? []) : []
 
   function selectAgent(id: string) {
     setSelectedId((prev) => (prev === id ? null : id))
-    setCheckedIds(new Set())
   }
 
   return (
@@ -141,34 +139,43 @@ export function AgentListPage({
           {!selectedAgent ? (
             <p className="text-sm text-muted-foreground text-center py-8">Select an agent to view details.</p>
           ) : (
-            <>
-              <div className="flex items-center gap-2 mb-3">
-                <Checkbox
-                  checked={allSelected}
-                  onCheckedChange={toggleAll}
-                />
-                <button type="button" onClick={toggleAll} className="text-xs text-muted-foreground hover:text-foreground">
-                  {allSelected ? 'Deselect All' : 'Select All'}
-                </button>
+            <div className="space-y-4">
+              <div className="rounded-lg border bg-muted/35 p-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLOR[selectedAgent.status]}`} aria-hidden />
+                  <span className="font-medium">{selectedAgent.name}</span>
+                  <Badge variant="outline" className={`text-[10px] uppercase ${STATUS_BADGE[selectedAgent.status]}`}>{selectedAgent.status}</Badge>
+                </div>
+                <div className="mt-2 text-xs text-muted-foreground">Model: {selectedAgent.model}</div>
+                <div className="text-[10px] text-muted-foreground/60 font-mono">ID: {selectedAgent.id}</div>
               </div>
-              <ol className="space-y-2">
-                {pipelineNodes.map((n) => (
-                  <li key={n.id} className="flex items-center gap-3 rounded-md border p-2 text-sm">
-                    <Checkbox
-                      checked={checkedIds.has(n.id)}
-                      onCheckedChange={() => toggleCheck(n.id)}
-                    />
-                    <span className={`h-2.5 w-2.5 rounded-full ${STATUS_STYLES[n.status]}`} aria-hidden />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{n.name}</div>
-                      <div className="text-xs text-muted-foreground">Model: {n.model}</div>
-                      <div className="text-[10px] text-muted-foreground/60 font-mono">ID: {n.id}</div>
-                    </div>
-                    <Badge variant="outline" className="text-[10px] uppercase">{n.status}</Badge>
-                  </li>
-                ))}
-              </ol>
-            </>
+
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Flows / Workspaces</h4>
+                {agentFlows.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">Not assigned to any flows.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {agentFlows.map((af) => (
+                      <li key={af.flowId} className="flex items-center gap-3 rounded-md border p-2 text-sm">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <Network className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span className="font-medium truncate">{af.flowName}</span>
+                            <Badge variant="outline" className={`text-[10px] uppercase ${FLOW_STATUS_BADGE[af.flowStatus] ?? ''}`}>{af.flowStatus}</Badge>
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <LayoutDashboard className="h-3 w-3 text-muted-foreground/60 shrink-0" />
+                            <span className="text-xs text-muted-foreground truncate">{af.workspaceName}</span>
+                            <span className="text-[10px] text-muted-foreground/60 font-mono">{af.workspaceId}</span>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
