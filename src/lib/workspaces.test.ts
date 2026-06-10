@@ -1,5 +1,29 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+function setupQueryChain(data: unknown[] | null = [], error: unknown = null) {
+  let countMode = false
+  const chain = {
+    select: vi.fn((...args: unknown[]) => {
+      countMode = !!(args[1] && typeof args[1] === 'object' && 'count' in (args[1] as Record<string, unknown>))
+      return chain
+    }),
+    insert: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
+    delete: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    single: vi.fn().mockResolvedValue({ data, error }),
+    then: vi.fn((resolve: (v: { data: unknown; error: unknown; count: number }) => void) => {
+      if (countMode) {
+        resolve({ data: null, error: null, count: 0 })
+      } else {
+        resolve({ data, error, count: 0 })
+      }
+    }),
+  }
+  return chain
+}
+
 vi.mock('./supabase', () => ({
   supabase: {
     auth: {
@@ -7,15 +31,7 @@ vi.mock('./supabase', () => ({
         data: { user: { id: 'user-1', email: 'test@test.com' } },
       }),
     },
-    from: vi.fn(() => ({
-      select: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
-    })),
+    from: vi.fn(() => setupQueryChain()),
   },
 }))
 
@@ -23,19 +39,6 @@ import { loadWorkspaces, createWorkspace, getWorkspace, deleteWorkspace } from '
 import { supabase } from './supabase'
 
 const mockFrom = vi.mocked(supabase.from)
-
-function setupQueryChain(data: unknown[] | null = [], error: unknown = null) {
-  const chain = {
-    select: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    single: vi.fn().mockResolvedValue({ data, error }),
-  }
-  return chain
-}
 
 describe('workspaces persistence (Supabase)', () => {
   beforeEach(() => {

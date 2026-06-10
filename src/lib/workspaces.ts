@@ -1,6 +1,35 @@
 import { supabase } from './supabase'
 import type { Workspace, CreateWorkspaceInput } from '@/types/workspace'
 
+function generateShortId(): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
+  let id = 'w'
+  for (let i = 0; i < 5; i++) {
+    id += chars[Math.floor(Math.random() * chars.length)]
+  }
+  return id
+}
+
+async function isIdUnique(id: string): Promise<boolean> {
+  const { count } = await supabase
+    .from('workspaces')
+    .select('*', { count: 'exact', head: true })
+    .eq('id', id)
+  return count === 0
+}
+
+async function generateUniqueId(): Promise<string> {
+  let id = generateShortId()
+  let attempts = 0
+  while (attempts < 10) {
+    const unique = await isIdUnique(id)
+    if (unique) return id
+    id = generateShortId()
+    attempts++
+  }
+  return id
+}
+
 export async function loadWorkspaces(): Promise<Workspace[]> {
   const { data, error } = await supabase
     .from('workspaces')
@@ -22,9 +51,12 @@ export async function createWorkspace(input: CreateWorkspaceInput): Promise<Work
     return null
   }
 
+  const id = await generateUniqueId()
+
   const { data, error } = await supabase
     .from('workspaces')
     .insert({
+      id,
       user_id: user.id,
       name: input.name || 'New Workspace',
       mission: input.mission || '',
