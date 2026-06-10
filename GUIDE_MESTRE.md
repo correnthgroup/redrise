@@ -180,22 +180,25 @@ Dashboard (visor de workspaces)
 
 **Arquivo**: `src/components/blocks/pages/create-workspace-page.tsx`
 
-**O que e**: Wizard de 4 steps para criar um workspace.
+**O que e**: Wizard de 3 steps para criar um workspace.
 
 **Steps**:
 1. **Basic Info** — nome e missao do workspace (campos obrigatorios)
-2. **Health & Team** — placeholder para metricas de saude e equipe inicial
-3. **Flows** — placeholder para flows que o workspace tera
-4. **Review** — resumo com nome e missao
+2. **Health & Team** — configuracoes de saude e equipe inicial:
+   - Health Check Frequency (Select: Realtime, Hourly, Daily, Weekly)
+   - Max Team Size (input numerico)
+   - Initial Team Members (botoes toggle multi-select)
+3. **Review** — resumo com nome, missao, health check, team size e members
 
 **Comportamentos**:
 - Footer: `[Cancel]` a esquerda, `[Back] [Next]` a direita (ml-auto)
-- Botao "Done" no ultimo step (min-w-[120px] para evitar shift de largura)
-- Ao criar: salva no Supabase via `addWorkspace()`, exibe ReviewWorkspace
+- Todos os botoes tem largura consistente
+- Botao "Done" no ultimo step cria o workspace no Supabase
+- Ao criar: salva via `addWorkspace()`, exibe ReviewWorkspace
 
 **Importancia**: Formaliza a criacao de um workspace. O nome e a missao sao os dados obrigatorios.
 
-**Status atual**: Persistido no Supabase. Steps 2 e 3 ainda sao placeholders.
+**Status atual**: Persistido no Supabase. Steps 2 e 3 sao placeholders visuais mas funcional.
 
 ### 7.1.2 Review Workspace
 
