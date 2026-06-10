@@ -112,7 +112,7 @@ export function AgentDetailPage({
     }
 
     fetchBenchmark()
-    const interval = setInterval(fetchBenchmark, 30000) // Refresh every 30s
+    const interval = setInterval(fetchBenchmark, 3 * 60 * 60 * 1000) // Refresh every 3 hours
     return () => clearInterval(interval)
   }, [tab])
 
@@ -212,7 +212,7 @@ export function AgentDetailPage({
               <div className="mt-4 rounded-lg border bg-muted/20 p-3">
                 <p className="text-xs text-muted-foreground">
                   Data sourced from <a href="https://artificialanalysis.ai/models/gpt-oss-120b" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">Artificial Analysis</a>. 
-                  Benchmark refreshes every 30 seconds.
+                  Benchmark refreshes every 3 hours.
                 </p>
               </div>
             </CardContent>
