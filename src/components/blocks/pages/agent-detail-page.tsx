@@ -137,17 +137,14 @@ export function AgentDetailPage({
       <header className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            {onBack && <Button variant="ghost" size="sm" onClick={onBack}>Cancel</Button>}
-            <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLOR[agent.status]}`} aria-hidden />
             <h1 className="text-lg font-semibold">{agent.name}</h1>
             <Badge variant="outline" className={`text-[10px] uppercase ${STATUS_BADGE[agent.status]}`}>{agent.status}</Badge>
           </div>
           <p className="text-sm text-muted-foreground">{agent.brief || 'No description'}</p>
           <p className="text-xs text-muted-foreground mt-1">Model: {agent.model}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">Pause</Button>
-          <Button size="sm">Restart</Button>
+        <div>
+          {onBack && <Button variant="outline" size="sm" onClick={onBack}>Back</Button>}
         </div>
       </header>
 
