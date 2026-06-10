@@ -179,7 +179,10 @@ export function CreateTaskPage({
           {step === 0 && (
             <div className="space-y-4">
               <div className="space-y-1">
-                <Label htmlFor="t-objective">Objective</Label>
+                <Label htmlFor="t-objective" className="flex items-center gap-1">
+                  Objective
+                  <span className="text-[10px] font-normal" style={{ color: '#8c1f28' }}>required</span>
+                </Label>
                 <Input
                   id="t-objective"
                   value={objective}
@@ -189,7 +192,10 @@ export function CreateTaskPage({
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="t-prompt">Prompt</Label>
+                <Label htmlFor="t-prompt" className="flex items-center gap-1">
+                  Prompt
+                  <span className="text-[10px] font-normal" style={{ color: '#8c1f28' }}>required</span>
+                </Label>
                 <Textarea
                   id="t-prompt"
                   value={prompt}
@@ -439,21 +445,32 @@ export function CreateTaskPage({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label htmlFor="schedule-start" className="text-xs">Start Date</Label>
+                    <Label htmlFor="schedule-start" className="text-xs flex items-center gap-1">
+                      Start Date
+                      <span className="text-[10px] font-normal" style={{ color: '#8c1f28' }}>required</span>
+                    </Label>
                     <Input
                       id="schedule-start"
                       type="date"
                       value={scheduleStart}
-                      onChange={(e) => setScheduleStart(e.target.value)}
+                      onChange={(e) => {
+                        setScheduleStart(e.target.value)
+                        if (recurrence === 'occasionally') {
+                          setScheduleEnd(e.target.value)
+                        }
+                      }}
                       className="h-9"
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="schedule-end" className="text-xs">End Date</Label>
+                    <Label htmlFor="schedule-end" className="text-xs flex items-center gap-1">
+                      End Date
+                      <span className="text-[10px] font-normal" style={{ color: '#8c1f28' }}>required</span>
+                    </Label>
                     <Input
                       id="schedule-end"
                       type="date"
-                      value={scheduleEnd}
+                      value={recurrence === 'occasionally' ? scheduleStart : scheduleEnd}
                       onChange={(e) => setScheduleEnd(e.target.value)}
                       className="h-9"
                       disabled={recurrence === 'occasionally'}
@@ -462,7 +479,10 @@ export function CreateTaskPage({
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="schedule-time" className="text-xs">Time</Label>
+                  <Label htmlFor="schedule-time" className="text-xs flex items-center gap-1">
+                    Time
+                    <span className="text-[10px] font-normal" style={{ color: '#8c1f28' }}>required</span>
+                  </Label>
                   <div className="relative">
                     <Clock className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                     <Input
