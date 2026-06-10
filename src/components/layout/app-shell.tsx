@@ -135,8 +135,8 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
     body = taskView === 'create'
       ? <CreateTaskPage
           onBack={() => setTaskView('board')}
-          onCreate={async ({ title, brief }) => {
-            const result = await addTask({ title, brief })
+          onCreate={async ({ title, brief, objective, prompt, documents, team_members, agent_id }) => {
+            const result = await addTask({ title, brief, objective, prompt, documents, team_members, agent_id })
             if (result) {
               setTaskView('board')
             }
