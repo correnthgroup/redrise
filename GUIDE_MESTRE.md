@@ -204,20 +204,22 @@ Dashboard (visor de workspaces)
 **O que e**: Detalhe do workspace com 4 cards: Identity, Mission, Health, Flows.
 
 **O que o usuario ve**:
-- Card Identity: ID (mono fonte), nome, status, data de criacao
-- Card Mission: texto da missao
-- Card Health: placeholder de metricas
+- Card Identity: ID (mono fonte), nome, status (badge colorido), data de criacao, data de atualizacao (se existir)
+- Card Mission: texto da missao (ou "No mission defined" se vazio)
+- Card Health: status (badge colorido) e quantidade de flows
 - Card Flows: quantidade de flows configurados
 - Botao Delete ( Trash2 ) no header: abre dialog de confirmacao
+- Topbar mostra o nome do workspace ao inves de "Dashboard"
 
 **Comportamentos**:
 - Delete: exige digitar "DELETE" para confirmar, botoes OK/Cancel
-- Ao deletar: remove do Supabase via `removeWorkspace()`, volta para Dashboard
-- Botao Cancel: volta para Dashboard
+- Ao deletar: remove do Supabase via `removeWorkspace()`, dialog fecha, volta para Dashboard
+- Botao Cancel: volta para Dashboard, limpa campo de confirmacao
+- Cores do badge: healthy=emerald, maintenance=amber, pending=primary
 
 **Importancia**: Permite revisar todos os detalhes do workspace e excluir se necessario.
 
-**Status atual**: Conectado ao Supabase. Dados reais exibidos.
+**Status atual**: Conectado ao Supabase. Todos os dados reais exibidos.
 
 ### 7.2 KPI Cards — Metricas operacionais
 - 7 cards: Active workspaces, Flow runs, Health score, Blocked tasks, AI requests, Approval rate, Error rate
@@ -531,7 +533,7 @@ AppShell
 
 ## 15. Estado atual e proximos passos
 
-### O que ja existe (Sprint 0 + Sprint 1 + Sprint 2 + Sprint 3)
+### O que ja existe (Sprint 0 + Sprint 1 + Sprint 2 + Sprint 3 + Sprint 4)
 
 - Shell completo com navegacao funcional
 - Sidebar com animacao suave e persistencia
@@ -540,6 +542,7 @@ AppShell
 - Pipeline de qualidade (lint, typecheck, test, build, test:e2e)
 - **Sprint 2**: Dashboard conectado ao Supabase — workspaces reais exibidos, criados e deletados via API
 - **Sprint 3**: Wizard de criacao de workspace persistido — cria workspaces no Supabase que sobrevivem a reload
+- **Sprint 4**: Review Workspace conectado a dados reais — status badge, health card, topbar mostra nome do workspace, dialog fecha apos delete
 - **Flow List**: lista com busca, selecao, edicao de nome/owners, IDs visiveis
 - **Flow Editor**: editor React Flow com cards que mostram titulo/members/agents/ID, dialog de edicao completo, atalhos de teclado, arestas animadas
 - **WorkflowPipeline**: checkboxes quadrados, Select All, members/agents por card, controles play/pause/reset
