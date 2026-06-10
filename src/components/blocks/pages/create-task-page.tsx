@@ -179,9 +179,8 @@ export function CreateTaskPage({
           {step === 0 && (
             <div className="space-y-4">
               <div className="space-y-1">
-                <Label htmlFor="t-objective" className="flex items-center gap-1">
-                  Objective
-                  <span className="text-[10px] font-normal" style={{ color: '#8c1f28' }}>required</span>
+                <Label htmlFor="t-objective" className="text-[#8c1f28]">
+                  Objective <span className="text-[#8c1f28]">*</span>
                 </Label>
                 <Input
                   id="t-objective"
@@ -192,9 +191,8 @@ export function CreateTaskPage({
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="t-prompt" className="flex items-center gap-1">
-                  Prompt
-                  <span className="text-[10px] font-normal" style={{ color: '#8c1f28' }}>required</span>
+                <Label htmlFor="t-prompt" className="text-[#8c1f28]">
+                  Prompt <span className="text-[#8c1f28]">*</span>
                 </Label>
                 <Textarea
                   id="t-prompt"
@@ -458,9 +456,8 @@ export function CreateTaskPage({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label htmlFor="schedule-start" className="text-xs flex items-center gap-1">
-                      Start Date
-                      <span className="text-[10px] font-normal" style={{ color: '#8c1f28' }}>required</span>
+                    <Label htmlFor="schedule-start" className="text-xs text-[#8c1f28]">
+                      Start Date <span className="text-[#8c1f28]">*</span>
                     </Label>
                     <Input
                       id="schedule-start"
@@ -476,9 +473,8 @@ export function CreateTaskPage({
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="schedule-end" className="text-xs flex items-center gap-1">
-                      End Date
-                      <span className="text-[10px] font-normal" style={{ color: '#8c1f28' }}>required</span>
+                    <Label htmlFor="schedule-end" className="text-xs text-[#8c1f28]">
+                      End Date <span className="text-[#8c1f28]">*</span>
                     </Label>
                     <Input
                       id="schedule-end"
@@ -492,9 +488,8 @@ export function CreateTaskPage({
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="schedule-time" className="text-xs flex items-center gap-1">
-                    Time
-                    <span className="text-[10px] font-normal" style={{ color: '#8c1f28' }}>required</span>
+                  <Label htmlFor="schedule-time" className="text-xs text-[#8c1f28]">
+                    Time <span className="text-[#8c1f28]">*</span>
                   </Label>
                   <div className="relative">
                     <Clock className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
