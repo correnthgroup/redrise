@@ -253,186 +253,227 @@ export function CreateTaskPage({
           {/* Step 2: Team, Agent, Priority, Column & Schedule */}
           {step === 1 && (
             <div className="space-y-6">
-              {/* Priority */}
-              <div className="space-y-2">
-                <Label>Priority</Label>
-                <div className="flex gap-2">
-                  {PRIORITIES.map((p) => {
-                    const Icon = p.icon
-                    return (
-                      <button
-                        key={p.value}
-                        type="button"
-                        onClick={() => setPriority(p.value)}
-                        className={`flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors ${
-                          priority === p.value
-                            ? `${p.color} border-current`
-                            : 'bg-background hover:bg-accent/40'
-                        }`}
-                      >
-                        <Icon className="h-4 w-4" />
-                        {p.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Kanban Column */}
-              <div className="space-y-2">
-                <Label>Initial Column</Label>
-                <div className="relative">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full justify-between"
-                    onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <LayoutGrid className="h-4 w-4 text-muted-foreground" />
-                      <span>{selectedColumn?.label ?? 'Select column...'}</span>
-                    </div>
-                    <ChevronDown className="h-4 w-4 opacity-50" />
-                  </Button>
-                  {showColumnDropdown && (
-                    <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
-                      <div className="p-1">
-                        {COLUMNS.map((col) => (
-                          <button
-                            key={col.id}
-                            type="button"
-                            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                            onClick={() => {
-                              setKanbanColumn(col.id)
-                              setShowColumnDropdown(false)
-                            }}
-                          >
-                            <span className="flex-1 text-left">{col.label}</span>
-                            {kanbanColumn === col.id && (
-                              <Check className="h-4 w-4 text-[#2F4858]" />
-                            )}
-                          </button>
-                        ))}
+              {/* Priority + Kanban Column */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Priority Dropdown */}
+                <div className="space-y-2">
+                  <Label>Priority</Label>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowColumnDropdown(false)}
+                      className={`flex h-9 w-full items-center justify-between rounded-md border bg-background px-3 py-2 text-sm ${
+                        selectedPriority ? selectedPriority.color : 'text-muted-foreground'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {selectedPriority && <selectedPriority.icon className="h-4 w-4" />}
+                        <span>{selectedPriority?.label ?? 'Select priority...'}</span>
                       </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Team Members */}
-              <div className="space-y-2">
-                <Label>Team Members</Label>
-                <div className="relative">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full justify-between"
-                    onClick={() => setShowMemberDropdown(!showMemberDropdown)}
-                  >
-                    <span className="text-muted-foreground">
-                      {selectedMembers.length === 0 ? 'Select team members...' : `${selectedMembers.length} selected`}
-                    </span>
-                    <ChevronDown className="h-4 w-4 opacity-50" />
-                  </Button>
-                  {showMemberDropdown && (
-                    <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
-                      <div className="max-h-60 overflow-y-auto p-1">
-                        {PLACEHOLDER_MEMBERS.map((member) => (
+                    </button>
+                    <div className="mt-1 flex gap-1">
+                      {PRIORITIES.map((p) => {
+                        const Icon = p.icon
+                        return (
                           <button
-                            key={member.id}
+                            key={p.value}
                             type="button"
-                            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                            onClick={() => toggleMember(member.id)}
+                            onClick={() => setPriority(p.value)}
+                            className={`flex flex-1 items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-medium transition-colors ${
+                              priority === p.value
+                                ? `${p.color} border-current`
+                                : 'bg-background hover:bg-accent/40'
+                            }`}
                           >
-                            <Checkbox
-                              checked={selectedMembers.includes(member.id)}
-                              className="rounded-[2px]"
-                            />
-                            <span>{member.name}</span>
-                            {selectedMembers.includes(member.id) && (
-                              <Check className="ml-auto h-4 w-4 text-[#2F4858]" />
-                            )}
+                            <Icon className="h-3 w-3" />
+                            {p.label}
                           </button>
-                        ))}
-                      </div>
+                        )
+                      })}
                     </div>
-                  )}
-                </div>
-
-                {selectedMembers.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {PLACEHOLDER_MEMBERS
-                      .filter((m) => selectedMembers.includes(m.id))
-                      .map((member) => (
-                        <Badge
-                          key={member.id}
-                          variant="secondary"
-                          className="gap-1 pr-1 bg-[#2F4858]/10 text-[#2F4858]"
-                        >
-                          {member.name}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-3.5 w-3.5 hover:bg-[#2F4858]/20"
-                            onClick={() => removeMember(member.id)}
-                          >
-                            <X className="h-2.5 w-2.5" />
-                          </Button>
-                        </Badge>
-                      ))}
                   </div>
-                )}
-              </div>
+                </div>
 
-              {/* Agent */}
-              <div className="space-y-2">
-                <Label>Agent</Label>
-                <div className="relative">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full justify-between"
-                    onClick={() => setShowAgentDropdown(!showAgentDropdown)}
-                    disabled={loadingAgents}
-                  >
-                    <span className={selectedAgent ? 'text-foreground' : 'text-muted-foreground'}>
-                      {loadingAgents ? 'Loading agents...' : selectedAgent ? selectedAgent.name : 'Select an agent...'}
-                    </span>
-                    <ChevronDown className="h-4 w-4 opacity-50" />
-                  </Button>
-                  {showAgentDropdown && !loadingAgents && (
-                    <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
-                      <div className="max-h-60 overflow-y-auto p-1">
-                        {agents.length === 0 ? (
-                          <div className="px-2 py-1.5 text-sm text-muted-foreground">No agents available</div>
-                        ) : (
-                          agents.map((agent) => (
+                {/* Kanban Column */}
+                <div className="space-y-2">
+                  <Label>Initial Column</Label>
+                  <div className="relative">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-between h-9"
+                      onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+                        <span>{selectedColumn?.label ?? 'Select column...'}</span>
+                      </div>
+                      <ChevronDown className="h-4 w-4 opacity-50" />
+                    </Button>
+                    {showColumnDropdown && (
+                      <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                        <div className="p-1">
+                          {COLUMNS.map((col) => (
                             <button
-                              key={agent.id}
+                              key={col.id}
                               type="button"
                               className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
                               onClick={() => {
-                                setSelectedAgentId(agent.id)
-                                setShowAgentDropdown(false)
+                                setKanbanColumn(col.id)
+                                setShowColumnDropdown(false)
                               }}
                             >
-                              <span className={`h-2 w-2 rounded-full ${
-                                agent.status === 'active' ? 'bg-[#2F4858]' :
-                                agent.status === 'paused' ? 'bg-amber-500' :
-                                agent.status === 'error' ? 'bg-[#8c1f28]' :
-                                'bg-slate-400'
-                              }`} />
-                              <span className="flex-1 text-left">{agent.name}</span>
-                              <span className="text-[10px] text-muted-foreground">{agent.model}</span>
-                              {selectedAgentId === agent.id && (
+                              <span className="flex-1 text-left">{col.label}</span>
+                              {kanbanColumn === col.id && (
                                 <Check className="h-4 w-4 text-[#2F4858]" />
                               )}
                             </button>
-                          ))
-                        )}
+                          ))}
+                        </div>
                       </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Team Members + Agent */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Team Members */}
+                <div className="space-y-2">
+                  <Label>Team Members</Label>
+                  <div className="relative">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-between h-9"
+                      onClick={() => setShowMemberDropdown(!showMemberDropdown)}
+                    >
+                      <span className="text-muted-foreground">
+                        {selectedMembers.length === 0 ? 'Select team members...' : `${selectedMembers.length} selected`}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50" />
+                    </Button>
+                    {showMemberDropdown && (
+                      <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                        <div className="max-h-60 overflow-y-auto p-1">
+                          {/* Select All */}
+                          <button
+                            type="button"
+                            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent border-b"
+                            onClick={() => {
+                              if (selectedMembers.length === PLACEHOLDER_MEMBERS.length) {
+                                setSelectedMembers([])
+                              } else {
+                                setSelectedMembers(PLACEHOLDER_MEMBERS.map((m) => m.id))
+                              }
+                            }}
+                          >
+                            <Checkbox
+                              checked={selectedMembers.length === PLACEHOLDER_MEMBERS.length}
+                              className="rounded-[2px]"
+                            />
+                            <span className="font-medium">Select All</span>
+                            {selectedMembers.length === PLACEHOLDER_MEMBERS.length && (
+                              <Check className="ml-auto h-4 w-4 text-[#2F4858]" />
+                            )}
+                          </button>
+                          {PLACEHOLDER_MEMBERS.map((member) => (
+                            <button
+                              key={member.id}
+                              type="button"
+                              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                              onClick={() => toggleMember(member.id)}
+                            >
+                              <Checkbox
+                                checked={selectedMembers.includes(member.id)}
+                                className="rounded-[2px]"
+                              />
+                              <span>{member.name}</span>
+                              {selectedMembers.includes(member.id) && (
+                                <Check className="ml-auto h-4 w-4 text-[#2F4858]" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedMembers.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {PLACEHOLDER_MEMBERS
+                        .filter((m) => selectedMembers.includes(m.id))
+                        .map((member) => (
+                          <Badge
+                            key={member.id}
+                            variant="secondary"
+                            className="gap-1 pr-1 bg-[#2F4858]/10 text-[#2F4858]"
+                          >
+                            {member.name}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-3.5 w-3.5 hover:bg-[#2F4858]/20"
+                              onClick={() => removeMember(member.id)}
+                            >
+                              <X className="h-2.5 w-2.5" />
+                            </Button>
+                          </Badge>
+                        ))}
                     </div>
                   )}
+                </div>
+
+                {/* Agent */}
+                <div className="space-y-2">
+                  <Label>Agent</Label>
+                  <div className="relative">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-between h-9"
+                      onClick={() => setShowAgentDropdown(!showAgentDropdown)}
+                      disabled={loadingAgents}
+                    >
+                      <span className={selectedAgent ? 'text-foreground' : 'text-muted-foreground'}>
+                        {loadingAgents ? 'Loading agents...' : selectedAgent ? selectedAgent.name : 'Select an agent...'}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50" />
+                    </Button>
+                    {showAgentDropdown && !loadingAgents && (
+                      <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                        <div className="max-h-60 overflow-y-auto p-1">
+                          {agents.length === 0 ? (
+                            <div className="px-2 py-1.5 text-sm text-muted-foreground">No agents available</div>
+                          ) : (
+                            agents.map((agent) => (
+                              <button
+                                key={agent.id}
+                                type="button"
+                                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                                onClick={() => {
+                                  setSelectedAgentId(agent.id)
+                                  setShowAgentDropdown(false)
+                                }}
+                              >
+                                <span className={`h-2 w-2 rounded-full ${
+                                  agent.status === 'active' ? 'bg-[#2F4858]' :
+                                  agent.status === 'paused' ? 'bg-amber-500' :
+                                  agent.status === 'error' ? 'bg-[#8c1f28]' :
+                                  'bg-slate-400'
+                                }`} />
+                                <span className="flex-1 text-left">{agent.name}</span>
+                                <span className="text-[10px] text-muted-foreground">{agent.model}</span>
+                                {selectedAgentId === agent.id && (
+                                  <Check className="h-4 w-4 text-[#2F4858]" />
+                                )}
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
