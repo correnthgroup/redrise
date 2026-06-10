@@ -1,6 +1,3 @@
-[project]
-id = "ndfsselzilmdzywcdyoo"
-
 [api]
 enabled = true
 port = 54321
@@ -49,4 +46,3 @@ secret = "env(GITHUB_CLIENT_SECRET)"
 redirect_uri = "http://localhost:54323/auth/v1/callback"
 
 [functions]
-verify_jwt = false

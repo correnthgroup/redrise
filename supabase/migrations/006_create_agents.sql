@@ -35,3 +35,56 @@ CREATE POLICY "Users can delete own agents"
 
 -- Index for faster queries
 CREATE INDEX idx_agents_user_id ON agents(user_id);
+
+-- Function to create default agent for a user
+CREATE OR REPLACE FUNCTION create_default_agent_for_user(target_user_id UUID)
+RETURNS VOID AS $$
+BEGIN
+  INSERT INTO agents (id, user_id, name, brief, status, model, provider)
+  VALUES (
+    'a' || substr(md5(random()::text), 1, 5),
+    target_user_id,
+    'Default Agent',
+    'General purpose AI assistant with OpenRouter integration.',
+    'idle',
+    'openai/gpt-oss-120b:free',
+    'openrouter'
+  )
+  ON CONFLICT DO NOTHING;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger function: create default agent when new user signs up
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  PERFORM create_default_agent_for_user(NEW.id);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create trigger on auth.users
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+-- Create default agents for ALL existing users
+DO $$
+DECLARE
+  user_record RECORD;
+BEGIN
+  FOR user_record IN SELECT id FROM auth.users
+  LOOP
+    INSERT INTO agents (id, user_id, name, brief, status, model, provider)
+    VALUES (
+      'a' || substr(md5(random()::text), 1, 5),
+      user_record.id,
+      'Default Agent',
+      'General purpose AI assistant with OpenRouter integration.',
+      'idle',
+      'openai/gpt-oss-120b:free',
+      'openrouter'
+    )
+    ON CONFLICT DO NOTHING;
+  END LOOP;
+END $$;

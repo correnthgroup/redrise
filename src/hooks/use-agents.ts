@@ -7,13 +7,6 @@ import {
   updateAgent as persistUpdate,
 } from '@/lib/agents'
 
-const DEFAULT_AGENT: CreateAgentInput = {
-  name: 'Default Agent',
-  brief: 'General purpose AI assistant with OpenRouter integration.',
-  model: 'openai/gpt-oss-120b:free',
-  provider: 'openrouter',
-}
-
 export function useAgents() {
   const [agents, setAgents] = useState<Agent[]>([])
   const [loading, setLoading] = useState(true)
@@ -21,17 +14,9 @@ export function useAgents() {
 
   useEffect(() => {
     let cancelled = false
-    loadAgents().then(async (data) => {
+    loadAgents().then((data) => {
       if (!cancelled && mountedRef.current) {
-        // Create default agent if user has no agents
-        if (data.length === 0) {
-          const defaultAgent = await persistCreate(DEFAULT_AGENT)
-          if (defaultAgent && mountedRef.current && !cancelled) {
-            setAgents([defaultAgent])
-          }
-        } else {
-          setAgents(data)
-        }
+        setAgents(data)
         setLoading(false)
       }
     })
