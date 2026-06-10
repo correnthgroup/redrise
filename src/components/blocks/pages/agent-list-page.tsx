@@ -1,9 +1,10 @@
 ﻿import { useState } from 'react'
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, Pause, Play, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 
 type Agent = { id: string; name: string; status: 'active' | 'paused' | 'error' | 'idle'; model: string }
 const PLACEHOLDER_AGENTS: Agent[] = Array.from({ length: 10 }, (_, i) => ({
@@ -27,6 +28,19 @@ const STATUS_BADGE: Record<Agent['status'], string> = {
   idle: 'border-slate-200 bg-slate-50 text-slate-600',
 }
 
+const PIPELINE_STATUS: Record<Agent['status'], 'ok' | 'warn' | 'error'> = {
+  active: 'ok',
+  paused: 'warn',
+  error: 'error',
+  idle: 'ok',
+}
+
+const STATUS_STYLES: Record<string, string> = {
+  ok: 'bg-emerald-500',
+  warn: 'bg-amber-500',
+  error: 'bg-rose-500',
+}
+
 export function AgentListPage({
   onCreateAgent,
   onOpenAgent,
@@ -35,7 +49,42 @@ export function AgentListPage({
   onOpenAgent?: (id: string) => void
 }) {
   const [query, setQuery] = useState('')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
+
   const filtered = PLACEHOLDER_AGENTS.filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
+  const selectedAgent = PLACEHOLDER_AGENTS.find((a) => a.id === selectedId)
+
+  const pipelineNodes = selectedAgent
+    ? [{ id: selectedAgent.id, name: selectedAgent.name, status: PIPELINE_STATUS[selectedAgent.status], model: selectedAgent.model }]
+    : []
+
+  const allSelected = pipelineNodes.length > 0 && pipelineNodes.every((n) => checkedIds.has(n.id))
+
+  function toggleCheck(id: string) {
+    setCheckedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  function toggleAll() {
+    if (allSelected) {
+      setCheckedIds(new Set())
+    } else {
+      setCheckedIds(new Set(pipelineNodes.map((n) => n.id)))
+    }
+  }
+
+  function selectAgent(id: string) {
+    setSelectedId((prev) => (prev === id ? null : id))
+    setCheckedIds(new Set())
+  }
 
   return (
     <div className="grid h-full min-h-0 grid-cols-1 gap-6 p-6 lg:grid-cols-[2fr_1fr]">
@@ -59,8 +108,12 @@ export function AgentListPage({
                   <li key={a.id}>
                     <button
                       type="button"
-                      onClick={() => onOpenAgent?.(a.id)}
-                      className="flex w-full items-center gap-3 rounded-md border bg-card p-3 text-left text-sm transition-colors hover:bg-accent/40"
+                      onClick={() => selectAgent(a.id)}
+                      className={`flex w-full items-center gap-3 rounded-md border p-3 text-left text-sm transition-colors ${
+                        selectedId === a.id
+                          ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/20'
+                          : 'bg-card hover:bg-accent/40'
+                      }`}
                     >
                       <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLOR[a.status]}`} aria-hidden />
                       <span className="flex-1 truncate font-medium">{a.name}</span>
@@ -75,14 +128,50 @@ export function AgentListPage({
         </Card>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
-          <CardHeader><CardTitle className="text-sm font-semibold">Agent Details</CardTitle></CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground text-center py-4">Select an agent to view details.</p>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
+        <CardHeader className="flex-row items-center justify-between">
+          <CardTitle className="text-sm font-semibold">Agent Details</CardTitle>
+          <div className="flex gap-1">
+            <Button variant="ghost" size="icon" className="h-7 w-7"><Play className="h-3.5 w-3.5" /></Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7"><Pause className="h-3.5 w-3.5" /></Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7"><RotateCcw className="h-3.5 w-3.5" /></Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {!selectedAgent ? (
+            <p className="text-sm text-muted-foreground text-center py-8">Select an agent to view details.</p>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 mb-3">
+                <Checkbox
+                  checked={allSelected}
+                  onCheckedChange={toggleAll}
+                />
+                <button type="button" onClick={toggleAll} className="text-xs text-muted-foreground hover:text-foreground">
+                  {allSelected ? 'Deselect All' : 'Select All'}
+                </button>
+              </div>
+              <ol className="space-y-2">
+                {pipelineNodes.map((n) => (
+                  <li key={n.id} className="flex items-center gap-3 rounded-md border p-2 text-sm">
+                    <Checkbox
+                      checked={checkedIds.has(n.id)}
+                      onCheckedChange={() => toggleCheck(n.id)}
+                    />
+                    <span className={`h-2.5 w-2.5 rounded-full ${STATUS_STYLES[n.status]}`} aria-hidden />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{n.name}</div>
+                      <div className="text-xs text-muted-foreground">Model: {n.model}</div>
+                      <div className="text-[10px] text-muted-foreground/60 font-mono">ID: {n.id}</div>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] uppercase">{n.status}</Badge>
+                  </li>
+                ))}
+              </ol>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
