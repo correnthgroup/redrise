@@ -15,7 +15,7 @@ export function AgentDetailPage({ onBack }: { onBack?: () => void }) {
       <header className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            {onBack && <Button variant="ghost" size="sm" onClick={onBack}>Back</Button>}
+            {onBack && <Button variant="ghost" size="sm" onClick={onBack}>Cancel</Button>}
             <h1 className="text-lg font-semibold">Agent name</h1>
             <Badge variant="outline" className="border-[#2F4858]/25 bg-[#2F4858]/8 text-[#2F4858]">active</Badge>
           </div>

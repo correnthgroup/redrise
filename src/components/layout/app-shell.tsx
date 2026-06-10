@@ -40,7 +40,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const [taskView, setTaskView] = useState<'board' | 'create' | 'review'>('board')
   const [agentView, setAgentView] = useState<'list' | 'create' | 'detail'>('list')
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null)
-  const { workspaces, addWorkspace } = useWorkspaces()
+  const { workspaces, addWorkspace, removeWorkspace } = useWorkspaces()
 
   function selectPage(next: SidebarKey) {
     setActive(next)
@@ -72,7 +72,12 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
           />
         )
       : dashboardView === 'review-workspace'
-        ? <ReviewWorkspacePage workspace={selectedWorkspace} onBack={() => setDashboardView('board')} />
+        ? <ReviewWorkspacePage workspace={selectedWorkspace} onBack={() => setDashboardView('board')} onDelete={async () => {
+            if (selectedWorkspace?.id) {
+              await removeWorkspace(selectedWorkspace.id)
+            }
+            setDashboardView('board')
+          }} />
         : (
             <DashboardPage
               workspaces={workspaces}
@@ -85,7 +90,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
           )
   } else if (active === 'flow') {
     body = flowView === 'builder'
-      ? <FlowBuilderPage onBack={() => setFlowView('list')} />
+      ? <FlowBuilderPage onBack={() => setFlowView('list')} onSave={() => setFlowView('list')} />
       : <FlowListPage onCreate={() => setFlowView('builder')} onOpen={() => setFlowView('builder')} />
   } else if (active === 'tasks') {
     body = taskView === 'create'

@@ -69,6 +69,7 @@ export function OnboardingEmpty({
                         <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                       </div>
                       <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+                        <span className="font-mono">ID: {workspace.id}</span>
                         <span>{new Date(workspace.created_at).toLocaleDateString()}</span>
                         <span>{workspace.flows} flows</span>
                       </div>

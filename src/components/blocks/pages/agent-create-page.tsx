@@ -15,12 +15,9 @@ export function AgentCreatePage({ onBack }: { onBack?: () => void }) {
 
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold">New Agent</h1>
-          <p className="text-sm text-muted-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</p>
-        </div>
-        {onBack && <Button variant="ghost" size="sm" onClick={onBack}>Cancel</Button>}
+      <header>
+        <h1 className="text-lg font-semibold">New Agent</h1>
+        <p className="text-sm text-muted-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</p>
       </header>
       <Progress value={((step + 1) / STEPS.length) * 100} />
 
@@ -31,11 +28,11 @@ export function AgentCreatePage({ onBack }: { onBack?: () => void }) {
             <>
               <div className="space-y-1">
                 <Label htmlFor="agent-name">Name</Label>
-                <Input id="agent-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="agent name" />
+                <Input id="agent-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Agent name" />
               </div>
               <div className="space-y-1">
                 <Label htmlFor="agent-brief">Brief</Label>
-                <Textarea id="agent-brief" value={brief} onChange={(e) => setBrief(e.target.value)} placeholder="what does this agent do?" />
+                <Textarea id="agent-brief" value={brief} onChange={(e) => setBrief(e.target.value)} placeholder="What does this agent do?" />
               </div>
             </>
           )}
@@ -51,10 +48,13 @@ export function AgentCreatePage({ onBack }: { onBack?: () => void }) {
       </Card>
 
       <footer className="flex justify-between">
-        <Button variant="ghost" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>Back</Button>
-        <Button onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}>
-          {step === STEPS.length - 1 ? 'Finish' : 'Next'}
-        </Button>
+        {onBack && <Button variant="ghost" onClick={onBack}>Cancel</Button>}
+        <div className="flex gap-2 ml-auto">
+          <Button variant="ghost" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>Back</Button>
+          <Button onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}>
+            {step === STEPS.length - 1 ? 'Finish' : 'Next'}
+          </Button>
+        </div>
       </footer>
     </div>
   )

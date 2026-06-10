@@ -200,7 +200,7 @@ export function AccountBasicInfoPage() {
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="portfolio" icon={<Globe className="h-4 w-4" />}>Portfolio</FieldLabel>
-                  <Input id="portfolio" placeholder="portfolio link" defaultValue="portfolio link" />
+                  <Input id="portfolio" placeholder="Portfolio link" defaultValue="portfolio link" />
                 </Field>
               </div>
             </section>

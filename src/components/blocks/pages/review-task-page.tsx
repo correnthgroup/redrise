@@ -6,7 +6,7 @@ export function ReviewTaskPage({ onBack }: { onBack?: () => void }) {
     <div className="mx-auto h-full max-w-3xl overflow-y-auto p-6 animate-app-rise">
       <header className="mb-4 flex items-center justify-between">
         <h1 className="text-lg font-semibold">Review Task</h1>
-        {onBack && <Button variant="ghost" size="sm" onClick={onBack}>Back</Button>}
+        {onBack && <Button variant="ghost" size="sm" onClick={onBack}>Cancel</Button>}
       </header>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">

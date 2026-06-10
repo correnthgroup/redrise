@@ -129,7 +129,7 @@ export function AuthFlow() {
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="your password"
+                    placeholder="Your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="current-password"
@@ -206,7 +206,7 @@ export function AuthFlow() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="choose a password"
+                    placeholder="Choose a password"
                   />
                   <button
                     type="button"

@@ -1,23 +1,72 @@
-﻿import { Pause, Play, RotateCcw } from 'lucide-react'
+﻿import { useState } from 'react'
+import { Pause, Play, RotateCcw } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 
-const PLACEHOLDER_NODES = [
-  { id: 'n1', name: 'Node 1', status: 'ok' as const },
-  { id: 'n2', name: 'Node 2', status: 'ok' as const },
-  { id: 'n3', name: 'Node 3', status: 'warn' as const },
-  { id: 'n4', name: 'Node 4', status: 'ok' as const },
-  { id: 'n5', name: 'Node 5', status: 'error' as const },
+interface FlowCard {
+  name: string
+  members: string[]
+  agents: string[]
+}
+
+interface WorkflowPipelineProps {
+  cards?: FlowCard[]
+}
+
+interface PipelineNode {
+  id: string
+  name: string
+  status: 'ok' | 'warn' | 'error'
+  members: string[]
+  agents: string[]
+}
+
+const PLACEHOLDER_NODES: PipelineNode[] = [
+  { id: 'n1', name: 'Node 1', status: 'ok', members: [], agents: [] },
+  { id: 'n2', name: 'Node 2', status: 'ok', members: [], agents: [] },
+  { id: 'n3', name: 'Node 3', status: 'warn', members: [], agents: [] },
+  { id: 'n4', name: 'Node 4', status: 'ok', members: [], agents: [] },
+  { id: 'n5', name: 'Node 5', status: 'error', members: [], agents: [] },
 ]
 
-const STATUS_STYLES: Record<typeof PLACEHOLDER_NODES[number]['status'], string> = {
+const STATUS_STYLES: Record<PipelineNode['status'], string> = {
   ok: 'bg-emerald-500',
   warn: 'bg-amber-500',
   error: 'bg-rose-500',
 }
 
-export function WorkflowPipeline() {
+export function WorkflowPipeline({ cards }: WorkflowPipelineProps) {
+  const hasSelection = cards !== undefined
+  const nodes = hasSelection && cards.length > 0
+    ? cards.map((c, i) => ({ id: `c${i}`, name: c.name, status: 'ok' as const, members: c.members, agents: c.agents }))
+    : hasSelection ? [] : PLACEHOLDER_NODES
+
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
+
+  function toggleCheck(id: string) {
+    setCheckedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const allSelected = nodes.length > 0 && nodes.every((n) => checkedIds.has(n.id))
+
+  function toggleAll() {
+    if (allSelected) {
+      setCheckedIds(new Set())
+    } else {
+      setCheckedIds(new Set(nodes.map((n) => n.id)))
+    }
+  }
+
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
@@ -29,15 +78,46 @@ export function WorkflowPipeline() {
         </div>
       </CardHeader>
       <CardContent>
-        <ol className="space-y-2">
-          {PLACEHOLDER_NODES.map((n) => (
-            <li key={n.id} className="flex items-center gap-3 rounded-md border p-2 text-sm">
-              <span className={`h-2.5 w-2.5 rounded-full ${STATUS_STYLES[n.status]}`} aria-hidden />
-              <span className="flex-1 truncate">{n.name}</span>
-              <Badge variant="outline" className="text-[10px] uppercase">{n.status}</Badge>
-            </li>
-          ))}
-        </ol>
+        {!hasSelection ? (
+          <p className="text-sm text-muted-foreground text-center py-8">Select a Flow to Run It</p>
+        ) : nodes.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">No cards in this flow</p>
+        ) : (
+          <>
+            <div className="flex items-center gap-2 mb-3">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={toggleAll}
+              />
+              <button type="button" onClick={toggleAll} className="text-xs text-muted-foreground hover:text-foreground">
+                {allSelected ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
+            <ol className="space-y-2">
+              {nodes.map((n) => (
+                <li key={n.id} className="flex items-center gap-3 rounded-md border p-2 text-sm">
+                  <Checkbox
+                    checked={checkedIds.has(n.id)}
+                    onCheckedChange={() => toggleCheck(n.id)}
+                  />
+                  <span className={`h-2.5 w-2.5 rounded-full ${STATUS_STYLES[n.status]}`} aria-hidden />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{n.name}</div>
+                    {(n.members.length > 0 || n.agents.length > 0) && (
+                      <div className="text-xs text-muted-foreground truncate">
+                        {n.members.length > 0 && <span>Members: {n.members.join(', ')}</span>}
+                        {n.members.length > 0 && n.agents.length > 0 && <span> · </span>}
+                        {n.agents.length > 0 && <span>Agents: {n.agents.join(', ')}</span>}
+                      </div>
+                    )}
+                    <div className="text-[10px] text-muted-foreground/60 font-mono">ID: {n.id}</div>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] uppercase">{n.status}</Badge>
+                </li>
+              ))}
+            </ol>
+          </>
+        )}
       </CardContent>
     </Card>
   )

@@ -15,12 +15,9 @@ export function CreateTaskPage({ onBack }: { onBack?: () => void }) {
 
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold">New Task</h1>
-          <p className="text-sm text-muted-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</p>
-        </div>
-        {onBack && <Button variant="ghost" size="sm" onClick={onBack}>Cancel</Button>}
+      <header>
+        <h1 className="text-lg font-semibold">New Task</h1>
+        <p className="text-sm text-muted-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</p>
       </header>
       <Progress value={((step + 1) / STEPS.length) * 100} />
 
@@ -30,13 +27,13 @@ export function CreateTaskPage({ onBack }: { onBack?: () => void }) {
           {step === 0 && (
             <div className="space-y-1">
               <Label htmlFor="t-title">Title</Label>
-              <Input id="t-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="task title" />
+              <Input id="t-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Task title" />
             </div>
           )}
           {step === 1 && (
             <div className="space-y-1">
               <Label htmlFor="t-brief">Briefing</Label>
-              <Textarea id="t-brief" value={brief} onChange={(e) => setBrief(e.target.value)} placeholder="what needs to happen?" rows={6} />
+              <Textarea id="t-brief" value={brief} onChange={(e) => setBrief(e.target.value)} placeholder="What needs to happen?" rows={6} />
             </div>
           )}
           {step === 2 && <div className="rounded-lg border bg-[#2F4858]/6 p-4 text-sm text-muted-foreground">Pick assignees and reviewers with the execution context already in mind.</div>}
@@ -50,10 +47,13 @@ export function CreateTaskPage({ onBack }: { onBack?: () => void }) {
       </Card>
 
       <footer className="flex justify-between">
-        <Button variant="ghost" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>Back</Button>
-        <Button onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}>
-          {step === STEPS.length - 1 ? 'Finish' : 'Next'}
-        </Button>
+        {onBack && <Button variant="ghost" onClick={onBack}>Cancel</Button>}
+        <div className="flex gap-2 ml-auto">
+          <Button variant="ghost" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>Back</Button>
+          <Button onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}>
+            {step === STEPS.length - 1 ? 'Finish' : 'Next'}
+          </Button>
+        </div>
       </footer>
     </div>
   )

@@ -21,12 +21,9 @@ export function CreateWorkspacePage({
 
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold">New Workspace</h1>
-          <p className="text-sm text-muted-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</p>
-        </div>
-        {onBack && <Button variant="ghost" size="sm" onClick={onBack}>Cancel</Button>}
+      <header>
+        <h1 className="text-lg font-semibold">New Workspace</h1>
+        <p className="text-sm text-muted-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</p>
       </header>
       <Progress value={((step + 1) / STEPS.length) * 100} />
 
@@ -37,11 +34,11 @@ export function CreateWorkspacePage({
             <>
               <div className="space-y-1">
                 <Label htmlFor="w-name">Name</Label>
-                <Input id="w-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="workspace name" />
+                <Input id="w-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Workspace name" />
               </div>
               <div className="space-y-1">
                 <Label htmlFor="w-mission">Mission</Label>
-                <Textarea id="w-mission" value={mission} onChange={(e) => setMission(e.target.value)} placeholder="mission statement" rows={4} />
+                <Textarea id="w-mission" value={mission} onChange={(e) => setMission(e.target.value)} placeholder="Mission statement" rows={4} />
               </div>
             </>
           )}
@@ -57,19 +54,23 @@ export function CreateWorkspacePage({
       </Card>
 
       <footer className="flex justify-between">
-        <Button variant="ghost" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>Back</Button>
-        <Button
-          onClick={() => {
-            if (step === STEPS.length - 1) {
-              onCreate?.({ name, mission })
-              return
-            }
+        {onBack && <Button variant="ghost" onClick={onBack}>Cancel</Button>}
+        <div className="flex gap-2 ml-auto">
+          <Button variant="ghost" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>Back</Button>
+          <Button
+            className="min-w-[120px]"
+            onClick={() => {
+              if (step === STEPS.length - 1) {
+                onCreate?.({ name, mission })
+                return
+              }
 
-            setStep((s) => Math.min(STEPS.length - 1, s + 1))
-          }}
-        >
-          {step === STEPS.length - 1 ? 'Create Workspace' : 'Next'}
-        </Button>
+              setStep((s) => Math.min(STEPS.length - 1, s + 1))
+            }}
+          >
+            {step === STEPS.length - 1 ? 'Done' : 'Next'}
+          </Button>
+        </div>
       </footer>
     </div>
   )
