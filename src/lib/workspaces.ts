@@ -37,23 +37,29 @@ export async function loadWorkspaces(): Promise<Workspace[]> {
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('Failed to load workspaces:', error.message)
+    console.error('[loadWorkspaces] Error:', error.message, error.details, error.hint)
     return []
   }
 
+  console.log('[loadWorkspaces] Loaded:', data?.length ?? 0, 'workspaces')
   return (data ?? []) as Workspace[]
 }
 
 export async function createWorkspace(input: CreateWorkspaceInput): Promise<Workspace | null> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError) {
+    console.error('[createWorkspace] Auth error:', authError.message)
+    return null
+  }
   if (!user) {
-    console.error('No authenticated user')
+    console.error('[createWorkspace] No authenticated user')
     return null
   }
 
   const id = await generateUniqueId()
-
   const now = new Date().toISOString()
+
+  console.log('[createWorkspace] Inserting:', { id, user_id: user.id, name: input.name })
 
   const { data, error } = await supabase
     .from('workspaces')
@@ -71,10 +77,11 @@ export async function createWorkspace(input: CreateWorkspaceInput): Promise<Work
     .single()
 
   if (error) {
-    console.error('Failed to create workspace:', error.message)
+    console.error('[createWorkspace] Insert error:', error.message, error.details, error.hint)
     return null
   }
 
+  console.log('[createWorkspace] Success:', data)
   return data as Workspace
 }
 
