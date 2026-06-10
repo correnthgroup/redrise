@@ -255,41 +255,41 @@ export function CreateTaskPage({
             <div className="space-y-6">
               {/* Priority + Kanban Column */}
               <div className="grid grid-cols-2 gap-4">
-                {/* Priority Dropdown */}
+                {/* Priority */}
                 <div className="space-y-2">
                   <Label>Priority</Label>
                   <div className="relative">
-                    <button
+                    <Button
                       type="button"
-                      onClick={() => setShowColumnDropdown(false)}
-                      className={`flex h-9 w-full items-center justify-between rounded-md border bg-background px-3 py-2 text-sm ${
-                        selectedPriority ? selectedPriority.color : 'text-muted-foreground'
-                      }`}
+                      variant="outline"
+                      className="w-full justify-between h-9"
+                      onClick={() => {
+                        setShowColumnDropdown(false)
+                        setShowMemberDropdown(false)
+                        setShowAgentDropdown(false)
+                      }}
                     >
-                      <div className="flex items-center gap-2">
-                        {selectedPriority && <selectedPriority.icon className="h-4 w-4" />}
-                        <span>{selectedPriority?.label ?? 'Select priority...'}</span>
-                      </div>
-                    </button>
-                    <div className="mt-1 flex gap-1">
-                      {PRIORITIES.map((p) => {
-                        const Icon = p.icon
-                        return (
+                      <span className={priority ? 'text-foreground' : 'text-muted-foreground'}>
+                        {selectedPriority?.label ?? 'Select priority...'}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50" />
+                    </Button>
+                    <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                      <div className="p-1">
+                        {PRIORITIES.map((p) => (
                           <button
                             key={p.value}
                             type="button"
+                            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
                             onClick={() => setPriority(p.value)}
-                            className={`flex flex-1 items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-medium transition-colors ${
-                              priority === p.value
-                                ? `${p.color} border-current`
-                                : 'bg-background hover:bg-accent/40'
-                            }`}
                           >
-                            <Icon className="h-3 w-3" />
-                            {p.label}
+                            <span className="flex-1 text-left">{p.label}</span>
+                            {priority === p.value && (
+                              <Check className="h-4 w-4 text-[#2F4858]" />
+                            )}
                           </button>
-                        )
-                      })}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -302,12 +302,15 @@ export function CreateTaskPage({
                       type="button"
                       variant="outline"
                       className="w-full justify-between h-9"
-                      onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                      onClick={() => {
+                        setShowColumnDropdown(!showColumnDropdown)
+                        setShowMemberDropdown(false)
+                        setShowAgentDropdown(false)
+                      }}
                     >
-                      <div className="flex items-center gap-2">
-                        <LayoutGrid className="h-4 w-4 text-muted-foreground" />
-                        <span>{selectedColumn?.label ?? 'Select column...'}</span>
-                      </div>
+                      <span className={kanbanColumn ? 'text-foreground' : 'text-muted-foreground'}>
+                        {selectedColumn?.label ?? 'Select column...'}
+                      </span>
                       <ChevronDown className="h-4 w-4 opacity-50" />
                     </Button>
                     {showColumnDropdown && (
@@ -346,7 +349,11 @@ export function CreateTaskPage({
                       type="button"
                       variant="outline"
                       className="w-full justify-between h-9"
-                      onClick={() => setShowMemberDropdown(!showMemberDropdown)}
+                      onClick={() => {
+                        setShowMemberDropdown(!showMemberDropdown)
+                        setShowColumnDropdown(false)
+                        setShowAgentDropdown(false)
+                      }}
                     >
                       <span className="text-muted-foreground">
                         {selectedMembers.length === 0 ? 'Select team members...' : `${selectedMembers.length} selected`}
@@ -373,9 +380,6 @@ export function CreateTaskPage({
                               className="rounded-[2px]"
                             />
                             <span className="font-medium">Select All</span>
-                            {selectedMembers.length === PLACEHOLDER_MEMBERS.length && (
-                              <Check className="ml-auto h-4 w-4 text-[#2F4858]" />
-                            )}
                           </button>
                           {PLACEHOLDER_MEMBERS.map((member) => (
                             <button
@@ -389,39 +393,12 @@ export function CreateTaskPage({
                                 className="rounded-[2px]"
                               />
                               <span>{member.name}</span>
-                              {selectedMembers.includes(member.id) && (
-                                <Check className="ml-auto h-4 w-4 text-[#2F4858]" />
-                              )}
                             </button>
                           ))}
                         </div>
                       </div>
                     )}
                   </div>
-
-                  {selectedMembers.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {PLACEHOLDER_MEMBERS
-                        .filter((m) => selectedMembers.includes(m.id))
-                        .map((member) => (
-                          <Badge
-                            key={member.id}
-                            variant="secondary"
-                            className="gap-1 pr-1 bg-[#2F4858]/10 text-[#2F4858]"
-                          >
-                            {member.name}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-3.5 w-3.5 hover:bg-[#2F4858]/20"
-                              onClick={() => removeMember(member.id)}
-                            >
-                              <X className="h-2.5 w-2.5" />
-                            </Button>
-                          </Badge>
-                        ))}
-                    </div>
-                  )}
                 </div>
 
                 {/* Agent */}
@@ -432,7 +409,11 @@ export function CreateTaskPage({
                       type="button"
                       variant="outline"
                       className="w-full justify-between h-9"
-                      onClick={() => setShowAgentDropdown(!showAgentDropdown)}
+                      onClick={() => {
+                        setShowAgentDropdown(!showAgentDropdown)
+                        setShowColumnDropdown(false)
+                        setShowMemberDropdown(false)
+                      }}
                       disabled={loadingAgents}
                     >
                       <span className={selectedAgent ? 'text-foreground' : 'text-muted-foreground'}>
@@ -456,17 +437,8 @@ export function CreateTaskPage({
                                   setShowAgentDropdown(false)
                                 }}
                               >
-                                <span className={`h-2 w-2 rounded-full ${
-                                  agent.status === 'active' ? 'bg-[#2F4858]' :
-                                  agent.status === 'paused' ? 'bg-amber-500' :
-                                  agent.status === 'error' ? 'bg-[#8c1f28]' :
-                                  'bg-slate-400'
-                                }`} />
                                 <span className="flex-1 text-left">{agent.name}</span>
                                 <span className="text-[10px] text-muted-foreground">{agent.model}</span>
-                                {selectedAgentId === agent.id && (
-                                  <Check className="h-4 w-4 text-[#2F4858]" />
-                                )}
                               </button>
                             ))
                           )}
@@ -564,21 +536,56 @@ export function CreateTaskPage({
                 {recurrence === 'weekly' && (
                   <div className="space-y-2">
                     <Label className="text-xs">Days of Week</Label>
-                    <div className="flex gap-1">
-                      {WEEK_DAYS.map((day) => (
-                        <button
-                          key={day.id}
-                          type="button"
-                          onClick={() => toggleRecurrenceDay(day.id)}
-                          className={`h-8 w-8 rounded-md text-xs font-medium transition-colors ${
-                            recurrenceDays.includes(day.id)
-                              ? 'bg-[#2F4858] text-white'
-                              : 'bg-background hover:bg-accent/40 border'
-                          }`}
-                        >
-                          {day.short}
-                        </button>
-                      ))}
+                    <div className="relative">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full justify-between h-9"
+                        onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                      >
+                        <span className="text-muted-foreground">
+                          {recurrenceDays.length === 0 ? 'Select days...' : `${recurrenceDays.length} days selected`}
+                        </span>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </Button>
+                      {showColumnDropdown && (
+                        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                          <div className="p-1">
+                            {/* Select All */}
+                            <button
+                              type="button"
+                              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent border-b"
+                              onClick={() => {
+                                if (recurrenceDays.length === WEEK_DAYS.length) {
+                                  setRecurrenceDays([])
+                                } else {
+                                  setRecurrenceDays(WEEK_DAYS.map((d) => d.id))
+                                }
+                              }}
+                            >
+                              <Checkbox
+                                checked={recurrenceDays.length === WEEK_DAYS.length}
+                                className="rounded-[2px]"
+                              />
+                              <span className="font-medium">Select All</span>
+                            </button>
+                            {WEEK_DAYS.map((day) => (
+                              <button
+                                key={day.id}
+                                type="button"
+                                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                                onClick={() => toggleRecurrenceDay(day.id)}
+                              >
+                                <Checkbox
+                                  checked={recurrenceDays.includes(day.id)}
+                                  className="rounded-[2px]"
+                                />
+                                <span>{day.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -587,30 +594,65 @@ export function CreateTaskPage({
                 {recurrence === 'monthly' && (
                   <div className="space-y-2">
                     <Label className="text-xs">Days of Month</Label>
-                    <div className="flex flex-wrap gap-1">
-                      {MONTH_DAYS.map((day) => (
-                        <button
-                          key={day}
-                          type="button"
-                          onClick={() => toggleMonthlyDay(day)}
-                          className={`h-7 w-7 rounded-md text-[10px] font-medium transition-colors ${
-                            recurrenceMonthlyDays.includes(day)
-                              ? 'bg-[#2F4858] text-white'
-                              : 'bg-background hover:bg-accent/40 border'
-                          }`}
-                        >
-                          {day}
-                        </button>
-                      ))}
+                    <div className="relative">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full justify-between h-9"
+                        onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                      >
+                        <span className="text-muted-foreground">
+                          {recurrenceMonthlyDays.length === 0 ? 'Select days...' : `${recurrenceMonthlyDays.length} days selected`}
+                        </span>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </Button>
+                      {showColumnDropdown && (
+                        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                          <div className="max-h-60 overflow-y-auto p-1">
+                            {/* Select All */}
+                            <button
+                              type="button"
+                              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent border-b"
+                              onClick={() => {
+                                if (recurrenceMonthlyDays.length === MONTH_DAYS.length) {
+                                  setRecurrenceMonthlyDays([])
+                                } else {
+                                  setRecurrenceMonthlyDays([...MONTH_DAYS])
+                                }
+                              }}
+                            >
+                              <Checkbox
+                                checked={recurrenceMonthlyDays.length === MONTH_DAYS.length}
+                                className="rounded-[2px]"
+                              />
+                              <span className="font-medium">Select All</span>
+                            </button>
+                            {MONTH_DAYS.map((day) => (
+                              <button
+                                key={day}
+                                type="button"
+                                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                                onClick={() => toggleMonthlyDay(day)}
+                              >
+                                <Checkbox
+                                  checked={recurrenceMonthlyDays.includes(day)}
+                                  className="rounded-[2px]"
+                                />
+                                <span>Day {day}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {hasDay31 && (
+                        <div className="flex items-start gap-2 rounded-md bg-[#B7791F]/10 border border-[#B7791F]/30 p-2 mt-2">
+                          <AlertTriangle className="h-4 w-4 text-[#B7791F] shrink-0 mt-0.5" />
+                          <p className="text-[11px] text-[#8A6116]">
+                            In months with fewer than 31 days, this task will be scheduled for the last day of the month.
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    {hasDay31 && (
-                      <div className="flex items-start gap-2 rounded-md bg-[#B7791F]/10 border border-[#B7791F]/30 p-2 mt-2">
-                        <AlertTriangle className="h-4 w-4 text-[#B7791F] shrink-0 mt-0.5" />
-                        <p className="text-[11px] text-[#8A6116]">
-                          In months with fewer than 31 days, this task will be scheduled for the last day of the month.
-                        </p>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
