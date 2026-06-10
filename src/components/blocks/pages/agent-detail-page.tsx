@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -6,9 +6,58 @@ import { Badge } from '@/components/ui/badge'
 import { SessionsList } from '../shared/sessions-list'
 import { ApiKeysManager } from '../shared/api-keys-manager'
 import { ChangePassword } from '../shared/change-password'
+import type { Agent } from '@/types/agent'
+import { loadAgent } from '@/lib/agents'
 
-export function AgentDetailPage({ onBack }: { onBack?: () => void }) {
+const STATUS_COLOR: Record<Agent['status'], string> = {
+  active: 'bg-[#2F4858]',
+  paused: 'bg-amber-500',
+  error: 'bg-[#8c1f28]',
+  idle: 'bg-slate-400',
+}
+
+const STATUS_BADGE: Record<Agent['status'], string> = {
+  active: 'border-[#2F4858]/25 bg-[#2F4858]/8 text-[#2F4858]',
+  paused: 'border-[#B7791F]/18 bg-[#FFF4DB] text-[#8A6116]',
+  error: 'border-primary/18 bg-primary/8 text-primary',
+  idle: 'border-slate-200 bg-slate-50 text-slate-600',
+}
+
+export function AgentDetailPage({
+  agentId,
+  onBack,
+}: {
+  agentId: string
+  onBack?: () => void
+}) {
   const [tab, setTab] = useState('overview')
+  const [agent, setAgent] = useState<Agent | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!agentId) return
+    setLoading(true)
+    loadAgent(agentId).then((data) => {
+      setAgent(data)
+      setLoading(false)
+    })
+  }, [agentId])
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center p-6">
+        <p className="text-sm text-muted-foreground">Loading agent...</p>
+      </div>
+    )
+  }
+
+  if (!agent) {
+    return (
+      <div className="flex h-full items-center justify-center p-6">
+        <p className="text-sm text-muted-foreground">Agent not found.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4 p-6 animate-app-rise">
@@ -16,10 +65,12 @@ export function AgentDetailPage({ onBack }: { onBack?: () => void }) {
         <div>
           <div className="flex items-center gap-2">
             {onBack && <Button variant="ghost" size="sm" onClick={onBack}>Cancel</Button>}
-            <h1 className="text-lg font-semibold">Agent name</h1>
-            <Badge variant="outline" className="border-[#2F4858]/25 bg-[#2F4858]/8 text-[#2F4858]">active</Badge>
+            <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLOR[agent.status]}`} aria-hidden />
+            <h1 className="text-lg font-semibold">{agent.name}</h1>
+            <Badge variant="outline" className={`text-[10px] uppercase ${STATUS_BADGE[agent.status]}`}>{agent.status}</Badge>
           </div>
-          <p className="text-sm text-muted-foreground">agent description placeholder</p>
+          <p className="text-sm text-muted-foreground">{agent.brief || 'No description'}</p>
+          <p className="text-xs text-muted-foreground mt-1">Model: {agent.model}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm">Pause</Button>

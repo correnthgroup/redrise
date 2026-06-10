@@ -49,6 +49,7 @@
 | Backend | Supabase (projeto `ndfsselzilmdzywcdyoo`) |
 | Auth | Supabase Auth (GitHub + email/password) |
 | Database | Supabase PostgreSQL com RLS |
+| AI Provider | OpenRouter (gpt-oss-120b:free) via Edge Function |
 | Package manager | `yarn` via `corepack` |
 | Testes | Vitest (unit) + Playwright (e2e) |
 | Paleta | **Sugestao 2** — primary=#8c1f28, header=#0F172A, secondary=#2F4858 |
@@ -457,7 +458,7 @@ Dashboard (visor de workspaces)
 
 **Importancia**: E onde o usuario gerencia um agente especifico. As abas de sessoes e API keys mostram como o agente acessa o sistema.
 
-**Status atual**: 10 agentes mockados com status variados. Sem integracao com IA real.
+**Status atual**: Agents conectados ao Supabase. Tabela `agents` com RLS, CRUD completo, hook `useAgents`. Agent padrao configurado com OpenRouter (gpt-oss-120b:free). Edge Function `openrouter-proxy` para chamadas server-side (chave nunca exposta ao frontend).
 
 ---
 
@@ -584,6 +585,7 @@ AppShell
 - **Sprint 6**: Flows persistidos no Supabase — CRUD completo, migration 003, useFlows hook
 - **Sprint 7**: Tasks persistidas no Supabase — CRUD completo, drag-and-drop entre colunas, migration 004, useTasks hook
 - **Sprint 8**: Flow Editor persistido no Supabase — cards e edges salvos/recarregados por flow, migration 005, useFlowCards hook
+- **Sprint 9**: Agents base — tabela `agents` com RLS, CRUD completo, hook `useAgents`, agent padrao com OpenRouter (gpt-oss-120b:free), Edge Function `openrouter-proxy` para chamadas server-side
 - **Flow List**: lista com busca, selecao, edicao de nome/members, delete, IDs visiveis, dados reais do Supabase
 - **Flow Editor**: editor React Flow com cards que mostram titulo/members/agents/ID, dialog de edicao completo, atalhos de teclado, arestas animadas — tudo persistido no Supabase
 - **WorkflowPipeline**: checkboxes quadrados, Select All, members/agents por card, controles play/pause/reset

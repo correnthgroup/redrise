@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react'
 import { useWorkspaces } from '@/hooks/use-workspaces'
 import { useFlows } from '@/hooks/use-flows'
 import { useTasks } from '@/hooks/use-tasks'
+import { useAgents } from '@/hooks/use-agents'
 import { DashboardPage } from '@/components/blocks/pages/dashboard-page'
 import { CreateFlowPage } from '@/components/blocks/pages/create-flow-page'
 import { FlowBuilderPage } from '@/components/blocks/pages/flow-builder-page'
@@ -44,9 +45,11 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const [agentView, setAgentView] = useState<'list' | 'create' | 'detail'>('list')
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null)
   const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null)
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
   const { workspaces, addWorkspace, removeWorkspace } = useWorkspaces()
   const { flows, addFlow, removeFlow } = useFlows()
   const { tasks, addTask, moveTask, removeTask } = useTasks()
+  const { agents, loading: agentsLoading, addAgent, removeAgent } = useAgents()
 
   function selectPage(next: SidebarKey) {
     setActive(next)
@@ -56,7 +59,10 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
     }
     if (next !== 'flow') setFlowView('list')
     if (next !== 'tasks') setTaskView('board')
-    if (next !== 'agents') setAgentView('list')
+    if (next !== 'agents') {
+      setAgentView('list')
+      setSelectedAgentId(null)
+    }
   }
 
   const selectedWorkspace = workspaces.find((workspace) => workspace.id === selectedWorkspaceId)
@@ -130,10 +136,29 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
         : <TaskBoardPage tasks={tasks} onMoveTask={moveTask} onDeleteTask={removeTask} onCreateTask={() => setTaskView('create')} onOpenTask={() => setTaskView('review')} />
   } else if (active === 'agents') {
     body = agentView === 'create'
-      ? <AgentCreatePage onBack={() => setAgentView('list')} />
+      ? <AgentCreatePage
+          onBack={() => setAgentView('list')}
+          onCreate={async (input) => {
+            const result = await addAgent(input)
+            if (result) {
+              setAgentView('list')
+            }
+            return result
+          }}
+        />
       : agentView === 'detail'
-        ? <AgentDetailPage onBack={() => setAgentView('list')} />
-        : <AgentListPage onOpenAgent={() => setAgentView('detail')} />
+        ? <AgentDetailPage agentId={selectedAgentId ?? ''} onBack={() => { setAgentView('list'); setSelectedAgentId(null) }} />
+        : <AgentListPage
+            agents={agents}
+            loading={agentsLoading}
+            onDeleteAgent={async (id) => {
+              await removeAgent(id)
+            }}
+            onOpenAgent={(id) => {
+              setSelectedAgentId(id)
+              setAgentView('detail')
+            }}
+          />
   } else if (active === 'analytics') {
     body = <AnalyticsPage />
   } else {

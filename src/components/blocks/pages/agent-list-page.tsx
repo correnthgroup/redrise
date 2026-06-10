@@ -1,49 +1,19 @@
 ﻿import { useState } from 'react'
-import { Search, Pause, Play, RotateCcw, Network, LayoutDashboard } from 'lucide-react'
+import { Search, Pause, Play, RotateCcw, Network, LayoutDashboard, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-
-type Agent = { id: string; name: string; status: 'active' | 'paused' | 'error' | 'idle'; model: string }
-const PLACEHOLDER_AGENTS: Agent[] = Array.from({ length: 10 }, (_, i) => ({
-  id: `a${i + 1}`,
-  name: `Agent ${i + 1}`,
-  status: (['active', 'paused', 'error', 'idle'] as const)[i % 4],
-  model: ['Model A', 'Model B', 'Model C'][i % 3],
-}))
+import type { Agent } from '@/types/agent'
 
 type AgentFlow = { flowId: string; flowName: string; workspaceId: string; workspaceName: string; flowStatus: string }
 
 const PLACEHOLDER_AGENT_FLOWS: Record<string, AgentFlow[]> = {
-  a1: [
+  a0001: [
     { flowId: 'f1a2b', flowName: 'Sales Qualification', workspaceId: 'w3k7m', workspaceName: 'Sales Ops', flowStatus: 'running' },
     { flowId: 'f2b3c', flowName: 'Lead Scoring', workspaceId: 'w3k7m', workspaceName: 'Sales Ops', flowStatus: 'paused' },
   ],
-  a2: [
-    { flowId: 'f3c4d', flowName: 'Client Onboarding', workspaceId: 'w8j2n', workspaceName: 'Client Success', flowStatus: 'running' },
-  ],
-  a3: [
-    { flowId: 'f4d5e', flowName: 'Escalation Routing', workspaceId: 'w5h9p', workspaceName: 'Support', flowStatus: 'error' },
-    { flowId: 'f5e6f', flowName: 'Ticket Triage', workspaceId: 'w5h9p', workspaceName: 'Support', flowStatus: 'running' },
-    { flowId: 'f6f7g', flowName: 'SLA Monitor', workspaceId: 'w5h9p', workspaceName: 'Support', flowStatus: 'running' },
-  ],
-  a4: [
-    { flowId: 'f7g8h', flowName: 'Delivery Handoff', workspaceId: 'w1m4q', workspaceName: 'Logistics', flowStatus: 'running' },
-  ],
-  a5: [],
-  a6: [
-    { flowId: 'f1a2b', flowName: 'Sales Qualification', workspaceId: 'w3k7m', workspaceName: 'Sales Ops', flowStatus: 'running' },
-  ],
-  a7: [
-    { flowId: 'f8h9i', flowName: 'Invoice Processing', workspaceId: 'w2n6r', workspaceName: 'Finance', flowStatus: 'paused' },
-  ],
-  a8: [],
-  a9: [
-    { flowId: 'f9i0j', flowName: 'Compliance Check', workspaceId: 'w4k8s', workspaceName: 'Legal', flowStatus: 'running' },
-  ],
-  a10: [],
 }
 
 const STATUS_COLOR: Record<Agent['status'], string> = {
@@ -67,16 +37,22 @@ const FLOW_STATUS_BADGE: Record<string, string> = {
 }
 
 export function AgentListPage({
+  agents,
+  loading,
+  onDeleteAgent,
   onOpenAgent,
 }: {
+  agents: Agent[]
+  loading: boolean
+  onDeleteAgent?: (id: string) => void
   onOpenAgent?: (id: string) => void
 }) {
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [checkedFlowIds, setCheckedFlowIds] = useState<Set<string>>(new Set())
 
-  const filtered = PLACEHOLDER_AGENTS.filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
-  const selectedAgent = PLACEHOLDER_AGENTS.find((a) => a.id === selectedId)
+  const filtered = agents.filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
+  const selectedAgent = agents.find((a) => a.id === selectedId)
   const agentFlows = selectedId ? (PLACEHOLDER_AGENT_FLOWS[selectedId] ?? []) : []
 
   const allFlowsSelected = agentFlows.length > 0 && agentFlows.every((af) => checkedFlowIds.has(af.flowId))
@@ -125,7 +101,9 @@ export function AgentListPage({
         <Card className="min-h-0 flex-1 border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
           <CardHeader><CardTitle className="text-sm font-semibold">Agents</CardTitle></CardHeader>
           <CardContent>
-            {filtered.length === 0 ? (
+            {loading ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Loading agents...</p>
+            ) : filtered.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">No agents found.</p>
             ) : (
               <ul className="space-y-2">
@@ -174,7 +152,27 @@ export function AgentListPage({
                   <Badge variant="outline" className={`text-[10px] uppercase ${STATUS_BADGE[selectedAgent.status]}`}>{selectedAgent.status}</Badge>
                 </div>
                 <div className="mt-2 text-xs text-muted-foreground">Model: {selectedAgent.model}</div>
-                <div className="text-[10px] text-muted-foreground/60 font-mono">ID: {selectedAgent.id}</div>
+                <div className="text-xs text-muted-foreground mt-1">{selectedAgent.brief || 'No description'}</div>
+                <div className="text-[10px] text-muted-foreground/60 font-mono mt-1">ID: {selectedAgent.id}</div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => onOpenAgent?.(selectedAgent.id)}
+                >
+                  View Details
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => onDeleteAgent?.(selectedAgent.id)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
               </div>
 
               <div>
