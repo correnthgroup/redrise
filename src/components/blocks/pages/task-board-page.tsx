@@ -1,9 +1,11 @@
 ﻿import { useState } from 'react'
-import { ArrowRight, Plus, Trash2 } from 'lucide-react'
+import { ArrowRight, Trash2, Play } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { Task, TaskStatus } from '@/types/task'
+import type { Agent } from '@/types/agent'
+import { TaskRunDialog } from '@/components/blocks/shared/task-run-dialog'
 
 const COLUMNS: { id: TaskStatus; title: string }[] = [
   { id: 'backlog', title: 'Backlog' },
@@ -21,18 +23,20 @@ const STATUS_TONE: Record<TaskStatus, string> = {
 
 export function TaskBoardPage({
   tasks,
+  agents,
   onMoveTask,
   onDeleteTask,
-  onCreateTask,
-  onOpenTask,
 }: {
   tasks: Task[]
+  agents: Agent[]
   onMoveTask?: (id: string, status: TaskStatus) => Promise<boolean>
   onDeleteTask?: (id: string) => Promise<boolean>
-  onCreateTask?: () => void
-  onOpenTask?: (id: string) => void
 }) {
   const [dragging, setDragging] = useState<string | null>(null)
+  const [runTaskId, setRunTaskId] = useState<string | null>(null)
+
+  const runTask = runTaskId ? tasks.find((t) => t.id === runTaskId) : null
+  const runAgent = runTask?.agent_id ? agents.find((a) => a.id === runTask.agent_id) : null
 
   function handleMove(id: string, status: TaskStatus) {
     onMoveTask?.(id, status)
@@ -75,6 +79,15 @@ export function TaskBoardPage({
                       <div className="flex items-start justify-between gap-2">
                         <span className="font-medium text-foreground">{t.title}</span>
                         <div className="flex items-center gap-1 shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 text-[#2F4858] hover:text-[#2F4858] hover:bg-[#2F4858]/10"
+                            onClick={(e) => { e.stopPropagation(); setRunTaskId(t.id) }}
+                            title="Run task with AI"
+                          >
+                            <Play className="h-3 w-3" />
+                          </Button>
                           <ArrowRight className="mt-0.5 h-3.5 w-3.5 text-muted-foreground" />
                           <Button
                             variant="ghost"
@@ -98,6 +111,16 @@ export function TaskBoardPage({
           )
         })}
       </div>
+
+      {runTask && (
+        <TaskRunDialog
+          task={runTask}
+          agent={runAgent}
+          open={!!runTaskId}
+          onOpenChange={(open) => { if (!open) setRunTaskId(null) }}
+          onComplete={() => { setRunTaskId(null) }}
+        />
+      )}
     </div>
   )
 }
