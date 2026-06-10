@@ -96,6 +96,7 @@ export function CreateTaskPage({
   const [showMemberDropdown, setShowMemberDropdown] = useState(false)
   const [showAgentDropdown, setShowAgentDropdown] = useState(false)
   const [showColumnDropdown, setShowColumnDropdown] = useState(false)
+  const [showPriorityDropdown, setShowPriorityDropdown] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -261,34 +262,35 @@ export function CreateTaskPage({
                       type="button"
                       variant="outline"
                       className="w-full justify-between h-9"
-                      onClick={() => {
-                        setShowColumnDropdown(false)
-                        setShowMemberDropdown(false)
-                        setShowAgentDropdown(false)
-                      }}
+                      onClick={() => setShowPriorityDropdown(!showPriorityDropdown)}
                     >
                       <span className={priority ? 'text-foreground' : 'text-muted-foreground'}>
                         {selectedPriority?.label ?? 'Select priority...'}
                       </span>
                       <ChevronDown className="h-4 w-4 opacity-50" />
                     </Button>
-                    <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
-                      <div className="p-1">
-                        {PRIORITIES.map((p) => (
-                          <button
-                            key={p.value}
-                            type="button"
-                            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                            onClick={() => setPriority(p.value)}
-                          >
-                            <span className="flex-1 text-left">{p.label}</span>
-                            {priority === p.value && (
-                              <Check className="h-4 w-4 text-[#2F4858]" />
-                            )}
-                          </button>
-                        ))}
+                    {showPriorityDropdown && (
+                      <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                        <div className="p-1">
+                          {PRIORITIES.map((p) => (
+                            <button
+                              key={p.value}
+                              type="button"
+                              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                              onClick={() => {
+                                setPriority(p.value)
+                                setShowPriorityDropdown(false)
+                              }}
+                            >
+                              <span className="flex-1 text-left">{p.label}</span>
+                              {priority === p.value && (
+                                <Check className="h-4 w-4 text-[#2F4858]" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 
