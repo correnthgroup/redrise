@@ -27,7 +27,7 @@ const PLACEHOLDER_AGENT_FLOWS: Record<string, AgentFlow[]> = {
   a3: [
     { flowId: 'f4d5e', flowName: 'Escalation Routing', workspaceId: 'w5h9p', workspaceName: 'Support', flowStatus: 'error' },
     { flowId: 'f5e6f', flowName: 'Ticket Triage', workspaceId: 'w5h9p', workspaceName: 'Support', flowStatus: 'running' },
-    { flowId: 'f6f7g', flowName: ' SLA Monitor', workspaceId: 'w5h9p', workspaceName: 'Support', flowStatus: 'running' },
+    { flowId: 'f6f7g', flowName: 'SLA Monitor', workspaceId: 'w5h9p', workspaceName: 'Support', flowStatus: 'running' },
   ],
   a4: [
     { flowId: 'f7g8h', flowName: 'Delivery Handoff', workspaceId: 'w1m4q', workspaceName: 'Logistics', flowStatus: 'running' },
@@ -75,13 +75,43 @@ export function AgentListPage({
 }) {
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [checkedFlowIds, setCheckedFlowIds] = useState<Set<string>>(new Set())
 
   const filtered = PLACEHOLDER_AGENTS.filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
   const selectedAgent = PLACEHOLDER_AGENTS.find((a) => a.id === selectedId)
   const agentFlows = selectedId ? (PLACEHOLDER_AGENT_FLOWS[selectedId] ?? []) : []
 
+  const allFlowsSelected = agentFlows.length > 0 && agentFlows.every((af) => checkedFlowIds.has(af.flowId))
+
   function selectAgent(id: string) {
     setSelectedId((prev) => (prev === id ? null : id))
+    setCheckedFlowIds(new Set())
+  }
+
+  function toggleFlowCheck(flowId: string) {
+    setCheckedFlowIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(flowId)) {
+        next.delete(flowId)
+      } else {
+        next.add(flowId)
+      }
+      return next
+    })
+  }
+
+  function toggleAllFlows() {
+    if (allFlowsSelected) {
+      setCheckedFlowIds(new Set())
+    } else {
+      setCheckedFlowIds(new Set(agentFlows.map((af) => af.flowId)))
+    }
+  }
+
+  function handleRun() {
+    const selectedFlows = agentFlows.filter((af) => checkedFlowIds.has(af.flowId))
+    console.log('[AgentList] Run agent', selectedAgent?.name, 'on flows:', selectedFlows.map((f) => f.flowName))
+    // TODO: persist agent execution in future sprint
   }
 
   return (
@@ -130,7 +160,7 @@ export function AgentListPage({
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="text-sm font-semibold">Agent Details</CardTitle>
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" className="h-7 w-7"><Play className="h-3.5 w-3.5" /></Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleRun} disabled={!selectedAgent || checkedFlowIds.size === 0}><Play className="h-3.5 w-3.5" /></Button>
             <Button variant="ghost" size="icon" className="h-7 w-7"><Pause className="h-3.5 w-3.5" /></Button>
             <Button variant="ghost" size="icon" className="h-7 w-7"><RotateCcw className="h-3.5 w-3.5" /></Button>
           </div>
@@ -151,13 +181,24 @@ export function AgentListPage({
               </div>
 
               <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Flows / Workspaces</h4>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground">Flows / Workspaces</h4>
+                  {agentFlows.length > 0 && (
+                    <button type="button" onClick={toggleAllFlows} className="text-xs text-muted-foreground hover:text-foreground">
+                      {allFlowsSelected ? 'Deselect All' : 'Select All'}
+                    </button>
+                  )}
+                </div>
                 {agentFlows.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">Not assigned to any flows.</p>
                 ) : (
                   <ul className="space-y-2">
                     {agentFlows.map((af) => (
                       <li key={af.flowId} className="flex items-center gap-3 rounded-md border p-2 text-sm">
+                        <Checkbox
+                          checked={checkedFlowIds.has(af.flowId)}
+                          onCheckedChange={() => toggleFlowCheck(af.flowId)}
+                        />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
                             <Network className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
