@@ -590,26 +590,51 @@ AppShell
 - **Flow Editor**: editor React Flow com cards que mostram titulo/members/agents/ID, dialog de edicao completo, atalhos de teclado, arestas animadas — tudo persistido no Supabase
 - **WorkflowPipeline**: checkboxes quadrados, Select All, members/agents por card, controles play/pause/reset
 - **IDs visiveis**: workspace ID (dashboard, review), flow ID (flow list), card ID (flow editor, pipeline)
+- **Sprint 10**: IA com HITL — dialog 3 etapas (Preview → Running → Response com Aprovar/Rejeitar), botao Play em cada task, table `task_executions` (migration 009)
+- **Sprint 11**: Analytics basico — KPI cards com dados reais (workspaces, tasks, agents, executions), ChartTabs com execucoes por dia, tabela de agentes, lista de execucoes recentes
+- **Sprint 12**: Settings e i18n — Gender (Masculino/Feminino), Profession/Education (texto), Location (busca de cidades), Time Zone (auto), Language (EN-US/PT-BR), username auto-gerado, todas as paginas traduzidas
+- **Sprint 13**: Integracoes e API keys — tabela `integrations` (migration 010), tabela `api_keys` (migration 011), wizards persistentes no Supabase, copy/revoke de chaves
+- **Sprint 14**: Multi-tenant e seguranca — tabela `audit_logs` (migration 012), tabela `workspace_members` (migration 013) com roles (owner/admin/member), trigger auto-owner, audit logging em todas as CRUDs, AuditLogCard e TeamMembersCard no Settings, Edge Function `validate-api-key`
 
-### O que falta (Sprint 9+)
+### Deploy e Infraestrutura
 
-| Sprint | O que entrega | Por que importa |
-|--------|--------------|-----------------|
-| Sprint 9 | Agents base | Prepara a camada de IA |
-| Sprint 10 | IA com HITL | Entrega a primeira acao de IA com aprovacao humana |
-| Sprint 11 | Analytics basico | Torna a operacao observavel |
-| Sprint 12 | Settings e membros | Fecha operacao de conta e equipe |
-| Sprint 13 | Integracoes e API keys | Abre o app para ecossistema externo |
-| Sprint 14 | Multi-tenant e seguranca | Prepara para uso serio |
-| Sprint 15 | Templates | Acelera onboarding de novos usuarios |
+| Item | Status | Detalhes |
+|------|--------|----------|
+| **Plataforma** | Vercel | SPA estatica, build automatico |
+| **URL producao** | https://redrise-app.vercel.app | Dominio provisorio Vercel |
+| **CI/CD** | GitHub Actions | lint + typecheck + build + unit tests + E2E tests |
+| **Edge Functions** | Supabase | `openrouter-proxy` (AI), `validate-api-key` (auth) |
+| **CORS** | Restrito | Allowlist: redrise-app.vercel.app, localhost |
+| **SERVICE_ROLE_KEY** | Segura | Sem prefixo VITE_, nao exposta no frontend |
+| **ErrorBoundary** | Ativo | Componente global de tratamento de erros |
+
+### O que falta
+
+| Sprint | O que entrega | Por que importa | Status |
+|--------|--------------|-----------------|--------|
+| Sprint 15 | Templates | Acelera onboarding de novos usuarios | **PENDENTE** |
+
+### Configuracao Manual Pendente (pos-deploy)
+
+1. **Supabase Dashboard** → Authentication → URL Configuration:
+   - Site URL: `https://redrise-app.vercel.app`
+   - Redirect URLs: adicionar `https://redrise-app.vercel.app`
+2. **GitHub OAuth App**: Atualizar redirect URI para `https://ndfsselzilmdzywcdyoo.supabase.co/auth/v1/callback`
+3. **GitHub Secrets** (para CI):
+   - `VITE_SUPABASE_URL` = `https://ndfsselzilmdzywcdyoo.supabase.co`
+   - `VITE_SUPABASE_ANON_KEY` = (a anon key)
+   - `SUPABASE_SERVICE_ROLE_KEY` = (a service role key)
 
 ### Decisoes tomadas
 
 - **Backend**: Supabase (projeto `ndfsselzilmdzywcdyoo`)
+- **Frontend**: Vercel (SPA estatica, dominio provisorio `redrise-app.vercel.app`)
 - **Autenticacao**: GitHub + email/password via Supabase Auth
-- **RLS**: habilitado nas tabelas `workspaces`, `flows`, `tasks`, `flow_cards` e `flow_edges` com 4 politicas baseadas em `user_id` cada
-- **Migrations**: 001 (workspaces), 002 (id type fix), 003 (flows), 004 (tasks), 005 (flow_cards + flow_edges)
+- **RLS**: habilitado em todas as tabelas (workspaces, flows, tasks, flow_cards, flow_edges, agents, task_executions, integrations, api_keys, audit_logs, workspace_members)
+- **Migrations**: 013 migrations (001-013)
+- **Edge Functions**: openrouter-proxy (AI), validate-api-key (auth)
 - **State management**: React + localStorage (sem Redux/Zustand)
 - **Package manager**: yarn via corepack (nao pnpm, nao npm)
-- **IDs**: formato curto (prefixo + 5 chars) — workspaces=`w`, flows=`f`, tasks=`t`, cards=`c`, edges=`e`
-- **Testes E2E**: 15 testes Playwright passando (smoke, auth, navigation, workspaces)
+- **i18n**: EN-US / PT-BR com Unicode escapes
+- **IDs**: formato curto (prefixo + 5 chars) — workspaces=`w`, flows=`f`, tasks=`t`, cards=`c`, edges=`e`, agents=`a`, executions=`x`, integrations=`ig`, api_keys=`ak`, audit_logs=`al`, workspace_members=`wm`
+- **Testes**: Vitest (unit) + Playwright (e2e)
