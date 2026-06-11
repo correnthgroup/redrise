@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   KeyRound,
   PlugZap,
+  Shield,
   ShieldCheck,
   User,
   UserPlus,
@@ -18,6 +19,7 @@ import { SessionsList } from '../shared/sessions-list'
 import { ApiKeysManager } from '../shared/api-keys-manager'
 import { MemberListTable } from '../shared/member-list-table'
 import { AddMemberModal } from '../shared/add-member-modal'
+import { AuditLogCard } from '../shared/audit-log-card'
 import { useI18n } from '@/hooks/use-i18n'
 
 type SettingKey =
@@ -27,6 +29,7 @@ type SettingKey =
   | 'api-keys'
   | 'integrations'
   | 'team-members'
+  | 'audit-log'
 
 type SettingShortcut = {
   key: SettingKey
@@ -87,6 +90,12 @@ export function SettingsPage() {
       descKey: 'settings.teamMembersDesc',
       icon: <UserPlus className="h-5 w-5" />,
     },
+    {
+      key: 'audit-log',
+      titleKey: 'settings.auditLog',
+      descKey: 'settings.auditLogDesc',
+      icon: <Shield className="h-5 w-5" />,
+    },
   ]
 
   let detail: ReactNode = null
@@ -96,6 +105,7 @@ export function SettingsPage() {
   else if (active === 'api-keys') detail = <ApiKeysManager />
   else if (active === 'integrations') detail = <IntegrationSetupWizard />
   else if (active === 'team-members') detail = <TeamMembersView />
+  else if (active === 'audit-log') detail = <AuditLogCard />
 
   if (active) {
     return (

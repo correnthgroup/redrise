@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import type { Flow, CreateFlowInput } from '@/types/flow'
+import { logAuditEvent } from './audit-logs'
 
 function generateShortId(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -108,6 +109,15 @@ export async function createFlow(input: CreateFlowInput): Promise<Flow | null> {
   }
 
   console.log('[createFlow] Success:', data)
+
+  await logAuditEvent({
+    action: 'create',
+    entityType: 'flow',
+    entityId: id,
+    entityName: input.name,
+    workspaceId: input.workspace_id,
+  })
+
   return data as Flow
 }
 
@@ -127,6 +137,13 @@ export async function deleteFlow(id: string, workspaceId: string): Promise<boole
     if (ws && ws.flows > 0) {
       supabase.from('workspaces').update({ flows: ws.flows - 1 }).eq('id', workspaceId)
     }
+  })
+
+  await logAuditEvent({
+    action: 'delete',
+    entityType: 'flow',
+    entityId: id,
+    workspaceId,
   })
 
   return true

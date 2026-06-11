@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import type { Task, CreateTaskInput, TaskStatus } from '@/types/task'
+import { logAuditEvent } from './audit-logs'
 
 function generateShortId(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -94,6 +95,16 @@ export async function createTask(input: CreateTaskInput): Promise<Task | null> {
   }
 
   console.log('[createTask] Success:', data)
+
+  await logAuditEvent({
+    action: 'create',
+    entityType: 'task',
+    entityId: id,
+    entityName: input.title,
+    workspaceId: input.workspace_id,
+    details: { priority: input.priority, agent_id: input.agent_id },
+  })
+
   return data as Task
 }
 
@@ -122,6 +133,12 @@ export async function deleteTask(id: string): Promise<boolean> {
     console.error('[deleteTask] Error:', error.message, error.details, error.hint)
     return false
   }
+
+  await logAuditEvent({
+    action: 'delete',
+    entityType: 'task',
+    entityId: id,
+  })
 
   return true
 }

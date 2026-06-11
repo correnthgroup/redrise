@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { logAuditEvent } from './audit-logs'
 
 export type ApiKey = {
   id: string
@@ -71,6 +72,15 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<{ key: Api
     .single()
 
   if (error) throw error
+
+  await logAuditEvent({
+    action: 'create',
+    entityType: 'api_key',
+    entityId: id,
+    entityName: input.name,
+    details: { scopes: input.scopes },
+  })
+
   return { key: data, secret }
 }
 
@@ -81,6 +91,12 @@ export async function revokeApiKey(id: string): Promise<void> {
     .eq('id', id)
 
   if (error) throw error
+
+  await logAuditEvent({
+    action: 'revoke',
+    entityType: 'api_key',
+    entityId: id,
+  })
 }
 
 export async function deleteApiKey(id: string): Promise<void> {
@@ -90,4 +106,10 @@ export async function deleteApiKey(id: string): Promise<void> {
     .eq('id', id)
 
   if (error) throw error
+
+  await logAuditEvent({
+    action: 'delete',
+    entityType: 'api_key',
+    entityId: id,
+  })
 }

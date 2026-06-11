@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import type { Workspace, CreateWorkspaceInput } from '@/types/workspace'
+import { logAuditEvent } from './audit-logs'
 
 function generateShortId(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -82,6 +83,15 @@ export async function createWorkspace(input: CreateWorkspaceInput): Promise<Work
   }
 
   console.log('[createWorkspace] Success:', data)
+
+  await logAuditEvent({
+    action: 'create',
+    entityType: 'workspace',
+    entityId: id,
+    entityName: input.name,
+    details: { mission: input.mission },
+  })
+
   return data as Workspace
 }
 
@@ -110,6 +120,12 @@ export async function deleteWorkspace(id: string): Promise<boolean> {
     console.error('Failed to delete workspace:', error.message)
     return false
   }
+
+  await logAuditEvent({
+    action: 'delete',
+    entityType: 'workspace',
+    entityId: id,
+  })
 
   return true
 }

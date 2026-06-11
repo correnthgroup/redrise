@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import type { Agent, CreateAgentInput } from '@/types/agent'
+import { logAuditEvent } from './audit-logs'
 
 function generateShortId(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -98,6 +99,15 @@ export async function createAgent(input: CreateAgentInput): Promise<Agent | null
   }
 
   console.log('[createAgent] Success:', data)
+
+  await logAuditEvent({
+    action: 'create',
+    entityType: 'agent',
+    entityId: id,
+    entityName: input.name,
+    details: { model: input.model, provider: input.provider },
+  })
+
   return data as Agent
 }
 
@@ -127,6 +137,12 @@ export async function deleteAgent(id: string): Promise<boolean> {
     console.error('[deleteAgent] Error:', error.message, error.details, error.hint)
     return false
   }
+
+  await logAuditEvent({
+    action: 'delete',
+    entityType: 'agent',
+    entityId: id,
+  })
 
   return true
 }

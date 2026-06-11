@@ -62,6 +62,8 @@ const translations: Record<Locale, Record<string, string>> = {
     'settings.integrationsDesc': 'Connect the workspace to Slack, GitHub, Postgres and more.',
     'settings.teamMembers': 'Team Members',
     'settings.teamMembersDesc': 'See information about all members and invite new ones.',
+    'settings.auditLog': 'Audit Log',
+    'settings.auditLogDesc': 'Track all important actions across your account and workspaces.',
 
     // Account Basic Info
     'account.personalInfo': 'Personal Information',
@@ -176,6 +178,8 @@ const translations: Record<Locale, Record<string, string>> = {
     'settings.integrationsDesc': 'Conecte o workspace ao Slack, GitHub, Postgres e mais.',
     'settings.teamMembers': 'Membros da Equipe',
     'settings.teamMembersDesc': 'Veja informa\u00e7\u00f5es sobre todos os membros e convide novos.',
+    'settings.auditLog': 'Registro de Auditoria',
+    'settings.auditLogDesc': 'Acompanhe todas as a\u00e7\u00f5es importantes em sua conta e workspaces.',
 
     // Account Basic Info
     'account.personalInfo': 'Informa\u00e7\u00f5es Pessoais',

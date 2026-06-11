@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { logAuditEvent } from './audit-logs'
 
 export type IntegrationStatus = 'active' | 'inactive' | 'error'
 
@@ -68,6 +69,16 @@ export async function createIntegration(input: CreateIntegrationInput): Promise<
     .single()
 
   if (error) throw error
+
+  await logAuditEvent({
+    action: 'create',
+    entityType: 'integration',
+    entityId: id,
+    entityName: input.name,
+    workspaceId: input.workspace_id,
+    details: { provider: input.provider, category: input.category },
+  })
+
   return data
 }
 
@@ -93,4 +104,10 @@ export async function deleteIntegration(id: string): Promise<void> {
     .eq('id', id)
 
   if (error) throw error
+
+  await logAuditEvent({
+    action: 'delete',
+    entityType: 'integration',
+    entityId: id,
+  })
 }
