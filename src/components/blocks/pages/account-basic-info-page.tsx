@@ -52,6 +52,7 @@ export function AccountBasicInfoPage({ onBack, onSave }: { onBack?: () => void; 
   const [preview, setPreview] = useState<string | null>(null)
   const [timezone, setTimezone] = useState('UTC-03:00')
   const [saving, setSaving] = useState(false)
+  const [pendingLocale, setPendingLocale] = useState(locale)
   const inputRef = useRef<HTMLInputElement>(null)
 
   function handleFile(event: ChangeEvent<HTMLInputElement>) {
@@ -199,8 +200,8 @@ export function AccountBasicInfoPage({ onBack, onSave }: { onBack?: () => void; 
                 <Field>
                   <FieldLabel htmlFor="language" icon={<Globe className="h-4 w-4" />}>{t('account.language')}</FieldLabel>
                   <Select
-                    value={locale}
-                    onValueChange={(val) => setLocale(val as Locale)}
+                    value={pendingLocale}
+                    onValueChange={(val) => setPendingLocale(val as Locale)}
                   >
                     <SelectTrigger id="language">
                       <SelectValue placeholder={t('account.language')} />
@@ -235,6 +236,8 @@ export function AccountBasicInfoPage({ onBack, onSave }: { onBack?: () => void; 
               disabled={saving}
               onClick={async () => {
                 setSaving(true)
+                // Apply language change
+                setLocale(pendingLocale)
                 // Simulate save delay
                 await new Promise((resolve) => setTimeout(resolve, 1000))
                 setSaving(false)

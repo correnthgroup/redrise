@@ -89,7 +89,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'account.location': 'Location',
     'account.searchCity': 'Search city...',
     'account.additionalInfo': 'Additional Information',
-    'account.language': 'Preferred Language',
+    'account.language': 'Language/Idioma',
     'account.english': 'English-US',
     'account.portuguese': 'Portugues-BR',
     'account.timezone': 'Time Zone',
