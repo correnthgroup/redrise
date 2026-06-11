@@ -1,0 +1,235 @@
+export type Locale = 'en-US' | 'pt-BR'
+
+const translations: Record<Locale, Record<string, string>> = {
+  'en-US': {
+    // Sidebar
+    'nav.dashboard': 'Dashboard',
+    'nav.flow': 'Flow',
+    'nav.tasks': 'Tasks',
+    'nav.agents': 'Agents',
+    'nav.analytics': 'Analytics',
+    'nav.settings': 'Settings',
+
+    // Dashboard
+    'dashboard.title': 'Dashboard',
+    'dashboard.subtitle': 'Overview of workspaces, agents and tasks.',
+    'dashboard.newWorkspace': 'New Workspace',
+    'dashboard.noWorkspaces': 'No workspaces yet',
+
+    // Flow
+    'flow.title': 'Flow',
+    'flow.subtitle': 'Build and inspect operational flows.',
+    'flow.newFlow': 'New Flow',
+    'flow.noFlows': 'No flows yet',
+
+    // Tasks
+    'tasks.title': 'Tasks',
+    'tasks.subtitle': 'Manage and track your tasks.',
+    'tasks.newTask': 'New Task',
+    'tasks.backlog': 'Backlog',
+    'tasks.inProgress': 'In progress',
+    'tasks.inReview': 'In review',
+    'tasks.done': 'Done',
+    'tasks.noTasks': 'No tasks',
+
+    // Agents
+    'agents.title': 'Agents',
+    'agents.subtitle': 'Manage AI agents with human control.',
+    'agents.newAgent': 'New Agent',
+    'agents.noAgents': 'No agents yet',
+
+    // Analytics
+    'analytics.title': 'Analytics',
+    'analytics.subtitle': 'Operational metrics, cost and trends.',
+
+    // Settings
+    'settings.title': 'Settings',
+    'settings.subtitle': 'Manage your account and preferences.',
+    'settings.shortcuts': 'Account Shortcuts',
+    'settings.shortcutsDesc': 'Jump into the most common account and integration tasks.',
+    'settings.personalInfo': 'Personal Information',
+    'settings.personalInfoDesc': 'Avatar, name, email, phone, address and other personal details.',
+    'settings.changePassword': 'Change Password',
+    'settings.changePasswordDesc': 'Update the password used to sign in to the workspace.',
+    'settings.activeSessions': 'Active Sessions',
+    'settings.activeSessionsDesc': 'Review and revoke devices signed in to your workspace.',
+    'settings.apiKeys': 'API Keys',
+    'settings.apiKeysDesc': 'Create, label and revoke programmatic access keys.',
+    'settings.integrations': 'Integration Setup',
+    'settings.integrationsDesc': 'Connect the workspace to Slack, GitHub, Postgres and more.',
+    'settings.teamMembers': 'Team Members',
+    'settings.teamMembersDesc': 'See information about all members and invite new ones.',
+
+    // Account Basic Info
+    'account.personalInfo': 'Personal Information',
+    'account.personalInfoDesc': 'Manage your personal details, profile identity and contact information used across the workspace.',
+    'account.basicDetails': 'Basic Details',
+    'account.firstName': 'First Name',
+    'account.lastName': 'Last Name',
+    'account.username': 'Username',
+    'account.profileAvatar': 'Profile Avatar',
+    'account.profileAvatarDesc': 'This image appears in the sidebar, team members list and workspace activity views. Recommended: square JPG or PNG, at least 256x256px.',
+    'account.uploadNew': 'Upload New',
+    'account.replace': 'Replace',
+    'account.remove': 'Remove',
+    'account.professionalInfo': 'Professional Information',
+    'account.gender': 'Gender',
+    'account.masculino': 'Masculino',
+    'account.feminino': 'Feminino',
+    'account.birthDate': 'Birth Date',
+    'account.selectDate': 'Select a date',
+    'account.profession': 'Profession',
+    'account.professionPlaceholder': 'e.g. Software Engineer',
+    'account.education': 'Education',
+    'account.educationPlaceholder': "e.g. Bachelor's in Computer Science",
+    'account.contactInfo': 'Contact Information',
+    'account.email': 'Email Address',
+    'account.confirmEmail': 'Confirm Email',
+    'account.phone': 'Phone Number',
+    'account.location': 'Location',
+    'account.searchCity': 'Search city...',
+    'account.additionalInfo': 'Additional Information',
+    'account.language': 'Preferred Language',
+    'account.english': 'English-US',
+    'account.portuguese': 'Portugues-BR',
+    'account.timezone': 'Time Zone',
+    'account.website': 'Website',
+    'account.portfolio': 'Portfolio',
+    'account.cancel': 'Cancel',
+    'account.saveChanges': 'Save Changes',
+    'account.saving': 'Saving...',
+
+    // Common
+    'common.back': 'Back',
+    'common.loading': 'Loading...',
+    'common.save': 'Save',
+    'common.cancel': 'Cancel',
+    'common.delete': 'Delete',
+    'common.edit': 'Edit',
+    'common.create': 'Create',
+    'common.search': 'Search',
+    'common.noData': 'No data available',
+    'common.error': 'An error occurred',
+    'common.success': 'Success',
+  },
+  'pt-BR': {
+    // Sidebar
+    'nav.dashboard': 'Painel',
+    'nav.flow': 'Fluxo',
+    'nav.tasks': 'Tarefas',
+    'nav.agents': 'Agentes',
+    'nav.analytics': 'Analiticos',
+    'nav.settings': 'Configuracoes',
+
+    // Dashboard
+    'dashboard.title': 'Painel',
+    'dashboard.subtitle': 'Visao geral de workspaces, agentes e tarefas.',
+    'dashboard.newWorkspace': 'Novo Workspace',
+    'dashboard.noWorkspaces': 'Nenhum workspace ainda',
+
+    // Flow
+    'flow.title': 'Fluxo',
+    'flow.subtitle': 'Construa e inspecione fluxos operacionais.',
+    'flow.newFlow': 'Novo Fluxo',
+    'flow.noFlows': 'Nenhum fluxo ainda',
+
+    // Tasks
+    'tasks.title': 'Tarefas',
+    'tasks.subtitle': 'Gerencie e acompanhe suas tarefas.',
+    'tasks.newTask': 'Nova Tarefa',
+    'tasks.backlog': 'Backlog',
+    'tasks.inProgress': 'Em andamento',
+    'tasks.inReview': 'Em revisao',
+    'tasks.done': 'Concluido',
+    'tasks.noTasks': 'Nenhuma tarefa',
+
+    // Agents
+    'agents.title': 'Agentes',
+    'agents.subtitle': 'Gerencie agentes de IA com controle humano.',
+    'agents.newAgent': 'Novo Agente',
+    'agents.noAgents': 'Nenhum agente ainda',
+
+    // Analytics
+    'analytics.title': 'Analiticos',
+    'analytics.subtitle': 'Metricas operacionais, custo e tendencias.',
+
+    // Settings
+    'settings.title': 'Configuracoes',
+    'settings.subtitle': 'Gerencie sua conta e preferencias.',
+    'settings.shortcuts': 'Atalhos da Conta',
+    'settings.shortcutsDesc': 'Acesse as tarefas mais comuns de conta e integracao.',
+    'settings.personalInfo': 'Informacoes Pessoais',
+    'settings.personalInfoDesc': 'Avatar, nome, email, telefone, endereco e outros dados pessoais.',
+    'settings.changePassword': 'Alterar Senha',
+    'settings.changePasswordDesc': 'Atualize a senha usada para entrar no workspace.',
+    'settings.activeSessions': 'Sessoes Ativas',
+    'settings.activeSessionsDesc': 'Revise e revogue dispositivos conectados ao workspace.',
+    'settings.apiKeys': 'Chaves API',
+    'settings.apiKeysDesc': 'Crie, rotule e revogue chaves de acesso programatico.',
+    'settings.integrations': 'Configuracao de Integracoes',
+    'settings.integrationsDesc': 'Conecte o workspace ao Slack, GitHub, Postgres e mais.',
+    'settings.teamMembers': 'Membros da Equipe',
+    'settings.teamMembersDesc': 'Veja informacoes sobre todos os membros e convide novos.',
+
+    // Account Basic Info
+    'account.personalInfo': 'Informacoes Pessoais',
+    'account.personalInfoDesc': 'Gerencie seus dados pessoais, identidade do perfil e informacoes de contato usadas em todo o workspace.',
+    'account.basicDetails': 'Dados Basicos',
+    'account.firstName': 'Nome',
+    'account.lastName': 'Sobrenome',
+    'account.username': 'Nome de usuario',
+    'account.profileAvatar': 'Avatar do Perfil',
+    'account.profileAvatarDesc': 'Esta imagem aparece na barra lateral, lista de membros e visualizacoes de atividade do workspace. Recomendado: JPG ou PNG quadrado, pelo menos 256x256px.',
+    'account.uploadNew': 'Enviar Novo',
+    'account.replace': 'Substituir',
+    'account.remove': 'Remover',
+    'account.professionalInfo': 'Informacoes Profissionais',
+    'account.gender': 'Genero',
+    'account.masculino': 'Masculino',
+    'account.feminino': 'Feminino',
+    'account.birthDate': 'Data de Nascimento',
+    'account.selectDate': 'Selecione uma data',
+    'account.profession': 'Profissao',
+    'account.professionPlaceholder': 'ex. Engenheiro de Software',
+    'account.education': 'Formacao Academica',
+    'account.educationPlaceholder': 'ex. Bacharelado em Ciencia da Computacao',
+    'account.contactInfo': 'Informacoes de Contato',
+    'account.email': 'Endereco de Email',
+    'account.confirmEmail': 'Confirmar Email',
+    'account.phone': 'Telefone',
+    'account.location': 'Localizacao',
+    'account.searchCity': 'Buscar cidade...',
+    'account.additionalInfo': 'Informacoes Adicionais',
+    'account.language': 'Idioma Preferido',
+    'account.english': 'Ingles-EUA',
+    'account.portuguese': 'Portugues-BR',
+    'account.timezone': 'Fuso Horario',
+    'account.website': 'Site',
+    'account.portfolio': 'Portfolio',
+    'account.cancel': 'Cancelar',
+    'account.saveChanges': 'Salvar Alteracoes',
+    'account.saving': 'Salvando...',
+
+    // Common
+    'common.back': 'Voltar',
+    'common.loading': 'Carregando...',
+    'common.save': 'Salvar',
+    'common.cancel': 'Cancelar',
+    'common.delete': 'Excluir',
+    'common.edit': 'Editar',
+    'common.create': 'Criar',
+    'common.search': 'Buscar',
+    'common.noData': 'Nenhum dado disponivel',
+    'common.error': 'Ocorreu um erro',
+    'common.success': 'Sucesso',
+  },
+}
+
+export function t(locale: Locale, key: string): string {
+  return translations[locale]?.[key] ?? translations['en-US']?.[key] ?? key
+}
+
+export const LOCALES: { value: Locale; label: string }[] = [
+  { value: 'en-US', label: 'English-US' },
+  { value: 'pt-BR', label: 'Portugues-BR' },
+]

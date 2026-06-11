@@ -88,7 +88,7 @@ export function SettingsPage() {
   const [active, setActive] = useState<SettingKey | null>(null)
 
   let detail: ReactNode = null
-  if (active === 'personal-info') detail = <AccountBasicInfoPage />
+  if (active === 'personal-info') detail = <AccountBasicInfoPage onBack={() => setActive(null)} onSave={() => setActive(null)} />
   else if (active === 'change-password') detail = <ChangePassword />
   else if (active === 'active-sessions') detail = <SessionsList />
   else if (active === 'api-keys') detail = <ApiKeysManager />
