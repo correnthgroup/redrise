@@ -14,6 +14,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/hooks/use-i18n'
 
 export type SidebarKey =
   | 'dashboard'
@@ -34,13 +35,13 @@ type SidebarProps = {
 
 const COLLAPSED_KEY = 'app:sidebar:collapsed'
 
-const NAV_ITEMS: { key: SidebarKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { key: 'flow', label: 'Flow', icon: Network },
-  { key: 'tasks', label: 'Tasks', icon: ListChecks },
-  { key: 'agents', label: 'Agents', icon: Users },
-  { key: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { key: 'settings', label: 'Settings', icon: SettingsIcon },
+const NAV_ITEMS: { key: SidebarKey; labelKey: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { key: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard },
+  { key: 'flow', labelKey: 'nav.flow', icon: Network },
+  { key: 'tasks', labelKey: 'nav.tasks', icon: ListChecks },
+  { key: 'agents', labelKey: 'nav.agents', icon: Users },
+  { key: 'analytics', labelKey: 'nav.analytics', icon: BarChart3 },
+  { key: 'settings', labelKey: 'nav.settings', icon: SettingsIcon },
 ]
 
 const CONTEXT_BY_KEY: Record<SidebarKey, { title: string; rows: string[] } | null> = {
@@ -97,6 +98,7 @@ function initials(name: string) {
 
 export function Sidebar({ active, onSelect, user, onSignOut }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(() => loadCollapsed())
+  const { t } = useI18n()
   const showLabels = !collapsed
   const context = CONTEXT_BY_KEY[active]
   const iconLaneClassName = 'grid-cols-[37px_minmax(0,1fr)]'
@@ -189,7 +191,7 @@ export function Sidebar({ active, onSelect, user, onSignOut }: SidebarProps) {
                         showLabels ? 'opacity-100' : 'opacity-0',
                       )}
                     >
-                      <span className="block truncate pl-2 pr-2 text-left">{item.label}</span>
+                      <span className="block truncate pl-2 pr-2 text-left">{t(item.labelKey)}</span>
                     </span>
                   </button>
                 </li>

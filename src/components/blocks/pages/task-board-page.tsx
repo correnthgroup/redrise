@@ -6,12 +6,13 @@ import { cn } from '@/lib/utils'
 import type { Task, TaskStatus } from '@/types/task'
 import type { Agent } from '@/types/agent'
 import { TaskRunDialog } from '@/components/blocks/shared/task-run-dialog'
+import { useI18n } from '@/hooks/use-i18n'
 
-const COLUMNS: { id: TaskStatus; title: string }[] = [
-  { id: 'backlog', title: 'Backlog' },
-  { id: 'in-progress', title: 'In progress' },
-  { id: 'in-review', title: 'In review' },
-  { id: 'done', title: 'Done' },
+const COLUMNS: { id: TaskStatus; titleKey: string }[] = [
+  { id: 'backlog', titleKey: 'tasks.backlog' },
+  { id: 'in-progress', titleKey: 'tasks.inProgress' },
+  { id: 'in-review', titleKey: 'tasks.inReview' },
+  { id: 'done', titleKey: 'tasks.done' },
 ]
 
 const STATUS_TONE: Record<TaskStatus, string> = {
@@ -34,6 +35,7 @@ export function TaskBoardPage({
 }) {
   const [dragging, setDragging] = useState<string | null>(null)
   const [runTaskId, setRunTaskId] = useState<string | null>(null)
+  const { t } = useI18n()
 
   const runTask = runTaskId ? tasks.find((t) => t.id === runTaskId) : null
   const runAgent = runTask?.agent_id ? agents.find((a) => a.id === runTask.agent_id) : null
@@ -60,12 +62,12 @@ export function TaskBoardPage({
               }}
             >
               <CardHeader className={cn('flex-row items-center justify-between border-b py-2', STATUS_TONE[col.id])}>
-                <CardTitle className="text-xs font-semibold uppercase tracking-wide">{col.title}</CardTitle>
+                <CardTitle className="text-xs font-semibold uppercase tracking-wide">{t(col.titleKey)}</CardTitle>
                 <span className="text-xs text-muted-foreground">{items.length}</span>
               </CardHeader>
               <CardContent className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2">
                 {items.length === 0 ? (
-                  <p className="text-xs text-muted-foreground text-center py-4">No tasks</p>
+                  <p className="text-xs text-muted-foreground text-center py-4">{t('tasks.noTasks')}</p>
                 ) : (
                   items.map((t) => (
                     <article

@@ -4,6 +4,7 @@ import { useWorkspaces } from '@/hooks/use-workspaces'
 import { useFlows } from '@/hooks/use-flows'
 import { useTasks } from '@/hooks/use-tasks'
 import { useAgents } from '@/hooks/use-agents'
+import { useI18n } from '@/hooks/use-i18n'
 import { DashboardPage } from '@/components/blocks/pages/dashboard-page'
 import { CreateFlowPage } from '@/components/blocks/pages/create-flow-page'
 import { FlowBuilderPage } from '@/components/blocks/pages/flow-builder-page'
@@ -28,13 +29,13 @@ type AppShellProps = {
   defaultPage?: SidebarKey
 }
 
-const PAGE_TITLES: Record<SidebarKey, { title: string; subtitle: string }> = {
-  dashboard: { title: 'Dashboard', subtitle: 'Overview of workspaces, agents and tasks.' },
-  flow: { title: 'Flow', subtitle: 'Build and inspect operational flows.' },
-  tasks: { title: 'Tasks', subtitle: 'Track work across backlog and execution.' },
-  agents: { title: 'Agents', subtitle: 'Manage AI agents with human control.' },
-  analytics: { title: 'Analytics', subtitle: 'Operational metrics, cost and trends.' },
-  settings: { title: 'Settings', subtitle: 'Workspace, account and integrations.' },
+const PAGE_TITLE_KEYS: Record<SidebarKey, { titleKey: string; subtitleKey: string }> = {
+  dashboard: { titleKey: 'dashboard.title', subtitleKey: 'dashboard.subtitle' },
+  flow: { titleKey: 'flow.title', subtitleKey: 'flow.subtitle' },
+  tasks: { titleKey: 'tasks.title', subtitleKey: 'tasks.subtitle' },
+  agents: { titleKey: 'agents.title', subtitleKey: 'agents.subtitle' },
+  analytics: { titleKey: 'analytics.title', subtitleKey: 'analytics.subtitle' },
+  settings: { titleKey: 'settings.title', subtitleKey: 'settings.subtitle' },
 }
 
 export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShellProps) {
@@ -51,6 +52,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const { flows, loading: flowsLoading, addFlow, removeFlow } = useFlows()
   const { tasks, loading: tasksLoading, addTask, moveTask, removeTask } = useTasks()
   const { agents, loading: agentsLoading, addAgent, removeAgent } = useAgents()
+  const { t } = useI18n()
 
   const isDataLoading = workspacesLoading || flowsLoading || tasksLoading || agentsLoading
 
@@ -69,9 +71,10 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   }
 
   const selectedWorkspace = workspaces.find((workspace) => workspace.id === selectedWorkspaceId)
+  const pageTitleKeys = PAGE_TITLE_KEYS[active]
   const pageMeta = active === 'dashboard' && dashboardView === 'review-workspace' && selectedWorkspace
     ? { title: selectedWorkspace.name, subtitle: 'Workspace details' }
-    : PAGE_TITLES[active]
+    : { title: t(pageTitleKeys.titleKey), subtitle: t(pageTitleKeys.subtitleKey) }
 
   let body: ReactNode
 
@@ -181,22 +184,22 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const topbarActions = active === 'dashboard' && dashboardView === 'board' ? (
     <Button onClick={() => setDashboardView('create-workspace')}>
       <Plus className="h-4 w-4" />
-      New Workspace
+      {t('dashboard.newWorkspace')}
     </Button>
   ) : active === 'flow' && flowView === 'list' ? (
     <Button onClick={() => setFlowView('create')}>
       <Plus className="h-4 w-4" />
-      New Flow
+      {t('flow.newFlow')}
     </Button>
   ) : active === 'tasks' && taskView === 'board' ? (
     <Button onClick={() => setTaskView('create')}>
       <Plus className="h-4 w-4" />
-      New Task
+      {t('tasks.newTask')}
     </Button>
   ) : active === 'agents' && agentView === 'list' ? (
     <Button onClick={() => setAgentView('create')}>
       <Plus className="h-4 w-4" />
-      New Agent
+      {t('agents.newAgent')}
     </Button>
   ) : null
 

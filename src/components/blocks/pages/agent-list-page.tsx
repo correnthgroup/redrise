@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import type { Agent } from '@/types/agent'
+import { useI18n } from '@/hooks/use-i18n'
 
 type AgentFlow = { flowId: string; flowName: string; workspaceId: string; workspaceName: string; flowStatus: string }
 
@@ -50,6 +51,7 @@ export function AgentListPage({
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [checkedFlowIds, setCheckedFlowIds] = useState<Set<string>>(new Set())
+  const { t } = useI18n()
 
   const filtered = agents.filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
   const selectedAgent = agents.find((a) => a.id === selectedId)
@@ -104,7 +106,7 @@ export function AgentListPage({
             {loading ? (
               <p className="text-sm text-muted-foreground text-center py-8">Loading agents...</p>
             ) : filtered.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No agents found.</p>
+              <p className="text-sm text-muted-foreground text-center py-8">{t('agents.noAgents')}</p>
             ) : (
               <ul className="space-y-2">
                 {filtered.map((a) => (

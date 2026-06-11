@@ -7,6 +7,7 @@ import { ChartTabs } from '../shared/chart-tabs'
 import { ActivityFeed } from '../shared/activity-feed'
 import { OperationsGrid } from '../shared/operations-grid'
 import { OnboardingEmpty } from '../shared/onboarding-empty'
+import { useI18n } from '@/hooks/use-i18n'
 
 export function DashboardPage({
   onOpenWorkspace,
@@ -18,6 +19,7 @@ export function DashboardPage({
   workspaces: Workspace[]
 }) {
   const hasWorkspaces = workspaces.length > 0
+  const { t } = useI18n()
 
   return (
     <div className="h-full overflow-y-auto p-6">
@@ -36,13 +38,13 @@ export function DashboardPage({
               <div className="space-y-1">
                 <div className="text-base font-semibold">Welcome to Redrise</div>
                 <div className="text-sm text-muted-foreground">
-                  Create your first workspace to start building operational flows, managing tasks and running AI agents.
+                  {t('dashboard.noWorkspaces')}
                 </div>
               </div>
               {onCreateWorkspace && (
                 <Button onClick={onCreateWorkspace} className="mt-2">
                   <Plus className="mr-2 h-4 w-4" />
-                  Create Workspace
+                  {t('dashboard.newWorkspace')}
                 </Button>
               )}
             </CardContent>
@@ -63,7 +65,7 @@ export function DashboardPage({
             <CardContent className="flex flex-col items-center justify-center gap-3 py-10 text-center">
               <FolderOpen className="h-8 w-8 text-muted-foreground" />
               <div className="text-sm text-muted-foreground">
-                Your operational dashboard will appear here once you create a workspace.
+                {t('dashboard.noWorkspaces')}
               </div>
             </CardContent>
           </Card>

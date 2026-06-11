@@ -7,6 +7,7 @@ import { WorkflowPipeline } from '../shared/workflow-pipeline'
 import { Badge } from '@/components/ui/badge'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { Flow } from '@/types/flow'
+import { useI18n } from '@/hooks/use-i18n'
 
 const PLACEHOLDER_MEMBERS = ['Alice Silva', 'Bob Santos', 'Carol Oliveira', 'David Costa', 'Eva Lima']
 
@@ -65,6 +66,7 @@ export function FlowListPage({
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
+  const { t } = useI18n()
 
   const filtered = flows.filter((f) => f.name.toLowerCase().includes(query.toLowerCase()))
 
@@ -102,7 +104,7 @@ export function FlowListPage({
           <CardHeader><CardTitle className="text-sm font-semibold">Flows</CardTitle></CardHeader>
           <CardContent>
             {filtered.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No flows found. Create one to get started.</p>
+              <p className="text-sm text-muted-foreground text-center py-8">{t('flow.noFlows')}</p>
             ) : (
               <ul className="space-y-2">
                 {filtered.map((f) => (
