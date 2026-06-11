@@ -1,19 +1,36 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+const ALLOWED_ORIGINS = [
+  'https://redrise.vercel.app',
+  'https://redrise-*.vercel.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+]
+
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const allowed = ALLOWED_ORIGINS.some((o) => {
+    if (o.includes('*')) {
+      const prefix = o.replace('*', '')
+      return origin?.startsWith(prefix) ?? false
+    }
+    return origin === o
+  })
+  return {
+    'Access-Control-Allow-Origin': allowed ? (origin ?? '*') : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
+  const origin = req.headers.get('Origin')
+  const corsHeaders = getCorsHeaders(origin)
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders })
   }
 
   try {
-    // Verify JWT and get user
     const authHeader = req.headers.get("Authorization")
     if (!authHeader) {
       return new Response(
@@ -36,7 +53,6 @@ serve(async (req) => {
       )
     }
 
-    // Get OpenRouter API key from secrets
     const openrouterApiKey = Deno.env.get("OPENROUTER_API_KEY")
     if (!openrouterApiKey) {
       console.error("[openrouter-proxy] OPENROUTER_API_KEY not configured")
@@ -46,7 +62,6 @@ serve(async (req) => {
       )
     }
 
-    // Parse request body
     const { messages, model = "openai/gpt-oss-120b:free", ...params } = await req.json()
 
     if (!messages || !Array.isArray(messages)) {
@@ -56,7 +71,6 @@ serve(async (req) => {
       )
     }
 
-    // Call OpenRouter API
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -83,7 +97,6 @@ serve(async (req) => {
 
     const data = await response.json()
 
-    // Log usage for monitoring (without exposing sensitive data)
     console.log("[openrouter-proxy] User:", user.id, "Model:", model, "Tokens:", data.usage?.total_tokens ?? "unknown")
 
     return new Response(

@@ -1,24 +1,41 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const ALLOWED_ORIGINS = [
+  'https://redrise.vercel.app',
+  'https://redrise-*.vercel.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+]
+
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const allowed = ALLOWED_ORIGINS.some((o) => {
+    if (o.includes('*')) {
+      const prefix = o.replace('*', '')
+      return origin?.startsWith(prefix) ?? false
+    }
+    return origin === o
+  })
+  return {
+    'Access-Control-Allow-Origin': allowed ? (origin ?? '*') : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('Origin')
+  const corsHeaders = getCorsHeaders(origin)
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
-    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
-      global: { headers: { Authorization: req.headers.get('Authorization')! } },
-    })
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
 
-    // Get the API key from the Authorization header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return new Response(
@@ -28,9 +45,8 @@ serve(async (req) => {
     }
 
     const apiKey = authHeader.replace('Bearer ', '')
-    const prefix = apiKey.slice(0, 11) // rr_ + 8 chars
+    const prefix = apiKey.slice(0, 11)
 
-    // Look up the API key by prefix
     const { data: keys, error: queryError } = await supabase
       .from('api_keys')
       .select('id, user_id, name, scopes, revoked, expires_at')
@@ -55,7 +71,6 @@ serve(async (req) => {
 
     const key = keys[0]
 
-    // Check if key is expired
     if (key.expires_at && new Date(key.expires_at) < new Date()) {
       return new Response(
         JSON.stringify({ valid: false, error: 'API key expired' }),
@@ -63,13 +78,11 @@ serve(async (req) => {
       )
     }
 
-    // Update last_used_at
     await supabase
       .from('api_keys')
       .update({ last_used_at: new Date().toISOString() })
       .eq('id', key.id)
 
-    // Audit log
     const userAgent = req.headers.get('User-Agent') || ''
     await supabase
       .from('audit_logs')

@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/app-shell'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 import { I18nProvider } from '@/components/providers/i18n-provider'
+import { ErrorBoundary } from '@/components/error-boundary'
 import { FlowBuilderPage } from '@/components/blocks/pages/flow-builder-page'
 import { AgentCreatePage } from '@/components/blocks/pages/agent-create-page'
 import { AgentDetailPage } from '@/components/blocks/pages/agent-detail-page'
@@ -56,14 +57,16 @@ export default function App() {
   }
 
   return (
-    <AppFrame>
-      <I18nProvider>
-        <AppShell
-          user={userProfile}
-          onSignOut={() => supabase.auth.signOut()}
-        />
-      </I18nProvider>
-    </AppFrame>
+    <ErrorBoundary>
+      <AppFrame>
+        <I18nProvider>
+          <AppShell
+            user={userProfile}
+            onSignOut={() => supabase.auth.signOut()}
+          />
+        </I18nProvider>
+      </AppFrame>
+    </ErrorBoundary>
   )
 }
 

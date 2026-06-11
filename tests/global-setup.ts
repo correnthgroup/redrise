@@ -27,7 +27,7 @@ export const TEST_EMAIL = 'raulveiga137@gmail.com'
 export const TEST_PASSWORD = 'Abcw1010@'
 
 export default async function globalSetup() {
-  if (!env.VITE_SUPABASE_URL || !env.VITE_SUPABASE_SERVICE_ROLE_KEY) {
+  if (!env.VITE_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
     console.warn('[global-setup] Missing env vars — skipping user creation')
     console.warn('[global-setup] Ensure test user exists: test@redrise.app / TestPass123!')
     return
