@@ -36,9 +36,9 @@ export function DashboardPage({
                 <Sparkles className="h-7 w-7" />
               </div>
               <div className="space-y-1">
-                <div className="text-base font-semibold">Welcome to Redrise</div>
+                <div className="text-base font-semibold">{t('dashboard.welcome')}</div>
                 <div className="text-sm text-muted-foreground">
-                  {t('dashboard.noWorkspaces')}
+                  {t('dashboard.welcomeDesc')}
                 </div>
               </div>
               {onCreateWorkspace && (
@@ -65,7 +65,7 @@ export function DashboardPage({
             <CardContent className="flex flex-col items-center justify-center gap-3 py-10 text-center">
               <FolderOpen className="h-8 w-8 text-muted-foreground" />
               <div className="text-sm text-muted-foreground">
-                {t('dashboard.noWorkspaces')}
+                {t('dashboard.willAppear')}
               </div>
             </CardContent>
           </Card>

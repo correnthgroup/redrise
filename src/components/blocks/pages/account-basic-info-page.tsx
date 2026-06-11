@@ -53,7 +53,13 @@ export function AccountBasicInfoPage({ onBack, onSave }: { onBack?: () => void; 
   const [timezone, setTimezone] = useState('UTC-03:00')
   const [saving, setSaving] = useState(false)
   const [pendingLocale, setPendingLocale] = useState(locale)
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const username = firstName || lastName
+    ? `${firstName}.${lastName}`.toLowerCase().replace(/[^a-z0-9.]/g, '').replace(/\.\./g, '.')
+    : ''
 
   function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -85,15 +91,15 @@ export function AccountBasicInfoPage({ onBack, onSave }: { onBack?: () => void; 
               <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.35fr_1.35fr_1.1fr]">
                 <Field>
                   <FieldLabel htmlFor="firstName" icon={<User className="h-4 w-4" />}>{t('account.firstName')}</FieldLabel>
-                  <Input id="firstName" placeholder="Adm" defaultValue="Adm" />
+                  <Input id="firstName" placeholder="Adm" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="lastName" icon={<User className="h-4 w-4" />}>{t('account.lastName')}</FieldLabel>
-                  <Input id="lastName" placeholder="Agentra" defaultValue="Agentra" />
+                  <Input id="lastName" placeholder="Agentra" value={lastName} onChange={(e) => setLastName(e.target.value)} />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="username" icon={<User className="h-4 w-4" />}>{t('account.username')}</FieldLabel>
-                  <Input id="username" placeholder="adm" defaultValue="adm" />
+                  <Input id="username" placeholder="nome.sobrenome" value={username} disabled />
                 </Field>
               </div>
             </section>
