@@ -20,6 +20,9 @@ const STATUS_TONE: Record<TaskStatus, string> = {
   'in-progress': 'border-primary/18 bg-primary/6',
   'in-review': 'border-[#B7791F]/18 bg-[#FFF4DB]',
   done: 'border-emerald-200 bg-emerald-50',
+  error: 'border-primary/18 bg-primary/8',
+  pending: 'border-slate-200 bg-slate-50',
+  running: 'border-[#2F4858]/18 bg-[#2F4858]/8',
 }
 
 export function TaskBoardPage({
@@ -38,7 +41,7 @@ export function TaskBoardPage({
   const { t } = useI18n()
 
   const runTask = runTaskId ? tasks.find((t) => t.id === runTaskId) : null
-  const runAgent = runTask?.agent_id ? agents.find((a) => a.id === runTask.agent_id) : null
+  const runAgent = runTask?.agent_id ? agents.find((a) => a.id === runTask.agent_id) ?? null : null
 
   function handleMove(id: string, status: TaskStatus) {
     onMoveTask?.(id, status)
@@ -75,7 +78,7 @@ export function TaskBoardPage({
                       draggable
                       onDragStart={() => setDragging(t.id)}
                       onDragEnd={() => setDragging(null)}
-                      onClick={() => onOpenTask?.(t.id)}
+                      onClick={() => setRunTaskId(t.id)}
                       className="cursor-grab rounded-lg border bg-card p-3 text-left text-sm shadow-sm transition-colors hover:bg-accent/40 active:cursor-grabbing"
                     >
                       <div className="flex items-start justify-between gap-2">

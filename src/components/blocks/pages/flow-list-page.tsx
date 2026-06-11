@@ -55,12 +55,10 @@ export function FlowListPage({
   flows,
   onDelete,
   onOpen,
-  onCreate,
 }: {
   flows: Flow[]
   onDelete?: (id: string, workspaceId: string) => Promise<boolean>
   onOpen?: (id: string) => void
-  onCreate?: () => void
 }) {
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -75,7 +73,7 @@ export function FlowListPage({
     setEditingName(flow.name)
   }
 
-  function confirmRename(id: string) {
+  function confirmRename() {
     // TODO: persist rename in Sprint 7
     setEditingId(null)
   }
@@ -126,12 +124,12 @@ export function FlowListPage({
                               className="h-7 text-sm"
                               onClick={(e) => e.stopPropagation()}
                               onKeyDown={(e) => {
-                                if (e.key === 'Enter') confirmRename(f.id)
+                                if (e.key === 'Enter') confirmRename()
                                 if (e.key === 'Escape') cancelRename()
                               }}
                               autoFocus
                             />
-                            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => { e.stopPropagation(); confirmRename(f.id) }} disabled={!editingName.trim()}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => { e.stopPropagation(); confirmRename() }} disabled={!editingName.trim()}>
                               <Check className="h-3.5 w-3.5" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => { e.stopPropagation(); cancelRename() }}>

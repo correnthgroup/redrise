@@ -116,10 +116,6 @@ export function CreateTaskPage({
     )
   }
 
-  function removeMember(memberId: string) {
-    setSelectedMembers((prev) => prev.filter((id) => id !== memberId))
-  }
-
   function handleFileDrop(e: React.DragEvent) {
     e.preventDefault()
     const files = Array.from(e.dataTransfer.files)

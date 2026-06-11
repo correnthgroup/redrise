@@ -97,14 +97,15 @@ export async function createFlow(input: CreateFlowInput): Promise<Flow | null> {
   }
 
   // Increment workspace flows count
-  await supabase.rpc('increment_workspace_flows', { ws_id: input.workspace_id }).catch(() => {
+  try {
+    await supabase.rpc('increment_workspace_flows', { ws_id: input.workspace_id })
+  } catch {
     // Fallback: manual update if RPC not created
-    supabase.from('workspaces').select('flows').eq('id', input.workspace_id).single().then(({ data: ws }) => {
-      if (ws) {
-        supabase.from('workspaces').update({ flows: (ws.flows ?? 0) + 1 }).eq('id', input.workspace_id)
-      }
-    })
-  })
+    const { data: ws } = await supabase.from('workspaces').select('flows').eq('id', input.workspace_id).single()
+    if (ws) {
+      await supabase.from('workspaces').update({ flows: (ws.flows ?? 0) + 1 }).eq('id', input.workspace_id)
+    }
+  }
 
   console.log('[createFlow] Success:', data)
   return data as Flow

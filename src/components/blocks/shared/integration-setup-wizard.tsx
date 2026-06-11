@@ -1,11 +1,12 @@
-﻿import { useState, type ReactNode } from 'react'
-import { ArrowLeft, ArrowRight, Boxes, Check, CheckCircle2, CircleDashed, Code2, Database, Hash, MessageSquare, PlugZap } from 'lucide-react'
+﻿import { useState, useEffect, type ReactNode } from 'react'
+import { ArrowLeft, ArrowRight, Boxes, Check, CheckCircle2, CircleDashed, Code2, Database, Hash, Loader2, MessageSquare, PlugZap } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { createIntegration, loadIntegrations, type Integration } from '@/lib/integrations'
 
 type IntegrationOption = {
   id: string
@@ -38,6 +39,12 @@ export function IntegrationSetupWizard() {
   const [token, setToken] = useState('')
   const [testStatus, setTestStatus] = useState<'idle' | 'running' | 'ok' | 'fail'>('idle')
   const [completed, setCompleted] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [existing, setExisting] = useState<Integration[]>([])
+
+  useEffect(() => {
+    loadIntegrations().then(setExisting).catch(() => {})
+  }, [])
 
   function reset() {
     setStep(1)
@@ -49,12 +56,47 @@ export function IntegrationSetupWizard() {
     setCompleted(false)
   }
 
+  async function handleFinish() {
+    if (!selected) return
+    setSaving(true)
+    try {
+      await createIntegration({
+        name: name || selected.name,
+        provider: selected.id,
+        category: selected.category,
+        endpoint: endpoint || undefined,
+        config: { token: token || undefined },
+      })
+      setCompleted(true)
+      setTimeout(reset, 1500)
+    } catch {
+      // silent
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <Card className="gap-0 rounded-xl p-6">
       <div className="flex flex-col gap-1">
         <h3 className="text-base font-semibold">Integration Setup</h3>
         <p className="text-sm text-muted-foreground">Connect the workspace to external services in 4 steps.</p>
       </div>
+
+      {existing.length > 0 && (
+        <div className="mt-4 space-y-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Active Integrations</p>
+          <div className="flex flex-wrap gap-2">
+            {existing.map((ig) => (
+              <Badge key={ig.id} variant="outline" className="gap-1">
+                {ig.name}
+                <span className="text-[10px] text-muted-foreground">({ig.provider})</span>
+              </Badge>
+            ))}
+          </div>
+          <Separator className="my-2" />
+        </div>
+      )}
 
       <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {STEPS.map((item) => {
@@ -144,14 +186,13 @@ export function IntegrationSetupWizard() {
         </Button>
         <Button type="button" onClick={() => {
           if (step === 4) {
-            setCompleted(true)
-            window.setTimeout(reset, 1500)
+            handleFinish()
             return
           }
           setStep((current) => current === 1 ? 2 : current === 2 ? 3 : current === 3 ? 4 : 4)
-        }} disabled={(step === 1 && !selected) || (step === 2 && (!name.trim() || !endpoint.trim())) || (step === 3 && testStatus !== 'ok')}>
-          {step === 4 ? 'Finish' : 'Next'}
-          {step === 4 ? null : <ArrowRight className="h-4 w-4" />}
+        }} disabled={(step === 1 && !selected) || (step === 2 && (!name.trim() || !endpoint.trim())) || (step === 3 && testStatus !== 'ok') || saving}>
+          {step === 4 ? (saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</> : 'Finish') : 'Next'}
+          {step === 4 || saving ? null : <ArrowRight className="h-4 w-4" />}
         </Button>
       </div>
     </Card>

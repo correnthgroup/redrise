@@ -7,13 +7,6 @@ import { Brain, Code, FileText, BarChart3, Lightbulb, Zap, Globe, Shield } from 
 import type { Agent } from '@/types/agent'
 import { loadAgent } from '@/lib/agents'
 
-const STATUS_COLOR: Record<Agent['status'], string> = {
-  active: 'bg-[#2F4858]',
-  paused: 'bg-amber-500',
-  error: 'bg-[#8c1f28]',
-  idle: 'bg-slate-400',
-}
-
 const STATUS_BADGE: Record<Agent['status'], string> = {
   active: 'border-[#2F4858]/25 bg-[#2F4858]/8 text-[#2F4858]',
   paused: 'border-[#B7791F]/18 bg-[#FFF4DB] text-[#8A6116]',
@@ -69,7 +62,6 @@ export function AgentDetailPage({
 
   useEffect(() => {
     if (!agentId) return
-    setLoading(true)
     loadAgent(agentId).then((data) => {
       setAgent(data)
       setLoading(false)

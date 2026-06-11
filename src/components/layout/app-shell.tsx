@@ -47,7 +47,6 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null)
   const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null)
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const { workspaces, loading: workspacesLoading, addWorkspace, removeWorkspace } = useWorkspaces()
   const { flows, loading: flowsLoading, addFlow, removeFlow } = useFlows()
   const { tasks, loading: tasksLoading, addTask, moveTask, removeTask } = useTasks()
@@ -134,7 +133,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
               return result
             }}
           />
-        : <FlowListPage flows={flows} onDelete={removeFlow} onCreate={() => setFlowView('create')} onOpen={(id) => { setSelectedFlowId(id); setFlowView('builder') }} />
+        : <FlowListPage flows={flows} onDelete={removeFlow} onOpen={(id) => { setSelectedFlowId(id); setFlowView('builder') }} />
   } else if (active === 'tasks') {
     body = taskView === 'create'
       ? <CreateTaskPage
@@ -149,7 +148,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
         />
       : taskView === 'review'
         ? <ReviewTaskPage onBack={() => setTaskView('board')} />
-        : <TaskBoardPage tasks={tasks} agents={agents} onMoveTask={moveTask} onDeleteTask={removeTask} onCreateTask={() => setTaskView('create')} onOpenTask={(id) => { setSelectedTaskId(id); setTaskView('review') }} onRunTask={(id) => { setSelectedTaskId(id) }} />
+        : <TaskBoardPage tasks={tasks} agents={agents} onMoveTask={moveTask} onDeleteTask={removeTask} />
   } else if (active === 'agents') {
     body = agentView === 'create'
       ? <AgentCreatePage
