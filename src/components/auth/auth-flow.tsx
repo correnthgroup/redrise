@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
+import { saveRememberedSession } from '@/lib/user-profile'
 import styles from './auth-flow.module.css'
 
 type AuthMode = 'sign-in' | 'sign-up'
@@ -23,12 +24,16 @@ const ART_QUOTES = [
 ]
 
 export function AuthFlow() {
-  const [mode, setMode] = useState<AuthMode>('sign-in')
-  const [email, setEmail] = useState('')
+  const inviteParams = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search)
+  const invitedEmail = inviteParams?.get('email') ?? ''
+  const [mode, setMode] = useState<AuthMode>(inviteParams?.get('invited') ? 'sign-up' : 'sign-in')
+  const [email, setEmail] = useState(invitedEmail)
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(inviteParams?.get('invited') ? 'You were invited to Redrise. Create your account to accept the invite.' : null)
   const [loading, setLoading] = useState(false)
 
   const [quote] = useState(() => ART_QUOTES[Math.floor(Math.random() * ART_QUOTES.length)])
@@ -42,21 +47,25 @@ export function AuthFlow() {
   async function handleSignIn(e: FormEvent) {
     e.preventDefault()
     setError(null)
+    setNotice(null)
     if (!email || !password) {
       setError('Email and password are required.')
       return
     }
     setLoading(true)
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
     if (authError) {
       setError(authError.message)
+    } else if (rememberMe && data.user?.email) {
+      await saveRememberedSession({ id: data.user.id, email: data.user.email })
     }
   }
 
   async function handleSignUp(e: FormEvent) {
     e.preventDefault()
     setError(null)
+    setNotice(null)
     if (!email || !name) {
       setError('Name and email are required.')
       return
@@ -69,16 +78,24 @@ export function AuthFlow() {
     const { error: authError } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name } },
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: { full_name: name },
+      },
     })
     setLoading(false)
     if (authError) {
       setError(authError.message)
+    } else {
+      setNotice('Account created. Check your email and confirm your address before signing in.')
+      setMode('sign-in')
+      setPassword('')
     }
   }
 
   async function handleGitHubLogin() {
     setError(null)
+    setNotice(null)
     setLoading(true)
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: 'github',
@@ -145,6 +162,17 @@ export function AuthFlow() {
                 </div>
               </div>
 
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-input accent-[#8c1f28]"
+                  checked={rememberMe}
+                  onChange={(event) => setRememberMe(event.target.checked)}
+                />
+                Remember Me
+              </label>
+
+              {notice && <div className="rounded-md border border-[#2F4858]/20 bg-[#2F4858]/8 px-3 py-2 text-sm text-[#2F4858]">{notice}</div>}
               {error && <div className={styles.errorText}>{error}</div>}
 
               <Button type="submit" disabled={loading}>Sign in</Button>
@@ -164,6 +192,7 @@ export function AuthFlow() {
                     e.preventDefault()
                     setMode('sign-up')
                     setError(null)
+                    setNotice(null)
                   }}
                 >
                   Create an account
@@ -233,6 +262,7 @@ export function AuthFlow() {
                 </div>
               )}
 
+              {notice && <div className="rounded-md border border-[#2F4858]/20 bg-[#2F4858]/8 px-3 py-2 text-sm text-[#2F4858]">{notice}</div>}
               {error && <div className={styles.errorText}>{error}</div>}
 
               <Button type="submit" disabled={!allRulesMet || loading}>Create account</Button>
@@ -252,6 +282,7 @@ export function AuthFlow() {
                     e.preventDefault()
                     setMode('sign-in')
                     setError(null)
+                    setNotice(null)
                   }}
                 >
                   I already have an account

@@ -3,13 +3,13 @@ import { Search, ExternalLink, Pencil, Users, Check, X, Trash2 } from 'lucide-re
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { WorkflowPipeline } from '../shared/workflow-pipeline'
 import { Badge } from '@/components/ui/badge'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { Flow } from '@/types/flow'
 import { useI18n } from '@/hooks/use-i18n'
-
-const PLACEHOLDER_MEMBERS = ['Alice Silva', 'Bob Santos', 'Carol Oliveira', 'David Costa', 'Eva Lima']
+import { useTeamMemberOptions } from '@/hooks/use-team-member-options'
 
 interface FlowCard {
   name: string
@@ -64,7 +64,10 @@ export function FlowListPage({
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState<Flow | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState('')
   const { t } = useI18n()
+  const { members: teamMembers, loading: loadingMembers } = useTeamMemberOptions()
 
   const filtered = flows.filter((f) => f.name.toLowerCase().includes(query.toLowerCase()))
 
@@ -162,15 +165,17 @@ export function FlowListPage({
                           <DropdownMenuContent className="w-56">
                             <DropdownMenuLabel>Select members</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            {PLACEHOLDER_MEMBERS.map((member) => (
+                            {loadingMembers ? <div className="px-2 py-1.5 text-sm text-muted-foreground">Loading members...</div> : null}
+                            {!loadingMembers && teamMembers.length === 0 ? <div className="px-2 py-1.5 text-sm text-muted-foreground">No members available</div> : null}
+                            {teamMembers.map((member) => (
                               <DropdownMenuCheckboxItem
-                                key={member}
-                                checked={f.members?.includes(member) ?? false}
+                                key={member.id}
+                                checked={f.members?.includes(member.name) ?? false}
                                 onCheckedChange={() => {
                                   // TODO: persist member change in Sprint 7
                                 }}
                               >
-                                {member}
+                                {member.name}
                               </DropdownMenuCheckboxItem>
                             ))}
                           </DropdownMenuContent>
@@ -179,7 +184,7 @@ export function FlowListPage({
                           variant="ghost"
                           size="icon"
                           className="h-7 w-7 text-destructive hover:text-destructive"
-                          onClick={() => onDelete?.(f.id, f.workspace_id)}
+                          onClick={() => setDeleteTarget(f)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -194,6 +199,32 @@ export function FlowListPage({
       </div>
 
       <WorkflowPipeline cards={selectedCards} />
+
+      <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open) { setDeleteTarget(null); setDeleteConfirm('') } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Flow</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. Type <strong>DELETE</strong> to confirm.
+            </DialogDescription>
+          </DialogHeader>
+          <Input value={deleteConfirm} onChange={(event) => setDeleteConfirm(event.target.value)} placeholder="Type DELETE to confirm" />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDeleteTarget(null); setDeleteConfirm('') }}>Cancel</Button>
+            <Button
+              variant="destructive"
+              disabled={deleteConfirm !== 'DELETE' || !deleteTarget}
+              onClick={async () => {
+                if (deleteTarget) await onDelete?.(deleteTarget.id, deleteTarget.workspace_id)
+                setDeleteTarget(null)
+                setDeleteConfirm('')
+              }}
+            >
+              Delete Flow
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

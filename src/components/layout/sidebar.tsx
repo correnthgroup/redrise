@@ -11,7 +11,7 @@ import {
   Settings as SettingsIcon,
   Users,
 } from 'lucide-react'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useI18n } from '@/hooks/use-i18n'
@@ -24,7 +24,7 @@ export type SidebarKey =
   | 'analytics'
   | 'settings'
 
-type SidebarUser = { name: string; email: string }
+type SidebarUser = { name: string; email: string; avatarUrl?: string | null }
 
 type SidebarProps = {
   active: SidebarKey
@@ -213,6 +213,7 @@ export function Sidebar({ active, onSelect, user, onSignOut }: SidebarProps) {
 
         <div className="flex items-center gap-2 p-3">
           <Avatar className="h-9 w-9 shrink-0 -translate-x-[3.5px]">
+            {user.avatarUrl ? <AvatarImage src={user.avatarUrl} alt={user.name} /> : null}
             <AvatarFallback className="bg-white/10 text-white">{initials(user.name) || 'U'}</AvatarFallback>
           </Avatar>
           <div

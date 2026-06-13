@@ -25,3 +25,14 @@ test('shows password validation rules on sign-up', async ({ page }) => {
   await expect(page.getByText('One digit')).toBeVisible()
   await expect(page.getByText('One symbol')).toBeVisible()
 })
+
+test('sign-up asks for email confirmation', async ({ page }) => {
+  const ts = Date.now()
+  await page.goto('/')
+  await page.getByRole('link', { name: 'Create an account' }).click()
+  await page.getByLabel('Full name').fill(`Invite Test ${ts}`)
+  await page.getByLabel('Email').fill(`invite-test-${ts}@gmail.com`)
+  await page.locator('#password-su').fill('Abcd1234!')
+  await page.getByRole('button', { name: 'Create account' }).click()
+  await expect(page.getByText(/Check your email|email rate limit exceeded/i)).toBeVisible({ timeout: 15000 })
+})

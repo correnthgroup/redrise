@@ -9,6 +9,7 @@ setup('authenticate via UI', async ({ page }) => {
 
   await page.getByLabel('Email').fill(TEST_EMAIL)
   await page.locator('#password').fill(TEST_PASSWORD)
+  await page.getByLabel('Remember Me').check()
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
 
   const dashboardBtn = page.getByRole('button', { name: /New Workspace/i })

@@ -25,6 +25,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu'
 import { Pencil, Check, X, Keyboard, CheckCircle2, ChevronDown } from 'lucide-react'
 import { useFlowCards } from '@/hooks/use-flow-cards'
+import { useTeamMemberOptions } from '@/hooks/use-team-member-options'
 
 type FlowNode = Node<{ label: string; instructions?: string; members?: string[]; agents?: string[] }>
 
@@ -39,13 +40,11 @@ const SHORTCUTS = [
   { key: 'Mouse scroll', action: 'Zoom in/out' },
 ]
 
-const PLACEHOLDER_MEMBERS = ['Alice Silva', 'Bob Santos', 'Carol Oliveira', 'David Costa', 'Eva Lima']
 const PLACEHOLDER_AGENTS = ['Agent 1', 'Agent 2', 'Agent 3', 'Agent 4', 'Agent 5']
 
 let nodeIdCounter = 5
 
 function FlowCardWithEdit({ data, selected, id }: NodeProps<FlowNode>) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const openCardEditor = (window as unknown as Record<string, (id: string) => void>).__flowCardEdit
   const members = data.members ?? []
   const agents = data.agents ?? []
@@ -103,6 +102,7 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
   const [cardMembers, setCardMembers] = useState<string[]>([])
   const [cardAgents, setCardAgents] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
+  const { members: teamMembers, loading: loadingMembers } = useTeamMemberOptions()
   const { screenToFlowPosition, getNodes, setNodes: setReactFlowNodes, setEdges: setReactFlowEdges } = useReactFlow()
   const containerRef = useRef<HTMLDivElement>(null)
   const loadedRef = useRef(false)
@@ -148,9 +148,9 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
       }))
       setReactFlowEdges(flowEdges)
     }
-  }, [cards, dbEdges, setReactFlowNodes, setReactFlowEdges])
+  }, [cards, dbEdges, nodes.length, setReactFlowNodes, setReactFlowEdges])
 
-  function openCardEditor(nodeId: string) {
+  const openCardEditor = useCallback((nodeId: string) => {
     const node = nodes.find((n) => n.id === nodeId)
     if (!node) return
     setEditingCardId(nodeId)
@@ -158,10 +158,9 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
     setCardInstructions(node.data.instructions ?? '')
     setCardMembers(node.data.members ?? [])
     setCardAgents(node.data.agents ?? [])
-  }
+  }, [nodes])
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const win = window as unknown as Record<string, (id: string) => void>
     win.__flowCardEdit = (id: string) => openCardEditor(id)
     return () => { delete (win as Record<string, unknown>).__flowCardEdit }
@@ -466,13 +465,15 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-full">
-                      {PLACEHOLDER_MEMBERS.map((member) => (
+                      {loadingMembers ? <div className="px-2 py-1.5 text-sm text-muted-foreground">Loading members...</div> : null}
+                      {!loadingMembers && teamMembers.length === 0 ? <div className="px-2 py-1.5 text-sm text-muted-foreground">No members available</div> : null}
+                      {teamMembers.map((member) => (
                         <DropdownMenuCheckboxItem
-                          key={member}
-                          checked={cardMembers.includes(member)}
-                          onCheckedChange={() => toggleMember(member)}
+                          key={member.id}
+                          checked={cardMembers.includes(member.name)}
+                          onCheckedChange={() => toggleMember(member.name)}
                         >
-                          {member}
+                          {member.name}
                         </DropdownMenuCheckboxItem>
                       ))}
                     </DropdownMenuContent>

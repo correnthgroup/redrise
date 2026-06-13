@@ -38,7 +38,7 @@ export function AnalyticsPage() {
 
         {/* Per-agent breakdown */}
         <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
-          <CardHeader><CardTitle className="text-sm font-semibold">Per-agent breakdown</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm font-semibold">Per-agent Breakdown</CardTitle></CardHeader>
           <CardContent>
             {analytics.agentBreakdown.length === 0 ? (
               <div className="text-center py-8 text-sm text-muted-foreground">
@@ -79,7 +79,7 @@ export function AnalyticsPage() {
 
         {/* Recent executions */}
         <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
-          <CardHeader><CardTitle className="text-sm font-semibold">Recent executions</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm font-semibold">Recent Executions</CardTitle></CardHeader>
           <CardContent>
             {analytics.recentExecutions.length === 0 ? (
               <div className="text-center py-8 text-sm text-muted-foreground">

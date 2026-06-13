@@ -24,7 +24,7 @@ import { Sidebar, type SidebarKey } from './sidebar'
 import { Topbar } from './topbar'
 
 type AppShellProps = {
-  user: { name: string; email: string }
+  user: { id: string; name: string; firstName: string; email: string; avatarUrl?: string | null }
   onSignOut: () => void
   defaultPage?: SidebarKey
 }
@@ -109,6 +109,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
           }} />
         : (
             <DashboardPage
+              firstName={user.firstName}
               workspaces={workspaces}
               onOpenWorkspace={(id) => {
                 setSelectedWorkspaceId(id)
@@ -177,7 +178,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   } else if (active === 'analytics') {
     body = <AnalyticsPage />
   } else {
-    body = <SettingsPage />
+    body = <SettingsPage user={user} />
   }
 
   const topbarActions = active === 'dashboard' && dashboardView === 'board' ? (

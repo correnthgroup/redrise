@@ -38,6 +38,13 @@ export default defineConfig({
       use: { storageState: 'tests/.auth/user.json' },
       fullyParallel: false,
     },
+    {
+      name: 'settings',
+      testMatch: /settings\.spec\.ts/,
+      dependencies: ['auth-setup'],
+      use: { storageState: 'tests/.auth/user.json' },
+      fullyParallel: false,
+    },
   ],
   webServer: {
     command: 'corepack yarn dev --host 127.0.0.1 --port 5173',

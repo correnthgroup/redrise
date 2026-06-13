@@ -1,4 +1,3 @@
-﻿import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -6,40 +5,45 @@ type ChartTabsProps = {
   executionsByDay?: { date: string; count: number }[]
 }
 
+function areaPath(points: { x: string; y: number }[]) {
+  if (points.length === 0) return ''
+  const max = Math.max(1, ...points.map((point) => point.y))
+  return points.map((point, index) => {
+    const x = points.length === 1 ? 50 : (index / (points.length - 1)) * 100
+    const y = 88 - (point.y / max) * 72
+    return `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`
+  }).join(' ')
+}
+
+function SimpleAreaChart({ data, stroke }: { data: { x: string; y: number }[]; stroke: string }) {
+  const line = areaPath(data)
+
+  return (
+    <svg className="h-56 w-full" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Operational chart">
+      <path d="M 0 88 H 100" stroke="#D7DEE7" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
+      <path d="M 0 52 H 100" stroke="#D7DEE7" strokeWidth="0.5" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
+      <path d="M 0 16 H 100" stroke="#D7DEE7" strokeWidth="0.5" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
+      {line ? <path d={`${line} L 100 88 L 0 88 Z`} fill={stroke} opacity="0.14" /> : null}
+      {line ? <path d={line} fill="none" stroke={stroke} strokeWidth="1.5" vectorEffect="non-scaling-stroke" /> : null}
+    </svg>
+  )
+}
+
 export function ChartTabs({ executionsByDay = [] }: ChartTabsProps) {
-  // Build usage data from real executions
-  const usageData = executionsByDay.map((d) => ({
-    x: d.date.slice(5), // MM-DD
-    y: d.count,
-  }))
+  const usageData = executionsByDay.map((d) => ({ x: d.date.slice(5), y: d.count }))
+  const errorData = usageData.map((d) => ({ x: d.x, y: Math.round(d.y * 0.05 + (d.y % 3)) }))
+  const latencyData = usageData.map((d) => ({ x: d.x, y: Math.round(300 + Math.sin(d.y) * 100 + (d.y % 5) * 10) }))
 
-  // Generate error/latency from usage (deterministic based on count)
-  const errorData = usageData.map((d) => ({
-    x: d.x,
-    y: Math.round(d.y * 0.05 + (d.y % 3)),
-  }))
-
-  const latencyData = usageData.map((d) => ({
-    x: d.x,
-    y: Math.round(300 + Math.sin(d.y) * 100 + (d.y % 5) * 10),
-  }))
-
-  const SERIES: Record<string, { name: string; data: { x: string; y: number }[] }[]> = {
-    usage: [{ name: 'Executions', data: usageData.length > 0 ? usageData : [{ x: 'No data', y: 0 }] }],
-    errors: [{ name: 'Errors', data: errorData.length > 0 ? errorData : [{ x: 'No data', y: 0 }] }],
-    latency: [{ name: 'Latency ms', data: latencyData.length > 0 ? latencyData : [{ x: 'No data', y: 0 }] }],
-  }
-
-  const SERIES_META = {
-    usage: { stroke: '#2F4858', fill: 'url(#grad-usage)', label: 'AI executions per day' },
-    errors: { stroke: '#8c1f28', fill: 'url(#grad-errors)', label: 'Failed executions' },
-    latency: { stroke: '#64748B', fill: 'url(#grad-latency)', label: 'Avg response time (ms)' },
+  const SERIES = {
+    usage: { stroke: '#2F4858', label: 'AI executions per day', data: usageData.length > 0 ? usageData : [{ x: 'No data', y: 0 }] },
+    errors: { stroke: '#8c1f28', label: 'Failed executions', data: errorData.length > 0 ? errorData : [{ x: 'No data', y: 0 }] },
+    latency: { stroke: '#64748B', label: 'Avg response time (ms)', data: latencyData.length > 0 ? latencyData : [{ x: 'No data', y: 0 }] },
   } as const
 
   return (
     <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
       <CardHeader>
-        <CardTitle className="text-sm font-semibold">Operational overview</CardTitle>
+        <CardTitle className="text-sm font-semibold">Operational Overview</CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="usage">
@@ -48,32 +52,10 @@ export function ChartTabs({ executionsByDay = [] }: ChartTabsProps) {
             <TabsTrigger value="errors">Errors</TabsTrigger>
             <TabsTrigger value="latency">Latency</TabsTrigger>
           </TabsList>
-          {Object.entries(SERIES).map(([key, series]) => (
+          {Object.entries(SERIES).map(([key, meta]) => (
             <TabsContent key={key} value={key} className="h-64">
-              <div className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                {SERIES_META[key as keyof typeof SERIES_META].label}
-              </div>
-              <ResponsiveContainer>
-                <AreaChart data={series[0].data}>
-                  <defs>
-                    <linearGradient id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={SERIES_META[key as keyof typeof SERIES_META].stroke} stopOpacity={0.35} />
-                      <stop offset="100%" stopColor={SERIES_META[key as keyof typeof SERIES_META].stroke} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#D7DEE7" />
-                  <XAxis dataKey="x" tickLine={false} axisLine={false} fontSize={11} />
-                  <YAxis tickLine={false} axisLine={false} fontSize={11} />
-                  <Tooltip />
-                  <Area
-                    type="monotone"
-                    dataKey="y"
-                    stroke={SERIES_META[key as keyof typeof SERIES_META].stroke}
-                    fill={SERIES_META[key as keyof typeof SERIES_META].fill}
-                    strokeWidth={1.5}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <div className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">{meta.label}</div>
+              <SimpleAreaChart data={meta.data} stroke={meta.stroke} />
             </TabsContent>
           ))}
         </Tabs>

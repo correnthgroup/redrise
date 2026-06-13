@@ -6,10 +6,9 @@ import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { Workspace } from '@/types/workspace'
+import { useTeamMemberOptions } from '@/hooks/use-team-member-options'
 
 const STEPS = ['Basic Info', 'Review'] as const
-
-const PLACEHOLDER_MEMBERS = ['Alice Silva', 'Bob Santos', 'Carol Oliveira', 'David Costa', 'Eva Lima']
 
 export function CreateFlowPage({
   onBack,
@@ -26,6 +25,7 @@ export function CreateFlowPage({
   const [members, setMembers] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const { members: teamMembers, loading: loadingMembers } = useTeamMemberOptions()
 
   const selectedWorkspace = workspaces.find((w) => w.id === workspaceId)
 
@@ -68,18 +68,20 @@ export function CreateFlowPage({
               <div className="space-y-1">
                 <Label>Team Members</Label>
                 <div className="flex flex-wrap gap-2">
-                  {PLACEHOLDER_MEMBERS.map((member) => (
+                  {loadingMembers ? <p className="text-xs text-muted-foreground">Loading members...</p> : null}
+                  {!loadingMembers && teamMembers.length === 0 ? <p className="text-xs text-muted-foreground">No members available.</p> : null}
+                  {teamMembers.map((member) => (
                     <button
-                      key={member}
+                      key={member.id}
                       type="button"
-                      onClick={() => toggleMember(member)}
+                      onClick={() => toggleMember(member.name)}
                       className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
-                        members.includes(member)
+                        members.includes(member.name)
                           ? 'border-primary bg-primary/10 text-primary'
                           : 'border-border bg-card text-muted-foreground hover:bg-accent/60'
                       }`}
                     >
-                      {member}
+                      {member.name}
                     </button>
                   ))}
                 </div>

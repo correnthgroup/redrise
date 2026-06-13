@@ -62,6 +62,8 @@ const translations: Record<Locale, Record<string, string>> = {
     'settings.integrationsDesc': 'Connect the workspace to Slack, GitHub, Postgres and more.',
     'settings.teamMembers': 'Team Members',
     'settings.teamMembersDesc': 'See information about all members and invite new ones.',
+    'settings.plans': 'Plans',
+    'settings.plansDesc': 'Compare Free, Business and Corporate access levels.',
     'settings.auditLog': 'Audit Log',
     'settings.auditLogDesc': 'Track all important actions across your account and workspaces.',
 
@@ -92,6 +94,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'account.confirmEmail': 'Confirm Email',
     'account.phone': 'Phone Number',
     'account.location': 'Location',
+    'account.countryPlaceholder': 'Select country',
     'account.searchCity': 'Search city...',
     'account.additionalInfo': 'Additional Information',
     'account.language': 'Language/Idioma',
@@ -178,6 +181,8 @@ const translations: Record<Locale, Record<string, string>> = {
     'settings.integrationsDesc': 'Conecte o workspace ao Slack, GitHub, Postgres e mais.',
     'settings.teamMembers': 'Membros da Equipe',
     'settings.teamMembersDesc': 'Veja informa\u00e7\u00f5es sobre todos os membros e convide novos.',
+    'settings.plans': 'Planos',
+    'settings.plansDesc': 'Compare os acessos Free, Business e Corporate.',
     'settings.auditLog': 'Registro de Auditoria',
     'settings.auditLogDesc': 'Acompanhe todas as a\u00e7\u00f5es importantes em sua conta e workspaces.',
 
@@ -208,6 +213,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'account.confirmEmail': 'Confirmar Email',
     'account.phone': 'Telefone',
     'account.location': 'Localiza\u00e7\u00e3o',
+    'account.countryPlaceholder': 'Selecionar pais',
     'account.searchCity': 'Buscar cidade...',
     'account.additionalInfo': 'Informa\u00e7\u00f5es Adicionais',
     'account.language': 'Language/Idioma',

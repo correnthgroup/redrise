@@ -9,8 +9,10 @@ test('workspace lifecycle: create → review → cancel → delete', async ({ pa
   await page.goto('/')
   await expect(page.getByRole('button', { name: /New Workspace/i })).toBeVisible({ timeout: 15000 })
 
-  await page.getByRole('button', { name: /New Workspace/i }).click()
-  await expect(page.getByRole('heading', { name: 'New Workspace' })).toBeVisible()
+  const newWorkspaceButton = page.getByRole('button', { name: /New Workspace/i }).first()
+  await expect(newWorkspaceButton).toBeEnabled({ timeout: 15000 })
+  await newWorkspaceButton.click()
+  await expect(page.getByRole('heading', { name: 'New Workspace' })).toBeVisible({ timeout: 15000 })
 
   await page.getByLabel('Name').fill(WS_NAME)
   await page.getByLabel('Mission').fill(WS_MISSION)

@@ -11,16 +11,9 @@ import { Upload, X, FileText, ChevronDown, Check, ArrowDown, ArrowUp, Minus, Lay
 import { loadAgents } from '@/lib/agents'
 import type { Agent } from '@/types/agent'
 import type { TaskPriority, TaskStatus, RecurrenceType } from '@/types/task'
+import { useTeamMemberOptions } from '@/hooks/use-team-member-options'
 
 const STEPS = ['Briefing', 'Team & Agent', 'Review'] as const
-
-const PLACEHOLDER_MEMBERS = [
-  { id: 'm1', name: 'Maria Silva' },
-  { id: 'm2', name: 'João Santos' },
-  { id: 'm3', name: 'Ana Oliveira' },
-  { id: 'm4', name: 'Pedro Costa' },
-  { id: 'm5', name: 'Lucia Ferreira' },
-]
 
 const PRIORITIES: { value: TaskPriority; label: string; color: string; icon: typeof ArrowDown }[] = [
   { value: 'low', label: 'Min', color: 'text-[#2F4858] bg-[#2F4858]/10', icon: ArrowDown },
@@ -92,6 +85,7 @@ export function CreateTaskPage({
   const [recurrenceDays, setRecurrenceDays] = useState<number[]>([])
   const [recurrenceMonthlyDays, setRecurrenceMonthlyDays] = useState<number[]>([])
   const [agents, setAgents] = useState<Agent[]>([])
+  const { members: teamMembers, loading: loadingMembers } = useTeamMemberOptions()
   const [loadingAgents, setLoadingAgents] = useState(true)
   const [showMemberDropdown, setShowMemberDropdown] = useState(false)
   const [showAgentDropdown, setShowAgentDropdown] = useState(false)
@@ -146,7 +140,7 @@ export function CreateTaskPage({
   }
 
   const selectedAgent = agents.find((a) => a.id === selectedAgentId)
-  const selectedMemberNames = PLACEHOLDER_MEMBERS
+  const selectedMemberNames = teamMembers
     .filter((m) => selectedMembers.includes(m.id))
     .map((m) => m.name)
 
@@ -161,7 +155,8 @@ export function CreateTaskPage({
   const hasDay31 = recurrenceMonthlyDays.includes(31)
 
   return (
-    <div className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise overflow-y-auto">
+    <div className="h-full overflow-y-auto bg-muted/20">
+      <div className="mx-auto flex min-h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
       <header>
         <h1 className="text-lg font-semibold">New Task</h1>
         <p className="text-sm text-muted-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</p>
@@ -367,20 +362,22 @@ export function CreateTaskPage({
                             type="button"
                             className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent border-b"
                             onClick={() => {
-                              if (selectedMembers.length === PLACEHOLDER_MEMBERS.length) {
+                              if (selectedMembers.length === teamMembers.length) {
                                 setSelectedMembers([])
                               } else {
-                                setSelectedMembers(PLACEHOLDER_MEMBERS.map((m) => m.id))
+                                setSelectedMembers(teamMembers.map((m) => m.id))
                               }
                             }}
                           >
                             <Checkbox
-                              checked={selectedMembers.length === PLACEHOLDER_MEMBERS.length}
+                              checked={teamMembers.length > 0 && selectedMembers.length === teamMembers.length}
                               className="rounded-[2px]"
                             />
                             <span className="font-medium">Select All</span>
                           </button>
-                          {PLACEHOLDER_MEMBERS.map((member) => (
+                          {loadingMembers ? <div className="px-2 py-1.5 text-sm text-muted-foreground">Loading members...</div> : null}
+                          {!loadingMembers && teamMembers.length === 0 ? <div className="px-2 py-1.5 text-sm text-muted-foreground">No members available</div> : null}
+                          {teamMembers.map((member) => (
                             <button
                               key={member.id}
                               type="button"
@@ -844,7 +841,7 @@ export function CreateTaskPage({
                     objective,
                     prompt,
                     documents,
-                    team_members: selectedMembers,
+                    team_members: selectedMemberNames,
                     agent_id: selectedAgentId,
                     priority,
                     status: kanbanColumn,
@@ -872,6 +869,7 @@ export function CreateTaskPage({
           </Button>
         </div>
       </footer>
+      </div>
     </div>
   )
 }

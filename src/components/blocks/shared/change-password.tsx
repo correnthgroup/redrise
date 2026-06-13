@@ -15,7 +15,7 @@ function PasswordField({ id, label, value, onChange }: { id: string; label: stri
         {label}
       </Label>
       <div className="relative">
-        <Input id={id} type={showPassword ? 'text' : 'password'} placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" value={value} onChange={(event) => onChange?.(event.target.value)} />
+        <Input id={id} type={showPassword ? 'text' : 'password'} placeholder="●●●●●●●●" value={value} onChange={(event) => onChange?.(event.target.value)} />
         <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowPassword((value) => !value)}>
           {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
           <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
@@ -38,7 +38,7 @@ export function ChangePassword() {
 
   return (
     <Card className="border p-8">
-      <div className="border-b pb-6">
+      <div className="pb-6">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100">
             <Shield className="h-6 w-6 text-orange-600" />
@@ -83,13 +83,13 @@ export function ChangePassword() {
             </ul>
           </div>
 
-          <div className="rounded-lg border p-4 bg-muted/50">
+          <div className="rounded-lg border border-[#8c1f28] bg-[#8c1f28] p-4 text-[#f2f2f2]">
             <h4 className="mb-2 text-sm font-medium">Security Best Practices</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2"><span className="mt-1">â€¢</span><span>Change your password regularly (every 90 days).</span></li>
-              <li className="flex items-start gap-2"><span className="mt-1">â€¢</span><span>Never share your password with anyone.</span></li>
-              <li className="flex items-start gap-2"><span className="mt-1">â€¢</span><span>Use a unique password for each account.</span></li>
-              <li className="flex items-start gap-2"><span className="mt-1">â€¢</span><span>Consider using a password manager.</span></li>
+            <ul className="space-y-2 text-sm text-[#f2f2f2]">
+              <li className="flex items-start gap-2"><span className="mt-1">-</span><span>Change your password regularly (every 90 days).</span></li>
+              <li className="flex items-start gap-2"><span className="mt-1">-</span><span>Never share your password with anyone.</span></li>
+              <li className="flex items-start gap-2"><span className="mt-1">-</span><span>Use a unique password for each account.</span></li>
+              <li className="flex items-start gap-2"><span className="mt-1">-</span><span>Consider using a password manager.</span></li>
             </ul>
           </div>
         </div>

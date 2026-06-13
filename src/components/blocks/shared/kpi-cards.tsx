@@ -1,4 +1,3 @@
-﻿import { Area, AreaChart, ResponsiveContainer } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
@@ -10,10 +9,22 @@ type Kpi = {
   series: number[]
 }
 
+function sparklinePath(series: number[]) {
+  if (series.length === 0) return ''
+  const min = Math.min(...series)
+  const max = Math.max(...series)
+  const range = Math.max(1, max - min)
+  return series.map((value, index) => {
+    const x = series.length === 1 ? 100 : (index / (series.length - 1)) * 100
+    const y = 44 - ((value - min) / range) * 38
+    return `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`
+  }).join(' ')
+}
+
 function KpiCard({ kpi }: { kpi: Kpi }) {
-  const data = kpi.series.map((v, i) => ({ i, v }))
-  const stroke =
-    kpi.trend === 'up' ? '#2F4858' : kpi.trend === 'down' ? '#8c1f28' : '#64748B'
+  const stroke = kpi.trend === 'up' ? '#2F4858' : kpi.trend === 'down' ? '#8c1f28' : '#64748B'
+  const line = sparklinePath(kpi.series)
+
   return (
     <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
       <CardHeader className="pb-2">
@@ -22,15 +33,12 @@ function KpiCard({ kpi }: { kpi: Kpi }) {
       <CardContent>
         <div className="font-mono text-2xl font-bold tabular-nums tracking-tight text-foreground">{kpi.value}</div>
         <div className="mt-1 text-xs text-muted-foreground">{kpi.delta}</div>
-        {kpi.series.length > 0 && (
-          <div className="mt-3 h-12 w-full">
-            <ResponsiveContainer>
-              <AreaChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
-                <Area type="monotone" dataKey="v" stroke={stroke} fill={stroke} fillOpacity={0.15} strokeWidth={1.5} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        )}
+        {line ? (
+          <svg className="mt-3 h-12 w-full" viewBox="0 0 100 48" preserveAspectRatio="none" aria-hidden="true">
+            <path d={`${line} L 100 48 L 0 48 Z`} fill={stroke} opacity="0.15" />
+            <path d={line} fill="none" stroke={stroke} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+          </svg>
+        ) : null}
       </CardContent>
     </Card>
   )

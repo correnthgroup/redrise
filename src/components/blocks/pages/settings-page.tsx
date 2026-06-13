@@ -2,6 +2,7 @@
 import {
   ArrowLeft,
   KeyRound,
+  CreditCard,
   PlugZap,
   Shield,
   ShieldCheck,
@@ -20,7 +21,10 @@ import { ApiKeysManager } from '../shared/api-keys-manager'
 import { MemberListTable } from '../shared/member-list-table'
 import { AddMemberModal } from '../shared/add-member-modal'
 import { AuditLogCard } from '../shared/audit-log-card'
+import { PlansPage } from './plans-page'
 import { useI18n } from '@/hooks/use-i18n'
+
+type SettingsUser = { id: string; name: string; firstName: string; email: string; avatarUrl?: string | null }
 
 type SettingKey =
   | 'personal-info'
@@ -29,6 +33,7 @@ type SettingKey =
   | 'api-keys'
   | 'integrations'
   | 'team-members'
+  | 'plans'
   | 'audit-log'
 
 type SettingShortcut = {
@@ -38,18 +43,19 @@ type SettingShortcut = {
   icon: ReactNode
 }
 
-function TeamMembersView() {
+function TeamMembersView({ user }: { user: SettingsUser }) {
   const [open, setOpen] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   return (
     <>
-      <MemberListTable onAddMember={() => setOpen(true)} />
-      <AddMemberModal open={open} onOpenChange={setOpen} />
+      <MemberListTable key={refreshKey} user={user} onAddMember={() => setOpen(true)} />
+      <AddMemberModal ownerUserId={user.id} open={open} onOpenChange={setOpen} onMemberAdded={() => setRefreshKey((value) => value + 1)} />
     </>
   )
 }
 
-export function SettingsPage() {
+export function SettingsPage({ user }: { user: SettingsUser }) {
   const [active, setActive] = useState<SettingKey | null>(null)
   const { t } = useI18n()
 
@@ -91,6 +97,12 @@ export function SettingsPage() {
       icon: <UserPlus className="h-5 w-5" />,
     },
     {
+      key: 'plans',
+      titleKey: 'settings.plans',
+      descKey: 'settings.plansDesc',
+      icon: <CreditCard className="h-5 w-5" />,
+    },
+    {
       key: 'audit-log',
       titleKey: 'settings.auditLog',
       descKey: 'settings.auditLogDesc',
@@ -99,12 +111,13 @@ export function SettingsPage() {
   ]
 
   let detail: ReactNode = null
-  if (active === 'personal-info') detail = <AccountBasicInfoPage onBack={() => setActive(null)} onSave={() => setActive(null)} />
+  if (active === 'personal-info') detail = <AccountBasicInfoPage user={user} onBack={() => setActive(null)} onSave={() => setActive(null)} onOpenPlans={() => setActive('plans')} />
   else if (active === 'change-password') detail = <ChangePassword />
-  else if (active === 'active-sessions') detail = <SessionsList />
+  else if (active === 'active-sessions') detail = <SessionsList userId={user.id} />
   else if (active === 'api-keys') detail = <ApiKeysManager />
   else if (active === 'integrations') detail = <IntegrationSetupWizard />
-  else if (active === 'team-members') detail = <TeamMembersView />
+  else if (active === 'team-members') detail = <TeamMembersView user={user} />
+  else if (active === 'plans') detail = <PlansPage />
   else if (active === 'audit-log') detail = <AuditLogCard />
 
   if (active) {

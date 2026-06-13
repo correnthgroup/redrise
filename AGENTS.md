@@ -6,11 +6,15 @@
 ## Stack
 
 - **Build**: Vite 8 + `@vitejs/plugin-react`
-- **Framework**: React 19 + TypeScript
+- **Framework**: React 19 + TypeScript 6
 - **Styling**: Tailwind CSS v4 via `@tailwindcss/vite` (CSS variables, no `tailwind.config.ts`)
 - **UI primitives**: shadcn-style components under `src/components/ui/` (Radix + CVA + tailwind-merge)
-- **Routing**: state machine in `src/components/layout/sidebar.tsx` + thin route shims in `src/app/`
-- **State**: pure React + `localStorage` (no Redux, no Zustand)
+- **Routing**: state machine in `src/components/layout/app-shell.tsx` via `SidebarKey` + thin route shims in `src/app/`
+- **State**: React hooks + Supabase-backed domain libraries; `localStorage` only for UI preferences such as sidebar collapse
+- **Backend**: Supabase project `ndfsselzilmdzywcdyoo` for Auth, PostgreSQL, RLS, migrations, and Edge Functions
+- **Hosting**: Vercel project `worth-team-s-projects/redrise-app`, official URL `https://redrise-app.vercel.app`
+- **Package manager**: Yarn via Corepack. Do not add npm lockfiles.
+- **Operational MCP**: `redrise-ops` in `scripts/mcp/redrise-ops.mjs`
 
 ## Entry points
 
@@ -24,6 +28,12 @@
 - Page blocks: `src/components/blocks/pages/`
 - Shared blocks: `src/components/blocks/shared/`
 - UI primitives: `src/components/ui/`
+- Domain libraries: `src/lib/`
+- Hooks: `src/hooks/`
+- Supabase migrations/functions: `supabase/`
+- Human/product memory: `memory/`
+- Product updates: `updates/`
+- Operational docs: `docs/`
 
 ## Architecture blocks (modular)
 
@@ -50,6 +60,7 @@ App
             ├── AgentDetailPage
             ├── AnalyticsPage
             ├── SettingsPage
+            ├── PlansPage
             ├── AccountBasicInfoPage
             ├── CreateTaskPage
             ├── CreateWorkspacePage
@@ -77,11 +88,24 @@ Rules:
 - **Sidebar is a layout column**, not a sticky/floating element.
 - **All Radix portal content** (dialog, dropdown, popover, select, tooltip) uses `z-50`.
 
-## Persistence keys (localStorage)
+## Sources Of Truth
+
+| Domain | Source | Primary files |
+|---|---|---|
+| Auth session | Supabase Auth | `src/App.tsx`, `src/components/auth/auth-flow.tsx` |
+| Profile | Supabase `profiles` | `src/lib/user-profile.ts`, `AccountBasicInfoPage` |
+| Remembered sessions | Supabase `active_sessions` | `src/lib/user-profile.ts`, `SessionsList` |
+| Team members | Supabase `team_members` | `src/lib/team-members.ts`, `use-team-member-options.ts`, `MemberListTable` |
+| Workspaces | Supabase | `src/lib/workspaces.ts`, `use-workspaces.ts` |
+| Flows | Supabase | `src/lib/flows.ts`, `use-flows.ts` |
+| Tasks | Supabase | `src/lib/tasks.ts`, `use-tasks.ts` |
+| Agents | Supabase | `src/lib/agents.ts`, `use-agents.ts` |
+| Plans | UI placeholder only for now | `src/components/blocks/pages/plans-page.tsx` |
+
+## localStorage Keys
 
 | Key | Type | Owner | Purpose |
 |---|---|---|---|
-| `app:session` | `{ user: { name, email } }` | `App.tsx` | auth session |
 | `app:sidebar:collapsed` | `"0" \| "1"` | `sidebar.tsx` | sidebar collapse state (idempotent) |
 
 ## Invariants
@@ -89,20 +113,48 @@ Rules:
 - Exactly one authenticated user per session.
 - `core_always` blocks (sidebar + topbar + main) are always present when authenticated.
 - Sidebar collapse state is **idempotent** — multiple toggles produce the same final state.
-- All copy is `[Placeholder: …]` until content is approved.
 - No external CDN URLs (pravatar, etc.). All assets are local or `data:` URIs.
+- Settings detail screens keep one Back control in the detail header.
+- Any member picker/dropdown must use Settings > Team Members as the source through `loadTeamMembers()` or `useTeamMemberOptions()`.
+- Profile edits must preserve the `redrise:profile-updated` event so Sidebar and Dashboard update.
+- Plans UI must not unlock paid features from frontend-only state; real billing requires backend checkout, webhook, and persisted plan state.
+- Permission badges/notices are informational until enforced by backend/RLS.
+- Do not reintroduce profile/session/team member persistence in `localStorage`.
+
+## Memory And Graph Rules
+
+- Before relevant code, architecture, schema, flow, permission, billing, deploy, or product behavior changes, consult `memory/CONTEXT.md`, `memory/DECISIONS.md`, `memory/HANDOFF.md`, `memory/TASK_LOG.md`, and `memory/TECHNICAL.md`.
+- `memory/TECHNICAL.md` is the detailed PT-BR human-readable map of app behavior and cross-screen dependencies.
+- If `graphify-out/graph.json` exists, consult graphify before cross-file architecture/dependency changes.
+- After relevant changes, update affected memory files.
+- After relevant changes, update graphify if available. If only code graph updates are possible, record pending semantic doc re-extraction.
 
 ## Commands
 
 ```powershell
-npm install
-npm run dev          # vite dev server
-npm run build        # tsc -b && vite build
-npm run lint         # eslint .
-npm run preview      # vite preview (serve dist/)
+corepack yarn install
+corepack yarn dev          # vite dev server
+corepack yarn build        # tsc -b && vite build
+corepack yarn lint         # eslint .
+corepack yarn typecheck    # tsc -b --pretty false
+corepack yarn test         # vitest run --coverage
+corepack yarn test:e2e     # playwright test
+corepack yarn preview      # vite preview (serve dist/)
+corepack yarn mcp:redrise-ops
+corepack yarn mcp:redrise-ops:self-test
 ```
+
+## Deploy
+
+- Preferred frontend deploy while remote Vercel project settings still show npm: use prebuilt Build Output API.
+- Safe path: `corepack yarn build`, prepare `.vercel/output` from `dist`, then `vercel deploy --prebuilt --prod --yes --force`.
+- The `redrise-ops` MCP exposes this as `build_frontend`, `prepare_vercel_prebuilt`, and `deploy_frontend_prebuilt`.
+- Normal `vercel deploy --prod` can create `UNKNOWN` deployments while the remote project keeps `Install Command npm install` and `Build Command npm run build`.
+- Supabase Edge Functions are deployed with Supabase CLI; currently relevant allowlisted function is `invite-member`.
 
 ## Language
 
 - Technical files: **EN-US**
-- Human-facing copy in this scaffold: **EN-US with `[Placeholder: …]` tokens** — replace per language.
+- Human-facing product docs for non-technical readers may be **PT-BR**, especially under `memory/TECHNICAL.md`.
+- UI copy currently mixes existing English literals and i18n keys; preserve established copy unless changing the specific screen.
+- Mojibake is forbidden. Use valid UTF-8 text.

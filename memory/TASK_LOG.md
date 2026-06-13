@@ -76,3 +76,54 @@
 - Night — Updated `src/lib/workspaces.test.ts` — mocked Supabase tests (5 tests)
 - Night — Updated `tests/smoke.spec.ts` — e2e tests for new auth flow
 - Night — Full validation passed: lint, typecheck, test (6 tests), build, test:e2e (3 tests)
+
+## 2026-06-11
+
+- Applied `D:\REDSCALE\_REDRISE\Atualizacao#1.pdf` rule memory to `memory/CONTEXT.md` and implementation decisions to `memory/DECISIONS.md`.
+- Added `src/lib/user-profile.ts` for local profile persistence and Remember Me session records.
+- Added Sign In `Remember Me` checkbox and session registration for Settings > Active Sessions.
+- Rebuilt Settings > Personal Information field order and removed extra visible fields not listed in the patch.
+- Connected Personal Information save to Dashboard welcome first name, Sidebar username/email/avatar, and Team Members current-user row.
+- Replaced city location picker with translated country selection and timezone mapping.
+- Fixed Change Password mojibake, password placeholders, removed top divider, and applied Security Best Practices colors.
+- Replaced Active Sessions placeholder data with remembered-session data only.
+- Replaced Team Members placeholders with the active user, renamed Employed to Joined, and added Function/Team edit dialog.
+- Removed Add Member placeholder invite rows and aligned role select with the invite email field.
+- Capitalized chart titles: Operational Overview, Per-agent Breakdown, Recent Executions.
+- Added Flow delete confirmation dialog requiring `DELETE`.
+- Applied disabled-field background, placeholder gray, Segoe UI global defaults, and Tasks kanban header corner fix.
+- Created Supabase migration `014_create_profiles_sessions_team_members.sql` and applied it to remote project `ndfsselzilmdzywcdyoo`.
+- Created Supabase migration `015_allow_team_profile_visibility.sql` and applied it to remote project `ndfsselzilmdzywcdyoo`.
+- Repaired remote Supabase migration history for versions 001-015.
+- Replaced temporary local profile/session/member stores with Supabase-backed `profiles`, `active_sessions`, and `team_members` client libraries.
+- Validated against remote Supabase: `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, `corepack yarn build`, `corepack yarn test:e2e` all passed.
+- Linked Vercel project `worth-team-s-projects/redrise-app` locally and confirmed `https://redrise-app.vercel.app` remains the official URL.
+- Vercel CLI production deploy attempts for new source created `UNKNOWN` deployments with build `0ms`; one static fallback accidentally created a separate `dist` project and should be cleaned up manually or with explicit approval.
+- Removed the temporary `https://redrise.vercel.app` alias; custom domain integration is deferred until a real domain is acquired.
+
+## 2026-06-12
+
+- Added Supabase migration `017_harden_auth_profile_trigger.sql` and applied it remotely to schema-qualify `public.profiles` and `public.team_members` in the auth profile trigger.
+- Added Supabase migration `018_harden_default_agent_auth_trigger.sql` and applied it remotely to schema-qualify the legacy default-agent auth trigger.
+- Deployed updated Edge Function `invite-member`; it now persists the invited `team_members` row before attempting Supabase Auth email delivery and returns email delivery status.
+- Fixed Settings > Personal Information race where remote profile loading could overwrite fast user edits before save.
+- Fixed remembered sessions display by treating the most recent remembered session as current when no backend row has `current=true`.
+- Updated E2E signup/invite test emails away from `example.com`; Supabase Auth rejects that domain and may still rate-limit real email sending.
+- Validated: `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, `corepack yarn build`, `corepack yarn test:e2e --project=smoke-unauth --project=settings`, and full `corepack yarn test:e2e` all passed.
+- Updated `memory/AGENTS.md` with rules to consult memory/graph before relevant changes and update memory/graph after relevant changes.
+- Created `memory/TECHNICAL.md` in PT-BR with current app behavior, screen dependencies, Settings > Plans planning, access notice planning, and team invite/search planning.
+- Implemented `Settings > Plans` with placeholder Free/Business/Corporate cards, `Join Now` placeholder CTA, and restart notice path for future checkout success.
+- Implemented Personal Information active access notice with Details link to `Settings > Plans`.
+- Updated `invite-member` Edge Function to detect existing profiles by exact e-mail server-side and add them as active team members without open user search.
+- Created `Atualização#2.md` summarizing the current implementation and remaining Stripe/permission planning.
+- Published updated Supabase Edge Function `invite-member` to project `ndfsselzilmdzywcdyoo`.
+- Ran full validation for Atualização#2: lint, typecheck, unit tests, build, and full Playwright E2E all passed.
+- Attempted normal Vercel production deploys; deployments still became `UNKNOWN` with build `0ms` and no logs because remote project settings still use npm.
+- Published Atualização#2 frontend using Vercel prebuilt Build Output API; `https://redrise-app.vercel.app` now points to `dpl_BkpB7XcJUbtqC4edKWEdzBEW5oQZ`, status `Ready`.
+- Created app-owned MCP server `redrise-ops` in `scripts/mcp/redrise-ops.mjs` with safe operational tools for validation, prebuilt deploy, Supabase function deploy, status checks, graph status, and memory notes.
+- Added MCP documentation in `docs/REDRISE_OPS_MCP.md` and package scripts `mcp:redrise-ops` / `mcp:redrise-ops:self-test`.
+- Validated MCP self-test, JSON-line protocol, `Content-Length` protocol parsing, and `graph_status` tool call.
+- Merged the former root `GUIDE_MESTRE.md` content into `memory/TECHNICAL.md` and deleted the obsolete root guide.
+- Moved loose root utility `restore-brackets.ps1` to `scripts/maintenance/restore-brackets.ps1` without affecting app build/deploy paths.
+- Ran `C:\Python314\python.exe -m graphify update .`; graphify updated code graph to 1079 nodes, 1102 edges, 195 communities and noted semantic doc re-extraction remains pending for documentation changes.
+- Updated root `AGENTS.md` to reflect current Yarn/Corepack, Supabase, Vercel prebuilt deploy, MCP, graphify, memory, Settings Plans, and source-of-truth rules.

@@ -10,10 +10,12 @@ import { OnboardingEmpty } from '../shared/onboarding-empty'
 import { useI18n } from '@/hooks/use-i18n'
 
 export function DashboardPage({
+  firstName,
   onOpenWorkspace,
   onCreateWorkspace,
   workspaces,
 }: {
+  firstName?: string
   onOpenWorkspace?: (id: string) => void
   onCreateWorkspace?: () => void
   workspaces: Workspace[]
@@ -24,6 +26,11 @@ export function DashboardPage({
   return (
     <div className="h-full overflow-y-auto p-6">
       <div className="flex flex-col gap-6">
+        <div className="rounded-xl border bg-card px-5 py-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+          <h2 className="text-base font-semibold">Welcome to your workspace, {firstName || 'User'}.</h2>
+          <p className="text-sm text-muted-foreground">Monitor workspaces, flows, tasks, agents and recent operational activity.</p>
+        </div>
+
         {hasWorkspaces ? (
           <OnboardingEmpty
             workspaces={workspaces}

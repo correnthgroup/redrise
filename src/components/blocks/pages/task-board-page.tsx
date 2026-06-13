@@ -64,7 +64,7 @@ export function TaskBoardPage({
                 }
               }}
             >
-              <CardHeader className={cn('flex-row items-center justify-between border-b py-2', STATUS_TONE[col.id])}>
+              <CardHeader className={cn('flex-row items-center justify-between rounded-t-xl border-b py-2', STATUS_TONE[col.id])}>
                 <CardTitle className="text-xs font-semibold uppercase tracking-wide">{t(col.titleKey)}</CardTitle>
                 <span className="text-xs text-muted-foreground">{items.length}</span>
               </CardHeader>
