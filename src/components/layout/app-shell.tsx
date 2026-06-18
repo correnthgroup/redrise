@@ -4,6 +4,7 @@ import { useWorkspaces } from '@/hooks/use-workspaces'
 import { useFlows } from '@/hooks/use-flows'
 import { useTasks } from '@/hooks/use-tasks'
 import { useAgents } from '@/hooks/use-agents'
+import { useAnalytics } from '@/hooks/use-analytics'
 import { useI18n } from '@/hooks/use-i18n'
 import { DashboardPage } from '@/components/blocks/pages/dashboard-page'
 import { CreateFlowPage } from '@/components/blocks/pages/create-flow-page'
@@ -25,7 +26,7 @@ import { Topbar } from './topbar'
 
 type AppShellProps = {
   user: { id: string; name: string; firstName: string; email: string; avatarUrl?: string | null }
-  onSignOut: () => void
+  onSignOut: () => void | Promise<void>
   defaultPage?: SidebarKey
 }
 
@@ -51,9 +52,10 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const { flows, loading: flowsLoading, addFlow, removeFlow } = useFlows()
   const { tasks, loading: tasksLoading, addTask, moveTask, removeTask } = useTasks()
   const { agents, loading: agentsLoading, addAgent, removeAgent } = useAgents()
+  const analytics = useAnalytics()
   const { t } = useI18n()
 
-  const isDataLoading = workspacesLoading || flowsLoading || tasksLoading || agentsLoading
+  const isDataLoading = workspacesLoading || flowsLoading || tasksLoading || agentsLoading || analytics.loading
 
   function selectPage(next: SidebarKey) {
     setActive(next)
@@ -72,7 +74,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const selectedWorkspace = workspaces.find((workspace) => workspace.id === selectedWorkspaceId)
   const pageTitleKeys = PAGE_TITLE_KEYS[active]
   const pageMeta = active === 'dashboard' && dashboardView === 'review-workspace' && selectedWorkspace
-    ? { title: selectedWorkspace.name, subtitle: 'Workspace details' }
+    ? { title: selectedWorkspace.name, subtitle: t('workspace.details') }
     : { title: t(pageTitleKeys.titleKey), subtitle: t(pageTitleKeys.subtitleKey) }
 
   let body: ReactNode
@@ -81,8 +83,8 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
     body = (
       <div className="flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-6 w-6 animate-spin text-[#2F4858]" />
-          <p className="text-sm text-muted-foreground">Loading data...</p>
+          <Loader2 className="h-6 w-6 animate-spin text-[#2F5D5A]" />
+          <p className="text-sm text-muted-foreground">{t('common.loadingData')}</p>
         </div>
       </div>
     )
@@ -205,7 +207,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
 
   return (
     <div className="flex h-full w-full min-h-0">
-      <Sidebar active={active} onSelect={selectPage} user={user} onSignOut={onSignOut} />
+      <Sidebar active={active} onSelect={selectPage} user={user} onSignOut={onSignOut} workspaces={workspaces} flows={flows} tasks={tasks} agents={agents} analytics={analytics} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar title={pageMeta.title} subtitle={pageMeta.subtitle} actions={topbarActions} />
         <main className="min-w-0 flex-1 overflow-hidden">{body}</main>

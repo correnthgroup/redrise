@@ -1,7 +1,6 @@
 # AGENTS
 
 > Project-level operating rules for AI agents and humans working on this codebase.
-> Inherits from any parent `AGENTS.md` and the framework docs in `D:\REDSCALE\_PLANROOT\`.
 
 ## Stack
 
@@ -42,7 +41,7 @@ Everything is a block. The hierarchy is:
 ```
 App
 └── AppFrame                    [Z-0: outer container / viewport lock]
-    ├── AuthFlow                [Z-1: sign-in | sign-up | confirm-code, when no session]
+    ├── AuthFlow                [Z-1: sign-in | sign-up, when no session]
     └── AppShell                [Z-1: when authenticated]
         ├── Sidebar             [Z-default, layout column, left]
         │   ├── Logo row
@@ -113,9 +112,10 @@ Rules:
 - Exactly one authenticated user per session.
 - `core_always` blocks (sidebar + topbar + main) are always present when authenticated.
 - Sidebar collapse state is **idempotent** — multiple toggles produce the same final state.
-- No external CDN URLs (pravatar, etc.). All assets are local or `data:` URIs.
+- No external CDN asset dependencies. Assets should be local or `data:` URIs.
 - Settings detail screens keep one Back control in the detail header.
 - Any member picker/dropdown must use Settings > Team Members as the source through `loadTeamMembers()` or `useTeamMemberOptions()`.
+- **All dropdown triggers** (Select, DropdownMenu, future pickers) must use `DROPDOWN_TRIGGER_CLASSES` from `src/lib/styles.ts`. When using `Button` as trigger, always pass `variant="outline"` alongside the constant so CVA hover classes align. Do not hardcode trigger classes inline.
 - Profile edits must preserve the `redrise:profile-updated` event so Sidebar and Dashboard update.
 - Plans UI must not unlock paid features from frontend-only state; real billing requires backend checkout, webhook, and persisted plan state.
 - Permission badges/notices are informational until enforced by backend/RLS.
@@ -149,7 +149,7 @@ corepack yarn mcp:redrise-ops:self-test
 - Preferred frontend deploy while remote Vercel project settings still show npm: use prebuilt Build Output API.
 - Safe path: `corepack yarn build`, prepare `.vercel/output` from `dist`, then `vercel deploy --prebuilt --prod --yes --force`.
 - The `redrise-ops` MCP exposes this as `build_frontend`, `prepare_vercel_prebuilt`, and `deploy_frontend_prebuilt`.
-- Normal `vercel deploy --prod` can create `UNKNOWN` deployments while the remote project keeps `Install Command npm install` and `Build Command npm run build`.
+- Normal `vercel deploy --prod` can be blocked by Vercel settings or team attribution; use the prebuilt non-git path until settings are normalized.
 - Supabase Edge Functions are deployed with Supabase CLI; currently relevant allowlisted function is `invite-member`.
 
 ## Language

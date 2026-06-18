@@ -49,7 +49,7 @@
 
 - Usuário logado: Supabase Auth.
 - Perfil pessoal: tabela Supabase `profiles`.
-- Sessões lembradas por Remember Me: tabela Supabase `active_sessions`.
+- Sessões autenticadas e flag Remember Me: tabela Supabase `active_sessions`.
 - Lista global de membros da equipe: tabela Supabase `team_members`.
 - Workspaces: Supabase via `src/lib/workspaces.ts`.
 - Flows: Supabase via `src/lib/flows.ts`.
@@ -75,11 +75,14 @@
 
 - A tela de login e cadastro fica em `src/components/auth/auth-flow.tsx`.
 - Sign in usa e-mail e senha via Supabase Auth.
-- Remember Me só cria uma linha em `active_sessions` quando o usuário marca a caixa antes de entrar.
-- Sign up usa e-mail, senha e nome completo.
-- O cadastro exige confirmação por e-mail porque Supabase Auth está com confirmação habilitada.
-- Repetidos cadastros/testes podem bater limite de e-mail do Supabase; isso é uma limitação operacional do provedor, não necessariamente bug do app.
-- Login com GitHub existe na UI, mas a configuração GitHub local foi desabilitada para evitar sobrescrever variáveis vazias no Supabase.
+- Remember Me não é mais condição para registrar metadados de sessão; ele marca a sessão como lembrada/confiável via campo `remembered`.
+- Sign in registra metadados de sessão em `active_sessions`; o campo `remembered` indica se o usuário marcou Remember Me.
+- Sign up usa First Name obrigatório, Middle Name opcional, Last Name opcional, e-mail, senha e confirmação de senha.
+- Após criar conta, o app faz logout imediato e volta ao Sign In com o aviso `Account created. Sign in with the credentials you just created.`
+- O cadastro não exige confirmação por e-mail no estado atual; `enable_confirmations=false` no Supabase Auth.
+- Login/cadastro OAuth com GitHub, Google e Microsoft está arquivado até existirem Client IDs/secrets válidos no Supabase e nos provedores.
+- O fluxo `/auth/callback` e o diálogo OAuth foram removidos da UI atual; reintroduzir apenas junto com credenciais oficiais.
+- A tela inicial usa loading inteligente com delayed reveal de 200ms e mensagens curtas como `Verifying your session...`, `Loading your profile...` e `Preparing your workspace...`.
 - Ao fazer login, `App.tsx` chama `loadUserProfile()` e `touchPresence()`.
 - `touchPresence()` atualiza `last_seen_at` no perfil para ajudar a calcular status Online/Offline na equipe.
 
@@ -110,6 +113,7 @@
 - Em `CreateFlowPage`, Team Members usa `useTeamMemberOptions()`.
 - `useTeamMemberOptions()` lê a sessão atual do Supabase e chama `loadTeamMembers(user.id)`.
 - Portanto, os membros selecionáveis em Flow vêm de Settings > Team Members.
+- O picker de Team Members em Create Flow agora usa dropdown multi-select com `Select All` em vez de chips placeholder.
 - Se Settings > Team Members muda, o hook carregará a lista atual na próxima montagem da tela.
 - Não substituir essa fonte por lista fixa; isso quebraria a regra global de Member List.
 - Ao finalizar criação de flow, `CreateFlowPage` chama `onCreate()` recebido do `AppShell`.
@@ -126,6 +130,7 @@
 - `WorkflowPipeline` tem checkboxes quadrados, seleção geral e controles visuais de play, pause e reset.
 - `FlowBuilderPage` é a tela de edição visual do flow.
 - `FlowBuilderPage` também usa `useTeamMemberOptions()` para dropdowns de membros.
+- `FlowBuilderPage` passou a carregar agentes reais via `loadAgents()` para o editor de cards, substituindo a lista placeholder anterior.
 - O botão voltar em `FlowBuilderPage` retorna para a lista.
 - O botão salvar em `FlowBuilderPage` retorna para a lista conforme callback do `AppShell`.
 - `FlowBuilderPage` usa `@xyflow/react`, também conhecido como React Flow, para canvas visual.
@@ -145,6 +150,7 @@
 - Na etapa Team & Agent, o dropdown de membros usa `useTeamMemberOptions()`.
 - Portanto, membros atribuíveis a tasks vêm de Settings > Team Members.
 - O dropdown de Agents carrega agents por `loadAgents()`.
+- Create Task agora traduz os textos da tela pelo provider de i18n e usa dropdown multi-select com `Select All` para Team Members.
 - Priority usa os valores Min, Med e High mapeados para low, medium e high.
 - Kanban Column escolhe a coluna inicial: Backlog, In Progress, In Review ou Done.
 - Recurrence escolhe recorrência: Occasionally, Daily, Weekly ou Monthly.
@@ -210,10 +216,15 @@
 - O campo Email alimenta a Sidebar e a identificação do perfil.
 - Avatar, quando definido, alimenta a Sidebar e Member List para o próprio usuário.
 - Language altera o idioma via provider de i18n quando o perfil é salvo.
+- O idioma autenticado deve vir de `profiles.language`, carregado por `App.tsx` e passado para `I18nProvider`; `localStorage` não deve ser a fonte de verdade do idioma.
+- Update 2.0 iniciou a migração de textos literais para i18n; não promover produção enquanto restarem textos autenticados fora do provider nas telas listadas em `updates/update2.0.md`.
 - Location é um seletor de país, não cidade livre.
+- Location agora tem busca/autocomplete por nome do país antes da seleção final.
 - Timezone é preenchido automaticamente conforme o país selecionado e fica desabilitado.
 - Phone é salvo no perfil.
 - O carregamento remoto não deve sobrescrever campos já editados antes de salvar; isso é protegido por `dirtyRef`.
+- Username e Email Address são campos somente leitura na UI de Personal Information.
+- A tela de Personal Information segura o primeiro paint até o perfil remoto chegar para evitar flicker de valores intermediários como username/first name e timezone.
 
 ## Settings > Change Password
 
@@ -225,11 +236,12 @@
 ## Settings > Active Sessions
 
 - `SessionsList` lê `active_sessions` pelo `userId` atual.
-- A tela mostra apenas sessões lembradas com Remember Me.
-- Se não houver sessão lembrada, mostra estado vazio.
-- Se nenhuma sessão tiver `current=true`, a mais recente é exibida como `This Device` para evitar UI quebrada após estados antigos.
-- `Sign Out Others` revoga sessões lembradas que não são a atual.
-- O botão `Sign Out` aparece somente para sessões que não são a atual.
+- A tela mostra sessões autenticadas registradas em `active_sessions`, com badge `Remembered` quando aplicável.
+- A sessão atual é identificada por `supabase_session_id` extraído do JWT do Supabase.
+- Se linhas antigas não tiverem `supabase_session_id`, a UI usa `current=true` ou a sessão mais recente como fallback.
+- Cada sessão mostra browser, OS, país/localização, IP mascarado e última atividade conhecida.
+- O botão `Refresh` refaz a busca manualmente.
+- Sessões remotas têm botão `Revoke` com `AlertDialog` de confirmação.
 - Revogar sessão atual não é permitido por essa UI.
 
 ## Settings > API Keys
@@ -256,7 +268,7 @@
 - A paginação mostra 7 membros por página.
 - A tabela recarrega automaticamente a cada 30 segundos.
 - O botão `Add Member` abre `AddMemberModal`.
-- `AddMemberModal` pede e-mail e nível de permissão: Admin, Member ou Viewer.
+- `AddMemberModal` pede e-mail e nível inicial com opções Staff, admin, member e viewer; na persistência atual, Staff usa o mesmo role backend de admin e também preenche `function = Staff`.
 - Ao enviar, `addTeamMember()` chama a Edge Function `invite-member`.
 - A Edge Function persiste a linha em `team_members` antes de tentar enviar e-mail.
 - Se o Supabase limitar envio de e-mail, o convite ainda aparece na lista como `Invited`.
@@ -265,6 +277,7 @@
 - Status `Online` é calculado se o perfil do membro teve `last_seen_at` nos últimos 2 minutos.
 - Status `Offline` aparece quando não está convidado e não está online.
 - O botão de lápis abre modal para editar Function e Team.
+- O campo Function do modal de edição agora é um dropdown fixo com Staff, Member e Viewer.
 - O tipo atual `updateTeamMember()` também aceita role, mas a UI atual não expõe edição de role nesse modal.
 - Não duplicar lista de membros em outras telas; use `loadTeamMembers()` ou `useTeamMemberOptions()`.
 
@@ -288,6 +301,11 @@
 
 ## Blocos Compartilhados
 
+- `DROPDOWN_TRIGGER_CLASSES` é a constante em `src/lib/styles.ts` que define as classes padrão para todos os triggers de dropdown do app.
+- Tanto `SelectTrigger` (Radix Select) quanto `MultiSelectDropdown` (Button + DropdownMenu) usam essa constante.
+- Ao criar um novo dropdown, importar `DROPDOWN_TRIGGER_CLASSES` de `@/lib/styles` e aplicar no trigger.
+- Quando o trigger for um `Button`, usar `variant="outline"` junto com a constante para que o hover do CVA alinhe com `hover:bg-accent hover:text-accent-foreground`.
+- A constante garante: mesma cor de fundo, borda, padding, fonte, sombra, hover laranja com texto claro, focus ring, transição e estado disabled em todos os dropdowns.
 - `KpiCards` é usado em Dashboard e Analytics para métricas com sparkline.
 - Sparkline é um gráfico pequeno, usado para mostrar tendência rapidamente.
 - `ChartTabs` é usado em Dashboard e Analytics para alternar gráficos por tema.
@@ -337,7 +355,8 @@
 ## Banco Supabase Atual
 
 - `profiles`: guarda informações pessoais do usuário.
-- `active_sessions`: guarda sessões lembradas por Remember Me.
+- `profiles.middle_name`: guarda o Middle Name opcional do cadastro e Settings.
+- `active_sessions`: guarda sessões autenticadas, metadados do device, flag `remembered`, `supabase_session_id`, última atividade e revogação.
 - `team_members`: guarda relação entre dono da equipe, usuário membro, e-mail convidado, papel, função, time e status.
 - `workspaces`: guarda workspaces do usuário.
 - `flows`: guarda flows associados a workspace.
@@ -393,6 +412,13 @@
 - Recursos a detalhar por plano: número de workspaces, número de membros, número de flows, número de tasks, número de agents, integrações, auditoria, suporte e analytics.
 - A matriz exata de limites ainda está `[PENDENTE]`.
 - Não implementar bloqueio de recurso sem matriz aprovada.
+
+## Planejado: OAuth E E-mail De Confirmação
+
+- Reativar GitHub, Google e Microsoft/Azure no Sign In/Sign Up somente depois de configurar Client ID e Client Secret oficiais em Supabase Authentication > Providers.
+- Callback autorizado nos provedores deve apontar para `https://ndfsselzilmdzywcdyoo.supabase.co/auth/v1/callback`.
+- Redirects do app devem incluir `http://localhost:5173/auth/callback` e `https://redrise-app.vercel.app/auth/callback` quando OAuth voltar.
+- Reativar confirmação de e-mail somente depois de configurar remetente oficial, SMTP/template e política de reenvio.
 
 ## Aviso De Acesso Em Personal Information
 
@@ -468,7 +494,8 @@
 - Verifique se a tela usa dados do `AppShell`, hook próprio ou Supabase direto.
 - Se mexer em membros, preserve `loadTeamMembers()` e `useTeamMemberOptions()` como fonte principal.
 - Se mexer em perfil, preserve evento `redrise:profile-updated`.
-- Se mexer em sessões, preserve Remember Me como condição para criar sessão lembrada.
+- Se mexer em sessões, preserve `supabase_session_id` como fonte da sessão atual e `remembered` como flag de acesso lembrado.
+- Se mexer no Sign Up, preserve a supressão da sessão automática do Supabase para evitar flash do Dashboard antes do Sign In explícito.
 - Se mexer em planos, não implemente pagamento sem backend e webhook.
 - Se mexer em permissões, não dependa apenas da UI.
 - Rode validação adequada após mudanças: lint, typecheck, test, build e E2E quando afetar fluxo visual.
@@ -489,37 +516,38 @@
 - Produção oficial atual: `https://redrise-app.vercel.app`.
 - O frontend é uma SPA estática.
 - SPA significa Single Page Application: o navegador carrega um app único e o React troca as telas internamente.
-- Deploy frontend normal na Vercel pode falhar enquanto as settings remotas estiverem em npm.
+- Deploy frontend normal na Vercel pode falhar enquanto as settings remotas/atribuição do time não estiverem normalizadas.
 - Deploy frontend seguro atual usa Build Output API/prebuilt através do MCP ou comando equivalente.
+- O deploy prebuilt deve rodar fora do worktree Git local, em diretório temporário sem `.git`, porque a Vercel pode bloquear deployment quando o autor Git local não é membro verificado do time Vercel.
+- O MCP `redrise-ops` já prepara esse diretório temporário no tool `deploy_frontend_prebuilt`.
 - Supabase project ref atual: `ndfsselzilmdzywcdyoo`.
 - Validação mínima para mudança relevante: `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, `corepack yarn build`.
 - Validação para mudança de fluxo visual: também rodar `corepack yarn test:e2e`.
 - Testes unitários usam Vitest.
 - Testes E2E usam Playwright.
+- O setup autenticado do Playwright cria uma conta nova via Sign Up e depois faz Sign In, evitando dependência de senha fixa para usuário compartilhado.
 
 ## Convenções De IDs
 
 - IDs curtos ajudam depuração visual, suporte e auditoria.
-- Workspaces historicamente usam prefixo `w`.
-- Flows historicamente usam prefixo `f`.
-- Tasks historicamente usam prefixo `t`.
-- Cards historicamente usam prefixo `c`.
-- Edges historicamente usam prefixo `e`.
-- Agents historicamente usam prefixo `a`.
-- Executions historicamente usam prefixo `x`.
-- Integrations historicamente usam prefixo `ig`.
-- API keys historicamente usam prefixo `ak`.
-- Audit logs historicamente usam prefixo `al`.
-- Workspace members historicamente usam prefixo `wm`.
+- Workspaces usam prefixo `w`.
+- Flows usam prefixo `f`.
+- Tasks usam prefixo `t`.
+- Cards usam prefixo `c`.
+- Edges usam prefixo `e`.
+- Agents usam prefixo `a`.
+- Executions usam prefixo `x`.
+- Integrations usam prefixo `ig`.
+- API keys usam prefixo `ak`.
+- Audit logs usam prefixo `al`.
+- Workspace members usam prefixo `wm`.
 - Antes de mudar formato de ID, verificar migrations, testes, UI, logs e dados já persistidos.
 
 ## Organização De Arquivos Na Raiz
 
 - Arquivos essenciais de ferramenta devem ficar soltos na raiz quando a ferramenta espera esse local.
 - Exemplos essenciais: `package.json`, `yarn.lock`, `index.html`, `vite.config.ts`, `vitest.config.ts`, `playwright.config.ts`, `eslint.config.js`, `tsconfig*.json`, `components.json`, `vercel.json`, `.env`, `.env.example`, `.gitignore`, `README.md`, `AGENTS.md`.
-- Documentos históricos e guias longos devem ficar em `docs/` ou `memory/`.
-- O antigo `GUIDE_MESTRE.md` foi consolidado neste `memory/TECHNICAL.md` e removido da raiz.
-- Atualizações de produto devem ficar em `updates/`.
+- Documentos operacionais atuais devem ficar em `docs/` ou `memory/`.
+- Atualizações de produto atuais ou futuras devem ficar em `updates/`.
 - Scripts utilitários devem ficar em `scripts/`.
-- O utilitário `restore-brackets.ps1` fica em `scripts/maintenance/restore-brackets.ps1`.
 - Não mover `src`, `public`, `supabase`, `tests`, `memory`, `docs`, `scripts`, `updates`, `.github`, `.vercel` sem revisar deploy, testes e CLIs.

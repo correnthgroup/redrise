@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useI18n } from '@/hooks/use-i18n'
 
 export type PaletteItem = {
   id: string
@@ -24,6 +25,7 @@ type CommandPaletteProps = {
 
 export function CommandPalette({ open, onOpenChange, items }: CommandPaletteProps) {
   const [query, setQuery] = useState('')
+  const { t } = useI18n()
 
   function handleOpenChange(nextOpen: boolean) {
     if (!nextOpen) setQuery('')
@@ -52,19 +54,19 @@ export function CommandPalette({ open, onOpenChange, items }: CommandPaletteProp
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-xl p-0">
         <DialogHeader className="border-b px-3 py-2">
-          <DialogTitle className="sr-only">Command palette</DialogTitle>
+          <DialogTitle className="sr-only">{t('commandPalette.title')}</DialogTitle>
           <Input
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Type a command or search..."
+            placeholder={t('commandPalette.placeholder')}
             className="h-9 border-0 shadow-none focus-visible:ring-0"
           />
         </DialogHeader>
         <ScrollArea className="max-h-80">
           <div className="p-2">
             {grouped.length === 0 && (
-              <div className="p-4 text-center text-sm text-muted-foreground">No results</div>
+              <div className="p-4 text-center text-sm text-muted-foreground">{t('commandPalette.noResults')}</div>
             )}
             {grouped.map(([group, list]) => (
               <div key={group} className="mb-2">

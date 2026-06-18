@@ -7,8 +7,10 @@ import { Progress } from '@/components/ui/progress'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { Workspace } from '@/types/workspace'
 import { useTeamMemberOptions } from '@/hooks/use-team-member-options'
+import { useI18n } from '@/hooks/use-i18n'
+import { MultiSelectDropdown } from '../shared/multi-select-dropdown'
 
-const STEPS = ['Basic Info', 'Review'] as const
+const STEP_KEYS = ['workflow.basicInfo', 'workflow.review'] as const
 
 export function CreateFlowPage({
   onBack,
@@ -25,38 +27,38 @@ export function CreateFlowPage({
   const [members, setMembers] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const { t } = useI18n()
   const { members: teamMembers, loading: loadingMembers } = useTeamMemberOptions()
 
   const selectedWorkspace = workspaces.find((w) => w.id === workspaceId)
+  const selectedMemberNames = teamMembers
+    .filter((member) => members.includes(member.id))
+    .map((member) => member.name)
 
-  function toggleMember(member: string) {
-    setMembers((prev) =>
-      prev.includes(member) ? prev.filter((m) => m !== member) : [...prev, member]
-    )
-  }
+  const teamMemberOptions = teamMembers.map((member) => ({ value: member.id, label: member.name }))
 
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
       <header>
-        <h1 className="text-lg font-semibold">New Flow</h1>
-        <p className="text-sm text-muted-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</p>
+        <h1 className="text-lg font-semibold">{t('flow.newFlow')}</h1>
+        <p className="text-sm text-muted-foreground">{t('workflow.stepOf', { step: step + 1, total: STEP_KEYS.length, label: t(STEP_KEYS[step]) })}</p>
       </header>
-      <Progress value={((step + 1) / STEPS.length) * 100} />
+      <Progress value={((step + 1) / STEP_KEYS.length) * 100} />
 
       <Card className="flex-1 border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
-        <CardHeader><CardTitle className="text-sm font-semibold">{STEPS[step]}</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-sm font-semibold">{t(STEP_KEYS[step])}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           {step === 0 && (
             <>
               <div className="space-y-1">
-                <Label htmlFor="f-name">Name</Label>
-                <Input id="f-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Flow name" />
+                <Label htmlFor="f-name" className="text-[#A04D1F]">{t('flow.name')}<span className="text-[#A04D1F]">*</span></Label>
+                <Input id="f-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('flow.namePlaceholder')} />
               </div>
               <div className="space-y-1">
-                <Label>Workspace</Label>
+                <Label>{t('flow.workspace')}</Label>
                 <Select value={workspaceId} onValueChange={setWorkspaceId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select workspace" />
+                    <SelectValue placeholder={t('flow.selectWorkspace')} />
                   </SelectTrigger>
                   <SelectContent>
                     {workspaces.map((w) => (
@@ -66,68 +68,60 @@ export function CreateFlowPage({
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label>Team Members</Label>
-                <div className="flex flex-wrap gap-2">
-                  {loadingMembers ? <p className="text-xs text-muted-foreground">Loading members...</p> : null}
-                  {!loadingMembers && teamMembers.length === 0 ? <p className="text-xs text-muted-foreground">No members available.</p> : null}
-                  {teamMembers.map((member) => (
-                    <button
-                      key={member.id}
-                      type="button"
-                      onClick={() => toggleMember(member.name)}
-                      className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
-                        members.includes(member.name)
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-border bg-card text-muted-foreground hover:bg-accent/60'
-                      }`}
-                    >
-                      {member.name}
-                    </button>
-                  ))}
-                </div>
-                {members.length > 0 && (
-                  <p className="text-xs text-muted-foreground">{members.length} member(s) selected</p>
-                )}
+                <Label>{t('settings.teamMembers')}</Label>
+                <MultiSelectDropdown
+                  options={teamMemberOptions}
+                  selectedValues={members}
+                  onChange={setMembers}
+                  placeholder={t('flow.selectMembers')}
+                  selectedLabel={(count) => t('common.selectedCount', { count })}
+                  selectAllLabel={t('common.selectAll')}
+                  loading={loadingMembers}
+                  loadingLabel={t('flow.loadingMembers')}
+                  emptyLabel={t('flow.noMembersAvailable')}
+
+                  contentClassName="min-w-[var(--radix-dropdown-menu-trigger-width)]"
+                />
+                {selectedMemberNames.length > 0 ? <p className="text-xs text-muted-foreground">{t('flow.memberSelected', { count: selectedMemberNames.length })}</p> : null}
               </div>
             </>
           )}
           {step === 1 && (
             <div className="space-y-3 rounded-lg border bg-muted/35 p-4 text-sm">
-              <div><strong>Name:</strong> {name || 'empty'}</div>
-              <div><strong>Workspace:</strong> {selectedWorkspace?.name || 'none'}</div>
-              <div><strong>Team Members:</strong> {members.length > 0 ? members.join(', ') : 'none'}</div>
+              <div><strong>{t('flow.name')}:</strong> {name || t('workflow.empty')}</div>
+              <div><strong>{t('flow.workspace')}:</strong> {selectedWorkspace?.name || t('workflow.none')}</div>
+              <div><strong>{t('settings.teamMembers')}:</strong> {selectedMemberNames.length > 0 ? selectedMemberNames.join(', ') : t('workflow.none')}</div>
             </div>
           )}
         </CardContent>
       </Card>
 
       <footer className="flex justify-between">
-        {onBack && <Button variant="ghost" onClick={onBack} disabled={submitting}>Cancel</Button>}
+        <Button variant="ghost" onClick={step === 0 ? onBack : () => setStep((s) => s - 1)}>{t('common.back')}</Button>
         <div className="flex gap-2 ml-auto">
-          <Button variant="ghost" disabled={step === 0 || submitting} onClick={() => setStep((s) => s - 1)}>Back</Button>
           {error && <span className="self-center text-xs text-destructive">{error}</span>}
           <Button
-            disabled={submitting}
             onClick={async () => {
-              if (step === STEPS.length - 1) {
+              if (step === STEP_KEYS.length - 1) {
                 setError(null)
                 setSubmitting(true)
                 try {
-                  const result = await onCreate?.({ name, workspaceId, members })
+                  const result = await onCreate?.({ name: name.trim(), workspaceId, members: selectedMemberNames })
                   if (!result) {
-                    setError('Failed to create flow. Please try again.')
+                    setError(t('flow.createError'))
                   }
                 } catch {
-                  setError('Failed to create flow. Please try again.')
+                  setError(t('flow.createError'))
                 } finally {
                   setSubmitting(false)
                 }
                 return
               }
-              setStep((s) => Math.min(STEPS.length - 1, s + 1))
+              setStep((s) => Math.min(STEP_KEYS.length - 1, s + 1))
             }}
+            disabled={submitting || (step === 0 && (!name.trim() || !workspaceId))}
           >
-            {step === STEPS.length - 1 ? (submitting ? 'Creating...' : 'Done') : 'Next'}
+            {step === STEP_KEYS.length - 1 ? (submitting ? t('workflow.creating') : t('workflow.done')) : t('workflow.next')}
           </Button>
         </div>
       </footer>

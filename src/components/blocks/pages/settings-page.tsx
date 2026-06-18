@@ -160,9 +160,9 @@ export function SettingsPage({ user }: { user: SettingsUser }) {
                   key={shortcut.key}
                   type="button"
                   onClick={() => setActive(shortcut.key)}
-                  className="group flex items-start gap-3 rounded-lg border bg-background p-4 text-left transition-colors hover:border-[#2F4858]/45 hover:bg-[#2F4858]/4"
+                  className="group flex items-start gap-3 rounded-lg border bg-background p-4 text-left transition-colors hover:border-[#2F5D5A]/45 hover:bg-[#2F5D5A]/4"
                 >
-                  <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground transition-colors group-hover:bg-[#2F4858] group-hover:text-white">
+                  <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground transition-colors group-hover:bg-[#2F5D5A] group-hover:text-white">
                     {shortcut.icon}
                   </span>
                   <div className="min-w-0 space-y-1">

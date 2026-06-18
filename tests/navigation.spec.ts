@@ -3,37 +3,37 @@ import { expect, test } from '@playwright/test'
 test.describe('Navigation', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByRole('button', { name: /New Workspace/i })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('button', { name: /New Workspace|Novo Workspace/i })).toBeVisible({ timeout: 15000 })
   })
 
   test('dashboard is the default page', async ({ page }) => {
-    const dashBtn = page.getByRole('button', { name: 'Dashboard' })
+    const dashBtn = page.getByRole('button', { name: /Dashboard|Painel/ })
     await expect(dashBtn).toHaveAttribute('aria-current', 'page')
   })
 
   test('navigate to Flow page', async ({ page }) => {
-    await page.getByRole('button', { name: 'Flow' }).click()
-    await expect(page.getByRole('heading', { name: 'Flow' })).toBeVisible()
+    await page.getByRole('button', { name: /Flow|Fluxo/ }).click()
+    await expect(page.getByRole('heading', { name: /Flow|Fluxo/ })).toBeVisible()
   })
 
   test('navigate to Tasks page', async ({ page }) => {
-    await page.getByRole('button', { name: 'Tasks' }).click()
-    await expect(page.getByRole('heading', { name: 'Tasks' })).toBeVisible()
+    await page.getByRole('button', { name: /Tasks|Tarefas/ }).click()
+    await expect(page.getByRole('heading', { name: /Tasks|Tarefas/ })).toBeVisible()
   })
 
   test('navigate to Agents page', async ({ page }) => {
-    await page.getByRole('button', { name: 'Agents' }).click()
-    await expect(page.getByRole('heading', { name: 'Agents' })).toBeVisible()
+    await page.getByRole('button', { name: /Agents|Agentes/ }).click()
+    await expect(page.getByRole('heading', { name: /Agents|Agentes/ })).toBeVisible()
   })
 
   test('navigate to Analytics page', async ({ page }) => {
-    await page.getByRole('button', { name: 'Analytics' }).click()
-    await expect(page.getByRole('heading', { name: 'Analytics' })).toBeVisible()
+    await page.getByRole('button', { name: /Analytics|Anal.ticos/ }).click()
+    await expect(page.getByRole('heading', { name: /Analytics|Anal.ticos/ })).toBeVisible()
   })
 
   test('navigate to Settings page', async ({ page }) => {
-    await page.getByRole('button', { name: 'Settings', exact: true }).click()
-    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
+    await page.getByRole('button', { name: /Settings|Configura..es/ }).click()
+    await expect(page.getByRole('heading', { name: /Settings|Configura..es/ })).toBeVisible()
   })
 
   test('sidebar collapse toggle works', async ({ page }) => {

@@ -14,6 +14,7 @@ import type { Agent } from '@/types/agent'
 import type { TaskExecution } from '@/types/task-execution'
 import { chatCompletion, type ChatMessage } from '@/lib/ai-client'
 import { createExecution, completeExecution, rejectExecution, failExecution } from '@/lib/task-executions'
+import { useI18n } from '@/hooks/use-i18n'
 
 type RunStep = 'preview' | 'running' | 'response' | 'done'
 
@@ -35,6 +36,7 @@ export function TaskRunDialog({
   const [response, setResponse] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [tokensUsed, setTokensUsed] = useState<number | null>(null)
+  const { t } = useI18n()
 
   // Reset state when dialog opens
   const [prevOpen, setPrevOpen] = useState(open)
@@ -51,7 +53,7 @@ export function TaskRunDialog({
 
   async function handleRun() {
     if (!task.prompt && !task.objective) {
-      setError('Task has no prompt or objective to send to the AI.')
+      setError(t('taskRun.noPromptOrObjective'))
       return
     }
 
@@ -128,8 +130,8 @@ export function TaskRunDialog({
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Send className="h-4 w-4 text-[#8c1f28]" />
-            Run Task: {task.title}
+            <Send className="h-4 w-4 text-[#A04D1F]" />
+            {t('taskRun.runTask', { title: task.title })}
           </DialogTitle>
         </DialogHeader>
 
@@ -138,32 +140,32 @@ export function TaskRunDialog({
           <div className="space-y-4">
             <div className="rounded-lg border bg-muted/20 p-4 space-y-3">
               <div>
-                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Objective</div>
-                <p className="text-sm">{task.objective || 'No objective set'}</p>
+                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">{t('taskRun.objective')}</div>
+                <p className="text-sm">{task.objective || t('taskRun.noObjective')}</p>
               </div>
               <div>
-                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Prompt</div>
-                <p className="text-sm whitespace-pre-wrap">{task.prompt || 'No prompt set'}</p>
+                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">{t('taskRun.prompt')}</div>
+                <p className="text-sm whitespace-pre-wrap">{task.prompt || t('taskRun.noPrompt')}</p>
               </div>
               {agent && (
                 <div>
-                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Agent</div>
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">{t('taskRun.agent')}</div>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-[10px]">{agent.name}</Badge>
-                    <span className="text-xs text-muted-foreground">Model: {agent.model}</span>
+                    <span className="text-xs text-muted-foreground">{t('taskRun.model', { model: agent.model })}</span>
                   </div>
                 </div>
               )}
               <div>
-                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Priority</div>
+                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">{t('taskRun.priority')}</div>
                 <Badge
                   variant="outline"
                   className={`text-[10px] ${
                     task.priority === 'high'
-                      ? 'border-[#8c1f28]/25 bg-[#8c1f28]/8 text-[#8c1f28]'
+                      ? 'border-[#A04D1F]/25 bg-[#A04D1F]/8 text-[#A04D1F]'
                       : task.priority === 'medium'
-                      ? 'border-[#B7791F]/18 bg-[#FFF4DB] text-[#8A6116]'
-                      : 'border-[#2F4858]/25 bg-[#2F4858]/8 text-[#2F4858]'
+                      ? 'border-[#B7791F]/18 bg-[#FFF8E1] text-[#7A3E14]'
+                      : 'border-[#2F5D5A]/25 bg-[#2F5D5A]/8 text-[#2F5D5A]'
                   }`}
                 >
                   {task.priority}
@@ -171,28 +173,27 @@ export function TaskRunDialog({
               </div>
             </div>
 
-            <div className="rounded-lg border border-[#B7791F]/25 bg-[#FFF4DB] p-3 flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-[#8A6116] shrink-0 mt-0.5" />
-              <div className="text-sm text-[#8A6116]">
-                <p className="font-medium">Human-in-the-Loop</p>
+            <div className="rounded-lg border border-[#B7791F]/25 bg-[#FFF8E1] p-3 flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-[#7A3E14] shrink-0 mt-0.5" />
+              <div className="text-sm text-[#7A3E14]">
+                <p className="font-medium">{t('taskRun.humanInTheLoop')}</p>
                 <p className="text-xs mt-1">
-                  The AI response will be shown for your review before any action is taken.
-                  You can approve or reject the result.
+                  {t('taskRun.humanInTheLoopDesc')}
                 </p>
               </div>
             </div>
 
             <DialogFooter>
               <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={handleRun}
-                className="bg-[#8c1f28] hover:bg-[#8c1f28]/90"
+                className="bg-[#A04D1F] hover:bg-[#A04D1F]/90"
                 disabled={!task.prompt && !task.objective}
               >
                 <Send className="mr-2 h-4 w-4" />
-                Send to AI
+                {t('taskRun.sendToAi')}
               </Button>
             </DialogFooter>
           </div>
@@ -201,11 +202,11 @@ export function TaskRunDialog({
         {/* Step: Running */}
         {step === 'running' && (
           <div className="flex flex-col items-center justify-center py-12 space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-[#8c1f28]" />
+            <Loader2 className="h-8 w-8 animate-spin text-[#A04D1F]" />
             <div className="text-center">
-              <p className="text-sm font-medium">Processing with AI...</p>
+              <p className="text-sm font-medium">{t('taskRun.processing')}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Sending prompt to {agent?.model || 'AI model'} via OpenRouter
+                {t('taskRun.sendingPrompt', { model: agent?.model || 'AI model' })}
               </p>
             </div>
           </div>
@@ -215,26 +216,26 @@ export function TaskRunDialog({
         {step === 'response' && (
           <div className="space-y-4">
             {error ? (
-              <div className="rounded-lg border border-[#8c1f28]/25 bg-[#8c1f28]/5 p-4">
-                <div className="flex items-center gap-2 text-[#8c1f28] mb-2">
+              <div className="rounded-lg border border-[#A04D1F]/25 bg-[#A04D1F]/5 p-4">
+                <div className="flex items-center gap-2 text-[#A04D1F] mb-2">
                   <AlertTriangle className="h-4 w-4" />
-                  <span className="font-medium text-sm">Error</span>
+                  <span className="font-medium text-sm">{t('taskRun.error')}</span>
                 </div>
-                <p className="text-sm text-[#8c1f28]/80">{error}</p>
+                <p className="text-sm text-[#A04D1F]/80">{error}</p>
               </div>
             ) : (
               <div className="space-y-3">
                 <div className="rounded-lg border bg-muted/20 p-4">
-                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">AI Response</div>
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">{t('taskRun.aiResponse')}</div>
                   <div className="text-sm whitespace-pre-wrap leading-relaxed">{response}</div>
                 </div>
 
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   {tokensUsed != null && tokensUsed > 0 && (
-                    <span>Tokens used: {tokensUsed.toLocaleString()}</span>
+                    <span>{t('taskRun.tokensUsed', { count: tokensUsed.toLocaleString() })}</span>
                   )}
                   {execution?.model && (
-                    <span>Model: {execution.model}</span>
+                    <span>{t('taskRun.model', { model: execution.model })}</span>
                   )}
                 </div>
               </div>
@@ -243,15 +244,15 @@ export function TaskRunDialog({
             <DialogFooter>
               <Button variant="outline" onClick={handleReject}>
                 <X className="mr-2 h-4 w-4" />
-                Reject
+                {t('taskRun.reject')}
               </Button>
               <Button
                 onClick={handleApprove}
-                className="bg-[#2F4858] hover:bg-[#2F4858]/90"
+                className="bg-[#2F5D5A] hover:bg-[#2F5D5A]/90"
                 disabled={!!error}
               >
                 <Check className="mr-2 h-4 w-4" />
-                Approve
+                {t('taskRun.approve')}
               </Button>
             </DialogFooter>
           </div>

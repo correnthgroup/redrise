@@ -18,22 +18,22 @@ const PLACEHOLDER_AGENT_FLOWS: Record<string, AgentFlow[]> = {
 }
 
 const STATUS_COLOR: Record<Agent['status'], string> = {
-  active: 'bg-[#2F4858]',
+  active: 'bg-[#2F5D5A]',
   paused: 'bg-amber-500',
-  error: 'bg-[#8c1f28]',
+  error: 'bg-[#A04D1F]',
   idle: 'bg-slate-400',
 }
 
 const STATUS_BADGE: Record<Agent['status'], string> = {
-  active: 'border-[#2F4858]/25 bg-[#2F4858]/8 text-[#2F4858]',
-  paused: 'border-[#B7791F]/18 bg-[#FFF4DB] text-[#8A6116]',
+  active: 'border-[#2F5D5A]/25 bg-[#2F5D5A]/8 text-[#2F5D5A]',
+  paused: 'border-[#B7791F]/18 bg-[#FFF8E1] text-[#7A3E14]',
   error: 'border-primary/18 bg-primary/8 text-primary',
   idle: 'border-slate-200 bg-slate-50 text-slate-600',
 }
 
 const FLOW_STATUS_BADGE: Record<string, string> = {
-  running: 'border-[#2F4858]/25 bg-[#2F4858]/8 text-[#2F4858]',
-  paused: 'border-[#B7791F]/18 bg-[#FFF4DB] text-[#8A6116]',
+  running: 'border-[#2F5D5A]/25 bg-[#2F5D5A]/8 text-[#2F5D5A]',
+  paused: 'border-[#B7791F]/18 bg-[#FFF8E1] text-[#7A3E14]',
   error: 'border-primary/18 bg-primary/8 text-primary',
 }
 
@@ -96,15 +96,15 @@ export function AgentListPage({
         <div className="flex items-center gap-2">
           <div className="relative max-w-sm flex-1">
             <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search agents" className="pl-7 h-9" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('agents.searchAgents')} className="pl-7 h-9" />
           </div>
         </div>
 
         <Card className="min-h-0 flex-1 border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
-          <CardHeader><CardTitle className="text-sm font-semibold">Agents</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm font-semibold">{t('agents.title')}</CardTitle></CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-sm text-muted-foreground text-center py-8">Loading agents...</p>
+              <p className="text-sm text-muted-foreground text-center py-8">{t('agents.loadingAgents')}</p>
             ) : filtered.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">{t('agents.noAgents')}</p>
             ) : (
@@ -135,7 +135,7 @@ export function AgentListPage({
 
       <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
         <CardHeader className="flex-row items-center justify-between">
-          <CardTitle className="text-sm font-semibold">Agent Details</CardTitle>
+          <CardTitle className="text-sm font-semibold">{t('agents.agentDetails')}</CardTitle>
           <div className="flex gap-1">
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleRun} disabled={!selectedAgent || checkedFlowIds.size === 0}><Play className="h-3.5 w-3.5" /></Button>
             <Button variant="ghost" size="icon" className="h-7 w-7"><Pause className="h-3.5 w-3.5" /></Button>
@@ -144,7 +144,7 @@ export function AgentListPage({
         </CardHeader>
         <CardContent>
           {!selectedAgent ? (
-            <p className="text-sm text-muted-foreground text-center py-8">Select an agent to view details.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">{t('agents.selectAgent')}</p>
           ) : (
             <div className="space-y-4">
               <div className="rounded-lg border bg-muted/35 p-3 text-sm">
@@ -153,9 +153,9 @@ export function AgentListPage({
                   <span className="font-medium">{selectedAgent.name}</span>
                   <Badge variant="outline" className={`text-[10px] uppercase ${STATUS_BADGE[selectedAgent.status]}`}>{selectedAgent.status}</Badge>
                 </div>
-                <div className="mt-2 text-xs text-muted-foreground">Model: {selectedAgent.model}</div>
-                <div className="text-xs text-muted-foreground mt-1">{selectedAgent.brief || 'No description'}</div>
-                <div className="text-[10px] text-muted-foreground/60 font-mono mt-1">ID: {selectedAgent.id}</div>
+                <div className="mt-2 text-xs text-muted-foreground">{t('agents.model', { model: selectedAgent.model })}</div>
+                <div className="text-xs text-muted-foreground mt-1">{selectedAgent.brief || t('agents.noDescription')}</div>
+                <div className="text-[10px] text-muted-foreground/60 font-mono mt-1">{t('common.id', { id: selectedAgent.id })}</div>
               </div>
 
               <div className="flex gap-2">
@@ -165,7 +165,7 @@ export function AgentListPage({
                   className="flex-1"
                   onClick={() => onOpenAgent?.(selectedAgent.id)}
                 >
-                  View Details
+                  {t('agents.viewDetails')}
                 </Button>
                 <Button
                   variant="outline"
@@ -179,15 +179,15 @@ export function AgentListPage({
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-semibold text-muted-foreground">Flows / Workspaces</h4>
+                  <h4 className="text-xs font-semibold text-muted-foreground">{t('agents.flowsWorkspaces')}</h4>
                   {agentFlows.length > 0 && (
                     <button type="button" onClick={toggleAllFlows} className="text-xs text-muted-foreground hover:text-foreground">
-                      {allFlowsSelected ? 'Deselect All' : 'Select All'}
+                      {allFlowsSelected ? t('agents.deselectAll') : t('agents.selectAll')}
                     </button>
                   )}
                 </div>
                 {agentFlows.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">Not assigned to any flows.</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">{t('agents.notAssigned')}</p>
                 ) : (
                   <ul className="space-y-2">
                     {agentFlows.map((af) => (

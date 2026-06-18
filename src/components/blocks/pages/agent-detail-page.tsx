@@ -6,10 +6,11 @@ import { Badge } from '@/components/ui/badge'
 import { Brain, Code, FileText, BarChart3, Lightbulb, Zap, Globe, Shield } from 'lucide-react'
 import type { Agent } from '@/types/agent'
 import { loadAgent } from '@/lib/agents'
+import { useI18n } from '@/hooks/use-i18n'
 
 const STATUS_BADGE: Record<Agent['status'], string> = {
-  active: 'border-[#2F4858]/25 bg-[#2F4858]/8 text-[#2F4858]',
-  paused: 'border-[#B7791F]/18 bg-[#FFF4DB] text-[#8A6116]',
+  active: 'border-[#2F5D5A]/25 bg-[#2F5D5A]/8 text-[#2F5D5A]',
+  paused: 'border-[#B7791F]/18 bg-[#FFF8E1] text-[#7A3E14]',
   error: 'border-primary/18 bg-primary/8 text-primary',
   idle: 'border-slate-200 bg-slate-50 text-slate-600',
 }
@@ -46,6 +47,7 @@ export function AgentDetailPage({
   agentId: string
   onBack?: () => void
 }) {
+  const { t, locale } = useI18n()
   const [tab, setTab] = useState('benchmark')
   const [agent, setAgent] = useState<Agent | null>(null)
   const [loading, setLoading] = useState(true)
@@ -109,10 +111,47 @@ export function AgentDetailPage({
     return () => clearInterval(interval)
   }, [tab])
 
+  function agentName(name: string) {
+    return name === 'Default Agent' && locale === 'pt-BR' ? t('agents.defaultAgent') : name
+  }
+
+  function statusLabel(status: Agent['status'] | LogEntry['status']) {
+    if (status === 'active') return t('agents.status.active')
+    if (status === 'paused') return t('agents.status.paused')
+    if (status === 'idle') return t('agents.status.idle')
+    if (status === 'success') return t('agents.logStatus.success')
+    if (status === 'pending') return t('agents.logStatus.pending')
+    return t(status === 'error' ? 'agents.logStatus.error' : 'agents.status.error')
+  }
+
+  const logs: LogEntry[] = [
+    {
+      id: '1',
+      timestamp: PLACEHOLDER_LOGS[0].timestamp,
+      action: t('agents.recentActivity'),
+      status: 'success',
+      details: t('agents.modelOverviewDesc'),
+    },
+    {
+      id: '2',
+      timestamp: PLACEHOLDER_LOGS[1].timestamp,
+      action: t('agents.performanceMetrics'),
+      status: 'success',
+      details: t('agents.benchmarkRefreshes'),
+    },
+    {
+      id: '3',
+      timestamp: PLACEHOLDER_LOGS[2].timestamp,
+      action: t('agents.provider'),
+      status: 'success',
+      details: `${agent?.provider ?? 'OpenRouter'} ${t('agents.viaRedrise')}`,
+    },
+  ]
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center p-6">
-        <p className="text-sm text-muted-foreground">Loading agent...</p>
+        <p className="text-sm text-muted-foreground">{t('agents.loadingAgent')}</p>
       </div>
     )
   }
@@ -120,7 +159,7 @@ export function AgentDetailPage({
   if (!agent) {
     return (
       <div className="flex h-full items-center justify-center p-6">
-        <p className="text-sm text-muted-foreground">Agent not found.</p>
+        <p className="text-sm text-muted-foreground">{t('agents.notFound')}</p>
       </div>
     )
   }
@@ -130,21 +169,21 @@ export function AgentDetailPage({
       <header className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold">{agent.name}</h1>
-            <Badge variant="outline" className={`text-[10px] uppercase ${STATUS_BADGE[agent.status]}`}>{agent.status}</Badge>
+            <h1 className="text-lg font-semibold">{agentName(agent.name)}</h1>
+            <Badge variant="outline" className={`text-[10px] uppercase ${STATUS_BADGE[agent.status]}`}>{statusLabel(agent.status)}</Badge>
           </div>
-          <p className="text-sm text-muted-foreground">{agent.brief || 'No description'}</p>
-          <p className="text-xs text-muted-foreground mt-1">Model: {agent.model}</p>
+          <p className="text-sm text-muted-foreground">{agent.brief || t('agents.noDescription')}</p>
+          <p className="text-xs text-muted-foreground mt-1">{t('agents.model', { model: agent.model })}</p>
         </div>
         <div>
-          {onBack && <Button variant="outline" size="sm" onClick={onBack}>Back</Button>}
+          {onBack && <Button variant="outline" size="sm" onClick={onBack}>{t('common.back')}</Button>}
         </div>
       </header>
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="bg-muted/80">
-          <TabsTrigger value="benchmark">Benchmark</TabsTrigger>
-          <TabsTrigger value="logs">Logs</TabsTrigger>
+          <TabsTrigger value="benchmark">{t('agents.benchmark')}</TabsTrigger>
+          <TabsTrigger value="logs">{t('agents.logs')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="benchmark" className="min-h-0 flex-1">
@@ -154,26 +193,24 @@ export function AgentDetailPage({
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2F4858]/10">
-                      <Brain className="h-4 w-4 text-[#2F4858]" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2F5D5A]/10">
+                      <Brain className="h-4 w-4 text-[#2F5D5A]" />
                     </div>
                     <div>
-                      <CardTitle className="text-sm font-semibold">gpt-oss-120b</CardTitle>
-                      <p className="text-[10px] text-muted-foreground">OpenAI via OpenRouter • Free Tier</p>
+                      <CardTitle className="text-sm font-semibold">{agent.model}</CardTitle>
+                      <p className="text-[10px] text-muted-foreground">{agent.provider} • {benchmark.pricePerToken === 0 ? t('agents.free') : t('agents.provider')}</p>
                     </div>
                   </div>
                   {benchmark.lastUpdated && (
                     <span className="text-[10px] text-muted-foreground">
-                      Updated: {new Date(benchmark.lastUpdated).toLocaleTimeString()}
+                      {t('agents.updatedAt', { time: new Date(benchmark.lastUpdated).toLocaleTimeString() })}
                     </span>
                   )}
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  A powerful 120-billion parameter open-source model from OpenAI. Designed for complex reasoning tasks, 
-                  code generation, and multi-step analysis. Optimized for enterprise-grade workflows with strong 
-                  performance across benchmark evaluations.
+                  {t('agents.modelOverviewDesc')}
                 </p>
               </CardContent>
             </Card>
@@ -181,48 +218,48 @@ export function AgentDetailPage({
             {/* Performance Metrics */}
             <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
               <CardHeader>
-                <CardTitle className="text-sm font-semibold">Performance Metrics</CardTitle>
+                <CardTitle className="text-sm font-semibold">{t('agents.performanceMetrics')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {benchmark.loading ? (
                   <div className="flex items-center justify-center py-8">
-                    <p className="text-sm text-muted-foreground">Loading benchmark data...</p>
+                    <p className="text-sm text-muted-foreground">{t('agents.loadingBenchmark')}</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                     <div className="rounded-lg border bg-muted/35 p-4">
-                      <div className="text-xs text-muted-foreground">Quality Index</div>
-                      <div className="mt-1 text-2xl font-bold text-[#2F4858]">{benchmark.qualityIndex ?? '—'}</div>
-                      <div className="text-[10px] text-muted-foreground">Artificial Analysis Score</div>
+                      <div className="text-xs text-muted-foreground">{t('agents.qualityIndex')}</div>
+                      <div className="mt-1 text-2xl font-bold text-[#2F5D5A]">{benchmark.qualityIndex ?? '—'}</div>
+                      <div className="text-[10px] text-muted-foreground">{t('agents.artificialAnalysisScore')}</div>
                     </div>
                     <div className="rounded-lg border bg-muted/35 p-4">
-                      <div className="text-xs text-muted-foreground">Price per 1M tokens</div>
-                      <div className="mt-1 text-2xl font-bold text-[#2F4858]">
-                        {benchmark.pricePerToken === 0 ? 'Free' : `$${((benchmark.pricePerToken ?? 0) * 1000).toFixed(2)}`}
+                      <div className="text-xs text-muted-foreground">{t('agents.pricePerMillionTokens')}</div>
+                      <div className="mt-1 text-2xl font-bold text-[#2F5D5A]">
+                        {benchmark.pricePerToken === 0 ? t('agents.free') : `$${((benchmark.pricePerToken ?? 0) * 1000).toFixed(2)}`}
                       </div>
-                      <div className="text-[10px] text-muted-foreground">OpenRouter pricing</div>
+                      <div className="text-[10px] text-muted-foreground">{t('agents.pricingSource')}</div>
                     </div>
                     <div className="rounded-lg border bg-muted/35 p-4">
-                      <div className="text-xs text-muted-foreground">Latency (TTFT)</div>
-                      <div className="mt-1 text-2xl font-bold text-[#2F4858]">{benchmark.latency ?? '—'} ms</div>
-                      <div className="text-[10px] text-muted-foreground">Time to first token</div>
+                      <div className="text-xs text-muted-foreground">{t('agents.latencyTtft')}</div>
+                      <div className="mt-1 text-2xl font-bold text-[#2F5D5A]">{benchmark.latency ?? '—'} ms</div>
+                      <div className="text-[10px] text-muted-foreground">{t('agents.timeToFirstToken')}</div>
                     </div>
                     <div className="rounded-lg border bg-muted/35 p-4">
-                      <div className="text-xs text-muted-foreground">Throughput</div>
-                      <div className="mt-1 text-2xl font-bold text-[#2F4858]">{benchmark.throughput ?? '—'} tok/s</div>
-                      <div className="text-[10px] text-muted-foreground">Output tokens per second</div>
+                      <div className="text-xs text-muted-foreground">{t('agents.throughput')}</div>
+                      <div className="mt-1 text-2xl font-bold text-[#2F5D5A]">{benchmark.throughput ?? '—'} tok/s</div>
+                      <div className="text-[10px] text-muted-foreground">{t('agents.outputTokensPerSecond')}</div>
                     </div>
                     <div className="rounded-lg border bg-muted/35 p-4">
-                      <div className="text-xs text-muted-foreground">Context Window</div>
-                      <div className="mt-1 text-2xl font-bold text-[#2F4858]">
+                      <div className="text-xs text-muted-foreground">{t('agents.contextWindow')}</div>
+                      <div className="mt-1 text-2xl font-bold text-[#2F5D5A]">
                         {benchmark.contextWindow ? `${(benchmark.contextWindow / 1000).toFixed(0)}K` : '—'}
                       </div>
-                      <div className="text-[10px] text-muted-foreground">Maximum input tokens</div>
+                      <div className="text-[10px] text-muted-foreground">{t('agents.maximumInputTokens')}</div>
                     </div>
-                    <div className="rounded-lg border bg-[#2F4858]/6 p-4">
-                      <div className="text-xs text-muted-foreground">Provider</div>
-                      <div className="mt-1 text-2xl font-bold text-[#2F4858]">OpenRouter</div>
-                      <div className="text-[10px] text-muted-foreground">via Redrise</div>
+                    <div className="rounded-lg border bg-[#2F5D5A]/6 p-4">
+                      <div className="text-xs text-muted-foreground">{t('agents.provider')}</div>
+                      <div className="mt-1 text-2xl font-bold text-[#2F5D5A]">{agent.provider}</div>
+                      <div className="text-[10px] text-muted-foreground">{t('agents.viaRedrise')}</div>
                     </div>
                   </div>
                 )}
@@ -234,53 +271,53 @@ export function AgentDetailPage({
               {/* Capabilities */}
               <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
                 <CardHeader>
-                  <CardTitle className="text-sm font-semibold">Capabilities</CardTitle>
+                  <CardTitle className="text-sm font-semibold">{t('agents.capabilities')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F4858]/10 shrink-0">
-                        <Brain className="h-3.5 w-3.5 text-[#2F4858]" />
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F5D5A]/10 shrink-0">
+                        <Brain className="h-3.5 w-3.5 text-[#2F5D5A]" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium">Advanced Reasoning</div>
-                        <div className="text-xs text-muted-foreground">Multi-step logical analysis and complex problem solving</div>
+                          <div className="text-sm font-medium">{t('agents.advancedReasoning')}</div>
+                          <div className="text-xs text-muted-foreground">{t('agents.advancedReasoningDesc')}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F4858]/10 shrink-0">
-                        <Code className="h-3.5 w-3.5 text-[#2F4858]" />
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F5D5A]/10 shrink-0">
+                        <Code className="h-3.5 w-3.5 text-[#2F5D5A]" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium">Code Generation</div>
-                        <div className="text-xs text-muted-foreground">Write, debug, and refactor code across multiple languages</div>
+                          <div className="text-sm font-medium">{t('agents.codeGeneration')}</div>
+                          <div className="text-xs text-muted-foreground">{t('agents.codeGenerationDesc')}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F4858]/10 shrink-0">
-                        <FileText className="h-3.5 w-3.5 text-[#2F4858]" />
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F5D5A]/10 shrink-0">
+                        <FileText className="h-3.5 w-3.5 text-[#2F5D5A]" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium">Document Analysis</div>
-                        <div className="text-xs text-muted-foreground">Extract insights from long documents and reports</div>
+                          <div className="text-sm font-medium">{t('agents.documentAnalysis')}</div>
+                          <div className="text-xs text-muted-foreground">{t('agents.documentAnalysisDesc')}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F4858]/10 shrink-0">
-                        <BarChart3 className="h-3.5 w-3.5 text-[#2F4858]" />
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F5D5A]/10 shrink-0">
+                        <BarChart3 className="h-3.5 w-3.5 text-[#2F5D5A]" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium">Data Analysis</div>
-                        <div className="text-xs text-muted-foreground">Process structured data and generate insights</div>
+                          <div className="text-sm font-medium">{t('agents.dataAnalysis')}</div>
+                          <div className="text-xs text-muted-foreground">{t('agents.dataAnalysisDesc')}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F4858]/10 shrink-0">
-                        <Lightbulb className="h-3.5 w-3.5 text-[#2F4858]" />
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F5D5A]/10 shrink-0">
+                        <Lightbulb className="h-3.5 w-3.5 text-[#2F5D5A]" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium">Creative Writing</div>
-                        <div className="text-xs text-muted-foreground">Generate content, summaries, and creative text</div>
+                          <div className="text-sm font-medium">{t('agents.creativeWriting')}</div>
+                          <div className="text-xs text-muted-foreground">{t('agents.creativeWritingDesc')}</div>
                       </div>
                     </div>
                   </div>
@@ -290,53 +327,53 @@ export function AgentDetailPage({
               {/* Best Use Cases */}
               <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
                 <CardHeader>
-                  <CardTitle className="text-sm font-semibold">Best Use Cases</CardTitle>
+                  <CardTitle className="text-sm font-semibold">{t('agents.bestUseCases')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#8c1f28]/10 shrink-0">
-                        <Zap className="h-3.5 w-3.5 text-[#8c1f28]" />
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#A04D1F]/10 shrink-0">
+                        <Zap className="h-3.5 w-3.5 text-[#A04D1F]" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium">Workflow Automation</div>
-                        <div className="text-xs text-muted-foreground">Automate complex business processes with AI-driven decisions</div>
+                          <div className="text-sm font-medium">{t('agents.workflowAutomation')}</div>
+                          <div className="text-xs text-muted-foreground">{t('agents.workflowAutomationDesc')}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#8c1f28]/10 shrink-0">
-                        <Globe className="h-3.5 w-3.5 text-[#8c1f28]" />
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#A04D1F]/10 shrink-0">
+                        <Globe className="h-3.5 w-3.5 text-[#A04D1F]" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium">Customer Support</div>
-                        <div className="text-xs text-muted-foreground">Intelligent ticket routing and response generation</div>
+                          <div className="text-sm font-medium">{t('agents.customerSupport')}</div>
+                          <div className="text-xs text-muted-foreground">{t('agents.customerSupportDesc')}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#8c1f28]/10 shrink-0">
-                        <Shield className="h-3.5 w-3.5 text-[#8c1f28]" />
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#A04D1F]/10 shrink-0">
+                        <Shield className="h-3.5 w-3.5 text-[#A04D1F]" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium">Compliance & Review</div>
-                        <div className="text-xs text-muted-foreground">Automated document review and compliance checking</div>
+                          <div className="text-sm font-medium">{t('agents.complianceReview')}</div>
+                          <div className="text-xs text-muted-foreground">{t('agents.complianceReviewDesc')}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#8c1f28]/10 shrink-0">
-                        <Brain className="h-3.5 w-3.5 text-[#8c1f28]" />
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#A04D1F]/10 shrink-0">
+                        <Brain className="h-3.5 w-3.5 text-[#A04D1F]" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium">Research & Analysis</div>
-                        <div className="text-xs text-muted-foreground">Deep analysis of market data, reports, and trends</div>
+                          <div className="text-sm font-medium">{t('agents.researchAnalysis')}</div>
+                          <div className="text-xs text-muted-foreground">{t('agents.researchAnalysisDesc')}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#8c1f28]/10 shrink-0">
-                        <Code className="h-3.5 w-3.5 text-[#8c1f28]" />
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#A04D1F]/10 shrink-0">
+                        <Code className="h-3.5 w-3.5 text-[#A04D1F]" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium">Code Assistant</div>
-                        <div className="text-xs text-muted-foreground">Code review, refactoring, and documentation generation</div>
+                          <div className="text-sm font-medium">{t('agents.codeAssistant')}</div>
+                          <div className="text-xs text-muted-foreground">{t('agents.codeAssistantDesc')}</div>
                       </div>
                     </div>
                   </div>
@@ -347,8 +384,7 @@ export function AgentDetailPage({
             {/* Footer */}
             <div className="rounded-lg border bg-muted/20 p-3">
               <p className="text-xs text-muted-foreground">
-                Data sourced from <a href="https://artificialanalysis.ai/models/gpt-oss-120b" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">Artificial Analysis</a>. 
-                Benchmark refreshes every 3 hours.
+                {t('agents.benchmarkSource', { source: 'Artificial Analysis' })} {t('agents.benchmarkRefreshes')}
               </p>
             </div>
           </div>
@@ -356,24 +392,24 @@ export function AgentDetailPage({
 
         <TabsContent value="logs" className="min-h-0 flex-1">
           <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
-            <CardHeader><CardTitle className="text-sm font-semibold">Recent Activity</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-sm font-semibold">{t('agents.recentActivity')}</CardTitle></CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {PLACEHOLDER_LOGS.map((log) => (
+                {logs.map((log) => (
                   <div key={log.id} className="flex items-start gap-3 rounded-lg border p-3 text-sm">
                     <div className={`mt-0.5 h-2 w-2 rounded-full shrink-0 ${
-                      log.status === 'success' ? 'bg-[#2F4858]' :
-                      log.status === 'error' ? 'bg-[#8c1f28]' :
+                      log.status === 'success' ? 'bg-[#2F5D5A]' :
+                      log.status === 'error' ? 'bg-[#A04D1F]' :
                       'bg-amber-500'
                     }`} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{log.action}</span>
                         <Badge variant="outline" className={`text-[10px] ${
-                          log.status === 'success' ? 'border-[#2F4858]/25 bg-[#2F4858]/8 text-[#2F4858]' :
+                          log.status === 'success' ? 'border-[#2F5D5A]/25 bg-[#2F5D5A]/8 text-[#2F5D5A]' :
                           log.status === 'error' ? 'border-primary/18 bg-primary/8 text-primary' :
-                          'border-[#B7791F]/18 bg-[#FFF4DB] text-[#8A6116]'
-                        }`}>{log.status}</Badge>
+                          'border-[#B7791F]/18 bg-[#FFF8E1] text-[#7A3E14]'
+                        }`}>{statusLabel(log.status)}</Badge>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">{log.details}</p>
                       <p className="text-[10px] text-muted-foreground/60 mt-1">

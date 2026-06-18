@@ -7,10 +7,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { loadWorkspaceMembers, addWorkspaceMember, removeWorkspaceMember, type WorkspaceMember, type MemberRole } from '@/lib/workspace-members'
+import { useI18n } from '@/hooks/use-i18n'
 
 const ROLE_BADGE: Record<MemberRole, string> = {
-  owner: 'border-[#8c1f28]/20 bg-[#8c1f28]/8 text-[#8c1f28]',
-  admin: 'border-[#2F4858]/20 bg-[#2F4858]/8 text-[#2F4858]',
+  owner: 'border-[#A04D1F]/20 bg-[#A04D1F]/8 text-[#A04D1F]',
+  admin: 'border-[#2F5D5A]/20 bg-[#2F5D5A]/8 text-[#2F5D5A]',
   member: 'border-slate-200 bg-slate-50 text-slate-600',
 }
 
@@ -19,6 +20,7 @@ type TeamMembersCardProps = {
 }
 
 export function TeamMembersCard({ workspaceId }: TeamMembersCardProps) {
+  const { t } = useI18n()
   const [members, setMembers] = useState<WorkspaceMember[]>([])
   const [loading, setLoading] = useState(!workspaceId)
   const [showInvite, setShowInvite] = useState(false)
@@ -59,13 +61,13 @@ export function TeamMembersCard({ workspaceId }: TeamMembersCardProps) {
     <Card className="gap-0 rounded-xl p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-base font-semibold">Team Members</h3>
-          <p className="text-sm text-muted-foreground">Manage who has access to this workspace and their roles.</p>
+          <h3 className="text-base font-semibold">{t('settings.teamMembers')}</h3>
+          <p className="text-sm text-muted-foreground">{t('settings.teamMembersDesc')}</p>
         </div>
         {workspaceId && (
           <Button type="button" size="sm" onClick={() => setShowInvite((value) => !value)}>
             <Plus className="h-4 w-4" />
-            Invite
+            {t('settings.addMember')}
           </Button>
         )}
       </div>
@@ -74,11 +76,11 @@ export function TeamMembersCard({ workspaceId }: TeamMembersCardProps) {
         <form className="mt-4 space-y-4 rounded-lg border bg-muted/30 p-4" onSubmit={handleInvite}>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="inviteEmail">Email Address</Label>
+              <Label htmlFor="inviteEmail">{t('account.email')}</Label>
               <Input id="inviteEmail" type="email" value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} placeholder="colleague@company.com" />
             </div>
             <div className="space-y-2">
-              <Label>Role</Label>
+              <Label>{t('settings.status')}</Label>
               <div className="flex gap-2">
                 {(['admin', 'member'] as const).map((role) => (
                   <button
@@ -87,16 +89,16 @@ export function TeamMembersCard({ workspaceId }: TeamMembersCardProps) {
                     onClick={() => setInviteRole(role)}
                     className={inviteRole === role ? 'rounded-md border border-foreground bg-foreground px-3 py-1.5 text-xs font-medium text-background transition-colors' : 'rounded-md border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/40'}
                   >
-                    {role.charAt(0).toUpperCase() + role.slice(1)}
+                    {role === 'admin' ? t('settings.roleAdmin') : t('settings.roleMember')}
                   </button>
                 ))}
               </div>
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setShowInvite(false)}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={() => setShowInvite(false)}>{t('common.cancel')}</Button>
             <Button type="submit" disabled={!inviteEmail.trim() || saving}>
-              {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Inviting...</> : 'Send Invite'}
+              {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('settings.creating')}</> : t('settings.sendInvites')}
             </Button>
           </div>
         </form>
@@ -109,9 +111,9 @@ export function TeamMembersCard({ workspaceId }: TeamMembersCardProps) {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : !workspaceId ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">Select a workspace to manage team members.</p>
+        <p className="py-8 text-center text-sm text-muted-foreground">{t('flow.selectWorkspace')}</p>
       ) : members.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">No team members yet.</p>
+        <p className="py-8 text-center text-sm text-muted-foreground">{t('settings.noMembersFound')}</p>
       ) : (
         <div className="space-y-3">
           {members.map((member) => (
@@ -123,7 +125,7 @@ export function TeamMembersCard({ workspaceId }: TeamMembersCardProps) {
                 <div>
                   <p className="text-sm font-medium">{member.email || member.user_id}</p>
                   <p className="text-[10px] text-muted-foreground">
-                    {member.role === 'owner' ? 'Owner' : member.role.charAt(0).toUpperCase() + member.role.slice(1)} · Joined {new Date(member.joined_at).toLocaleDateString()}
+                    {member.role === 'owner' ? 'Owner' : member.role === 'admin' ? t('settings.roleAdmin') : t('settings.roleMember')} · {t('settings.joined')} {new Date(member.joined_at).toLocaleDateString()}
                   </p>
                 </div>
               </div>

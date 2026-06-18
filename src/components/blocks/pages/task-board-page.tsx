@@ -16,13 +16,13 @@ const COLUMNS: { id: TaskStatus; titleKey: string }[] = [
 ]
 
 const STATUS_TONE: Record<TaskStatus, string> = {
-  backlog: 'border-[#2F4858]/20 bg-[#2F4858]/6',
+  backlog: 'border-[#2F5D5A]/20 bg-[#2F5D5A]/6',
   'in-progress': 'border-primary/18 bg-primary/6',
-  'in-review': 'border-[#B7791F]/18 bg-[#FFF4DB]',
+  'in-review': 'border-[#B7791F]/18 bg-[#FFF8E1]',
   done: 'border-emerald-200 bg-emerald-50',
   error: 'border-primary/18 bg-primary/8',
   pending: 'border-slate-200 bg-slate-50',
-  running: 'border-[#2F4858]/18 bg-[#2F4858]/8',
+  running: 'border-[#2F5D5A]/18 bg-[#2F5D5A]/8',
 }
 
 export function TaskBoardPage({
@@ -72,24 +72,24 @@ export function TaskBoardPage({
                 {items.length === 0 ? (
                   <p className="text-xs text-muted-foreground text-center py-4">{t('tasks.noTasks')}</p>
                 ) : (
-                  items.map((t) => (
+                  items.map((task) => (
                     <article
-                      key={t.id}
+                      key={task.id}
                       draggable
-                      onDragStart={() => setDragging(t.id)}
+                      onDragStart={() => setDragging(task.id)}
                       onDragEnd={() => setDragging(null)}
-                      onClick={() => setRunTaskId(t.id)}
+                      onClick={() => setRunTaskId(task.id)}
                       className="cursor-grab rounded-lg border bg-card p-3 text-left text-sm shadow-sm transition-colors hover:bg-accent/40 active:cursor-grabbing"
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <span className="font-medium text-foreground">{t.title}</span>
+                        <span className="font-medium text-foreground">{task.title}</span>
                         <div className="flex items-center gap-1 shrink-0">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-5 w-5 text-[#2F4858] hover:text-[#2F4858] hover:bg-[#2F4858]/10"
-                            onClick={(e) => { e.stopPropagation(); setRunTaskId(t.id) }}
-                            title="Run task with AI"
+                            className="h-5 w-5 text-[#2F5D5A] hover:text-[#2F5D5A] hover:bg-[#2F5D5A]/10"
+                            onClick={(e) => { e.stopPropagation(); setRunTaskId(task.id) }}
+                            title={t('agents.runTaskWithAi')}
                           >
                             <Play className="h-3 w-3" />
                           </Button>
@@ -98,16 +98,16 @@ export function TaskBoardPage({
                             variant="ghost"
                             size="icon"
                             className="h-5 w-5 text-destructive hover:text-destructive"
-                            onClick={(e) => { e.stopPropagation(); onDeleteTask?.(t.id) }}
+                            onClick={(e) => { e.stopPropagation(); onDeleteTask?.(task.id) }}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
-                      {t.brief && (
-                        <div className="mt-2 text-xs text-muted-foreground line-clamp-2">{t.brief}</div>
+                      {task.brief && (
+                        <div className="mt-2 text-xs text-muted-foreground line-clamp-2">{task.brief}</div>
                       )}
-                      <div className="mt-1 text-[10px] text-muted-foreground/60 font-mono">ID: {t.id}</div>
+                      <div className="mt-1 text-[10px] text-muted-foreground/60 font-mono">{t('common.id', { id: task.id })}</div>
                     </article>
                   ))
                 )}

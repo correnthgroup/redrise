@@ -1,44 +1,47 @@
 ﻿import { Activity } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useI18n } from '@/hooks/use-i18n'
 
 const PLACEHOLDER_EVENTS = [
-  'event 1 · agent name · 2m ago',
-  'event 2 · agent name · 5m ago',
-  'event 3 · agent name · 11m ago',
-  'event 4 · agent name · 24m ago',
-  'event 5 · agent name · 1h ago',
+  'dashboard.event1',
+  'dashboard.event2',
+  'dashboard.event3',
+  'dashboard.event4',
+  'dashboard.event5',
 ]
 
 const PLACEHOLDER_ALERTS = [
-  'alert 1 · system · 3m ago',
-  'alert 2 · agent · 14m ago',
-  'alert 3 · workspace · 36m ago',
+  'dashboard.alert1',
+  'dashboard.alert2',
+  'dashboard.alert3',
 ]
 
 const PLACEHOLDER_NOTIFICATIONS = [
-  'notification 1 · member · 4m ago',
-  'notification 2 · review · 18m ago',
-  'notification 3 · task · 52m ago',
+  'dashboard.notification1',
+  'dashboard.notification2',
+  'dashboard.notification3',
 ]
 
 const PLACEHOLDER_CHANGE_LOG = [
-  'change 1 · policy updated · 6m ago',
-  'change 2 · flow edited · 27m ago',
-  'change 3 · integration changed · 1h ago',
+  'dashboard.change1',
+  'dashboard.change2',
+  'dashboard.change3',
 ]
 
 const PLACEHOLDER_AUDIT = [
-  'audit 1 · sign-in · 9m ago',
-  'audit 2 · permission change · 41m ago',
-  'audit 3 · export requested · 2h ago',
+  'dashboard.audit1',
+  'dashboard.audit2',
+  'dashboard.audit3',
 ]
 
 function FeedCard({
   title,
   items,
+  t,
 }: {
   title: string
   items: string[]
+  t: (key: string) => string
 }) {
   return (
     <Card>
@@ -52,7 +55,7 @@ function FeedCard({
         <ul className="space-y-2 text-xs text-muted-foreground">
           {items.map((item) => (
             <li key={item} className="truncate">
-              {item}
+              {t(item)}
             </li>
           ))}
         </ul>
@@ -62,13 +65,15 @@ function FeedCard({
 }
 
 export function ActivityFeed() {
+  const { t } = useI18n()
+
   return (
     <div className="grid grid-cols-1 gap-4 2xl:grid-cols-5">
-      <FeedCard title="Activity Feed" items={PLACEHOLDER_EVENTS} />
-      <FeedCard title="Alerts" items={PLACEHOLDER_ALERTS} />
-      <FeedCard title="Notifications" items={PLACEHOLDER_NOTIFICATIONS} />
-      <FeedCard title="Change Log" items={PLACEHOLDER_CHANGE_LOG} />
-      <FeedCard title="Audit Trail" items={PLACEHOLDER_AUDIT} />
+      <FeedCard title={t('dashboard.activityFeed')} items={PLACEHOLDER_EVENTS} t={t} />
+      <FeedCard title={t('dashboard.alerts')} items={PLACEHOLDER_ALERTS} t={t} />
+      <FeedCard title={t('dashboard.notifications')} items={PLACEHOLDER_NOTIFICATIONS} t={t} />
+      <FeedCard title={t('dashboard.changeLog')} items={PLACEHOLDER_CHANGE_LOG} t={t} />
+      <FeedCard title={t('dashboard.auditTrail')} items={PLACEHOLDER_AUDIT} t={t} />
     </div>
   )
 }

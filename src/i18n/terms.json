@@ -1,0 +1,118 @@
+{
+  "dashboard": {
+    "en-US": "dashboard",
+    "pt-BR": "painel de informações"
+  },
+  "health check": {
+    "en-US": "health check",
+    "pt-BR": "nível de saúde"
+  },
+  "workspace": {
+    "en-US": "workspace",
+    "pt-BR": "área de trabalho"
+  },
+  "flow": {
+    "en-US": "flow",
+    "pt-BR": "fluxo"
+  },
+  "agent": {
+    "en-US": "agent",
+    "pt-BR": "agente"
+  },
+  "task": {
+    "en-US": "task",
+    "pt-BR": "tarefa"
+  },
+  "analytics": {
+    "en-US": "analytics",
+    "pt-BR": "analytics"
+  },
+  "plan": {
+    "en-US": "plan",
+    "pt-BR": "plano"
+  },
+  "session": {
+    "en-US": "session",
+    "pt-BR": "sessão"
+  },
+  "audit log": {
+    "en-US": "audit log",
+    "pt-BR": "registro de auditoria"
+  },
+  "API keys": {
+    "en-US": "API keys",
+    "pt-BR": "chaves de API"
+  },
+  "team members": {
+    "en-US": "team members",
+    "pt-BR": "membros da equipe"
+  },
+  "personal information": {
+    "en-US": "personal information",
+    "pt-BR": "informações pessoais"
+  },
+  "biological gender": {
+    "en-US": "biological gender",
+    "pt-BR": "gênero biológico"
+  },
+  "first name": {
+    "en-US": "first name",
+    "pt-BR": "primeiro nome"
+  },
+  "middle name": {
+    "en-US": "middle name",
+    "pt-BR": "nome do meio"
+  },
+  "last name": {
+    "en-US": "last name",
+    "pt-BR": "último nome"
+  },
+  "username": {
+    "en-US": "username",
+    "pt-BR": "nome de usuário"
+  },
+  "birth date": {
+    "en-US": "birth date",
+    "pt-BR": "data de nascimento"
+  },
+  "email address": {
+    "en-US": "email address",
+    "pt-BR": "endereço de email"
+  },
+  "language": {
+    "en-US": "language",
+    "pt-BR": "idioma"
+  },
+  "location": {
+    "en-US": "location",
+    "pt-BR": "localização"
+  },
+  "timezone": {
+    "en-US": "time zone",
+    "pt-BR": "fuso horário"
+  },
+  "phone": {
+    "en-US": "phone",
+    "pt-BR": "telefone"
+  },
+  "staff": {
+    "en-US": "Staff",
+    "pt-BR": "Gestão"
+  },
+  "member": {
+    "en-US": "Member",
+    "pt-BR": "Membro"
+  },
+  "viewer": {
+    "en-US": "Viewer",
+    "pt-BR": "Visualizador"
+  },
+  "admin": {
+    "en-US": "admin",
+    "pt-BR": "admin"
+  },
+  "select all": {
+    "en-US": "Select All",
+    "pt-BR": "Selecionar Todos"
+  }
+}

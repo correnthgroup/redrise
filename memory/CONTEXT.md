@@ -2,31 +2,29 @@
 
 ## Project
 
-- **Name**: `Redrise`
-- **Purpose**: `Workspace-first SaaS for flows, tasks, agents, analytics and operational control.`
-- **Owner**: `Redscale`
-- **Source of truth**: `D:\REDSCALE\_PLANROOT\` (Planroot framework)
+- Name: `Redrise`.
+- Purpose: workspace-first SaaS for flows, tasks, agents, analytics, settings, team members, plans, and operational control.
+- Owner: `Redscale`.
+- Official production URL: `https://redrise-app.vercel.app`.
+- Supabase project ref: `ndfsselzilmdzywcdyoo`.
+- Vercel project: `worth-team-s-projects/redrise-app`.
 
-## Reference
+## Current Product Rules
 
-- The visual + structural reference used to scaffold this app is `D:\REDSCALE\__ARQUITETURA\app`.
-- The current imported base keeps the prototype stack: `Vite 8 + React 19 + TypeScript + Tailwind v4 + Radix-based shadcn-style UI`.
-- The app is now managed with `yarn` via `corepack`.
-- Fonts: global default is `Segoe UI` first, then system fallbacks.
+- Supabase is the source of truth for auth, profiles, active sessions, team members, workspaces, flows, tasks, and agents.
+- Browser storage is allowed for UI preferences and short transition notices only.
+- Do not store profile, session, team member, workspace, flow, task, or agent domain data in `localStorage`.
+- Settings > Team Members is the source for member dropdowns in Flow and Tasks.
+- Settings > Plans is UI-only until Stripe checkout, webhook, persisted plan state, and permission matrix exist.
+- Admin/Member/Viewer indicators are informational until backend/RLS permission enforcement is implemented.
+- OAuth remains future work until GitHub, Google, and Microsoft/Azure provider credentials are configured and tested.
+- E-mail confirmation remains future work until official SMTP/sender/template/retry policy exists.
+- `memory/TECHNICAL.md` is the human-readable PT-BR map for current behavior and approved future direction.
 
-## Global product rules
+## Quality Rules
 
-- Source `D:\REDSCALE\_REDRISE\Atualizacao#1.pdf`: visible read-only fields must use a distinct background by default; current reference color is `#eef2f6`.
-- Source `D:\REDSCALE\_REDRISE\Atualizacao#1.pdf`: changes should happen after explicit actions by default, not in real time, except Flow and specific future Settings/Tasks exceptions.
-- Source `D:\REDSCALE\_REDRISE\Atualizacao#1.pdf`: Settings > Personal Information language changes must translate all app-visible copy.
-- Source `D:\REDSCALE\_REDRISE\Atualizacao#1.pdf`: editable field placeholders use the same gray tone, currently `#d5d5d5`.
-- Source `D:\REDSCALE\_REDRISE\Atualizacao#1.pdf`: required fields should match the Tasks > New Task required-field formatting.
-- Source `D:\REDSCALE\_REDRISE\Atualizacao#1.pdf`: app typography defaults to Segoe UI unless an exception is explicit.
-- Source `D:\REDSCALE\_REDRISE\Atualizacao#1.pdf`: mojibake is forbidden in all languages.
-- Source `D:\REDSCALE\_REDRISE\Atualizacao#1.pdf`: dropdowns that select Member List must read the current Settings > Member List source.
-- Source `D:\REDSCALE\_REDRISE\Atualizacao#1.pdf`: dropdown layout should follow Settings > Personal Information > Language.
-- Product memory: `memory/TECHNICAL.md` documents current app behavior, cross-screen dependencies, and planned Settings > Plans/team permission changes in PT-BR.
-
-## Core decisions
-
-See `DECISIONS.md`.
+- Use Yarn through Corepack.
+- Do not add `package-lock.json`.
+- Run lint, typecheck, tests, build, and E2E for auth, settings, navigation, deploy, or cross-screen changes.
+- Keep production deploys on `https://redrise-app.vercel.app`.
+- Use the non-git prebuilt Vercel deploy path while Vercel settings/attribution remain sensitive.

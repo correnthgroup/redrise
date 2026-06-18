@@ -1,21 +1,22 @@
 ﻿import { ArrowRight, Sparkles } from 'lucide-react'
 import type { Workspace, WorkspaceStatus } from '@/types/workspace'
 import { Card, CardContent } from '@/components/ui/card'
+import { useI18n } from '@/hooks/use-i18n'
 
 const COLUMN_ORDER: WorkspaceStatus[] = ['healthy', 'maintenance', 'pending']
 
-const COLUMN_META: Record<WorkspaceStatus, { title: string; description: string }> = {
+const COLUMN_META: Record<WorkspaceStatus, { titleKey: string; descKey: string }> = {
   healthy: {
-    title: 'Healthy Workspaces',
-    description: 'Stable workspaces currently operating within target.',
+    titleKey: 'onboarding.healthyTitle',
+    descKey: 'onboarding.healthyDesc',
   },
   maintenance: {
-    title: 'Maintenance Workspaces',
-    description: 'Workspaces requiring tuning, review or configuration changes.',
+    titleKey: 'onboarding.maintenanceTitle',
+    descKey: 'onboarding.maintenanceDesc',
   },
   pending: {
-    title: 'Pending Workspaces',
-    description: 'New or incomplete workspaces waiting for the next setup step.',
+    titleKey: 'onboarding.pendingTitle',
+    descKey: 'onboarding.pendingDesc',
   },
 }
 
@@ -26,6 +27,7 @@ export function OnboardingEmpty({
   onOpenWorkspace?: (id: string) => void
   workspaces: Workspace[]
 }) {
+  const { t } = useI18n()
   return (
     <Card>
       <CardContent className="space-y-6 p-6">
@@ -34,9 +36,9 @@ export function OnboardingEmpty({
             <Sparkles className="h-5 w-5" />
           </div>
           <div className="space-y-1 text-left">
-            <div className="text-base font-semibold">Welcome to your workspace</div>
+            <div className="text-base font-semibold">{t('onboarding.welcome')}</div>
             <div className="text-sm text-muted-foreground">
-              Review created workspaces, monitor status lanes and open a workspace to continue setup.
+              {t('onboarding.welcomeDesc')}
             </div>
           </div>
         </div>
@@ -49,8 +51,8 @@ export function OnboardingEmpty({
             return (
               <section key={status} className="rounded-xl border bg-muted/20 p-4 text-left">
                 <div className="mb-3 space-y-1">
-                  <div className="text-sm font-semibold">{meta.title}</div>
-                  <div className="text-xs text-muted-foreground">{meta.description}</div>
+                  <div className="text-sm font-semibold">{t(meta.titleKey)}</div>
+                  <div className="text-xs text-muted-foreground">{t(meta.descKey)}</div>
                 </div>
 
                 <div className="space-y-3">
@@ -69,9 +71,9 @@ export function OnboardingEmpty({
                         <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                       </div>
                       <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
-                        <span className="font-mono">ID: {workspace.id}</span>
+                        <span className="font-mono">{t('common.id', { id: workspace.id })}</span>
                         <span>{new Date(workspace.created_at).toLocaleDateString()}</span>
-                        <span>{workspace.flows} flows</span>
+                        <span>{t('onboarding.flows', { count: workspace.flows })}</span>
                       </div>
                     </button>
                   ))}

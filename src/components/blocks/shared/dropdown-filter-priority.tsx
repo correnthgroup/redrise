@@ -7,11 +7,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
+import { useI18n } from '@/hooks/use-i18n'
 
 const PRIORITIES = ['low', 'medium', 'high', 'critical'] as const
+const PRIORITY_KEYS: Record<string, string> = { low: 'priority.low', medium: 'priority.medium', high: 'priority.high', critical: 'priority.critical' }
 
 export function DropdownFilterByPriority() {
   const [selected, setSelected] = useState<Set<string>>(new Set(['medium', 'high']))
+  const { t } = useI18n()
 
   function toggle(value: string) {
     setSelected((prev) => {
@@ -26,7 +29,7 @@ export function DropdownFilterByPriority() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm">
-          Filter priority ({selected.size}) <ChevronDown className="h-3.5 w-3.5" />
+          {t('priority.filter', { count: selected.size })} <ChevronDown className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
@@ -36,7 +39,7 @@ export function DropdownFilterByPriority() {
             checked={selected.has(p)}
             onCheckedChange={() => toggle(p)}
           >
-            {p}
+            {t(PRIORITY_KEYS[p])}
           </DropdownMenuCheckboxItem>
         ))}
       </DropdownMenuContent>

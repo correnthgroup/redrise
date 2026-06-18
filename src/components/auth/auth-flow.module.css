@@ -11,7 +11,9 @@
   justify-content: center;
   padding: 2.5rem 3rem;
   border-right: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0%, rgba(255, 255, 255, 0.96) 100%);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(160, 77, 31, 0.04), transparent 50%),
+    linear-gradient(180deg, rgba(255, 253, 248, 0.86) 0%, rgba(255, 253, 248, 0.96) 100%);
 }
 
 .formInner {
@@ -31,15 +33,15 @@
 }
 
 .brandMark {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2rem;
+  height: 2rem;
   border-radius: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--primary);
   color: var(--primary-foreground);
-  box-shadow: 0 12px 24px -14px rgba(140, 31, 40, 0.55);
+  box-shadow: 0 12px 24px -14px rgba(160, 77, 31, 0.55);
 }
 
 .brandName {
@@ -81,6 +83,26 @@
   background: color-mix(in srgb, var(--secondary) 8%, var(--muted));
 }
 
+.oauthGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.checkRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.checkRow input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--primary);
+}
+
 .requirement {
   display: flex;
   align-items: center;
@@ -88,7 +110,16 @@
 }
 
 .requirementMet {
-  color: var(--foreground);
+  color: #2F7D4F;
+}
+
+.noticeText {
+  border: 1px solid color-mix(in srgb, var(--secondary) 20%, transparent);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--secondary) 8%, transparent);
+  color: var(--secondary);
+  padding: 0.625rem 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .divider {
@@ -123,11 +154,25 @@
   text-decoration: underline;
 }
 
+.centerLink {
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.centerLink a {
+  color: var(--foreground);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.centerLink a:hover {
+  text-decoration: underline;
+}
+
 .artPanel {
   position: relative;
-  background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.18), transparent 26%),
-    linear-gradient(135deg, #0f172a 0%, #1a2a3d 44%, #2f4858 74%, #8c1f28 100%);
+  background: linear-gradient(135deg, #3A2A22 0%, #5C2C12 44%, #A04D1F 74%, #E26F27 100%);
   overflow: hidden;
 }
 
@@ -161,5 +206,8 @@
   }
   .formPanel {
     padding: 1.5rem;
+  }
+  .oauthGrid {
+    grid-template-columns: 1fr;
   }
 }

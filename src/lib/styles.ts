@@ -1,0 +1,2 @@
+export const DROPDOWN_TRIGGER_CLASSES =
+  'flex h-9 w-full items-center justify-between gap-2 whitespace-nowrap rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors placeholder:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50'

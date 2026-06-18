@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useI18n } from '@/hooks/use-i18n'
 
 function PasswordField({ id, label, value, onChange }: { id: string; label: string; value?: string; onChange?: (value: string) => void }) {
+  const { t } = useI18n()
   const [showPassword, setShowPassword] = useState(false)
 
   return (
@@ -18,7 +20,7 @@ function PasswordField({ id, label, value, onChange }: { id: string; label: stri
         <Input id={id} type={showPassword ? 'text' : 'password'} placeholder="●●●●●●●●" value={value} onChange={(event) => onChange?.(event.target.value)} />
         <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowPassword((value) => !value)}>
           {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
-          <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
+          <span className="sr-only">{showPassword ? t('settings.hidePassword') : t('settings.showPassword')}</span>
         </Button>
       </div>
     </div>
@@ -26,14 +28,15 @@ function PasswordField({ id, label, value, onChange }: { id: string; label: stri
 }
 
 const PASSWORD_REQUIREMENTS = [
-  { label: 'At least 8 characters long', regex: /.{8,}/ },
-  { label: 'One uppercase letter (A-Z)', regex: /[A-Z]/ },
-  { label: 'One lowercase letter (a-z)', regex: /[a-z]/ },
-  { label: 'One number (0-9)', regex: /[0-9]/ },
-  { label: 'One special character (!@#$%^&*)', regex: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/ },
+  { labelKey: 'settings.passwordMin8', regex: /.{8,}/ },
+  { labelKey: 'settings.passwordUpper', regex: /[A-Z]/ },
+  { labelKey: 'settings.passwordLower', regex: /[a-z]/ },
+  { labelKey: 'settings.passwordNumber', regex: /[0-9]/ },
+  { labelKey: 'settings.passwordSpecial', regex: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/ },
 ]
 
 export function ChangePassword() {
+  const { t } = useI18n()
   const [newPassword, setNewPassword] = useState('')
 
   return (
@@ -44,8 +47,8 @@ export function ChangePassword() {
             <Shield className="h-6 w-6 text-orange-600" />
           </div>
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Change Password</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Update your password to keep your account secure.</p>
+            <h2 className="text-2xl font-semibold tracking-tight">{t('settings.changePasswordTitle')}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t('settings.changePasswordFullDesc')}</p>
           </div>
         </div>
       </div>
@@ -53,12 +56,12 @@ export function ChangePassword() {
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         <div>
           <form onSubmit={(event) => event.preventDefault()}>
-            <PasswordField id="current-password" label="Current Password" />
-            <PasswordField id="new-password" label="New Password" value={newPassword} onChange={setNewPassword} />
-            <PasswordField id="confirm-password" label="Confirm New Password" />
+            <PasswordField id="current-password" label={t('settings.currentPassword')} />
+            <PasswordField id="new-password" label={t('settings.newPassword')} value={newPassword} onChange={setNewPassword} />
+            <PasswordField id="confirm-password" label={t('settings.confirmNewPassword')} />
             <div className="mt-8 flex gap-3">
-              <Button type="button" variant="outline" className="flex-1">Cancel</Button>
-              <Button type="submit" className="flex-1">Update Password</Button>
+              <Button type="button" variant="outline" className="flex-1">{t('common.cancel')}</Button>
+              <Button type="submit" className="flex-1">{t('settings.updatePassword')}</Button>
             </div>
           </form>
         </div>
@@ -67,29 +70,29 @@ export function ChangePassword() {
           <div>
             <h3 className="mb-4 flex items-center gap-2 font-semibold">
               <Shield className="h-5 w-5 text-muted-foreground" />
-              Password Requirements
+              {t('settings.passwordRequirements')}
             </h3>
-            <p className="mb-6 text-sm text-muted-foreground">Your password must meet the following criteria for enhanced security:</p>
+            <p className="mb-6 text-sm text-muted-foreground">{t('settings.passwordCriteria')}</p>
             <ul className="space-y-3">
               {PASSWORD_REQUIREMENTS.map((req) => {
                 const meetsRequirement = req.regex.test(newPassword)
                 return (
-                  <li key={req.label} className="flex items-start gap-3">
+                  <li key={req.labelKey} className="flex items-start gap-3">
                     {meetsRequirement ? <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500" /> : <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />}
-                    <span className={meetsRequirement ? 'text-sm text-foreground' : 'text-sm text-muted-foreground'}>{req.label}</span>
+                    <span className={meetsRequirement ? 'text-sm text-foreground' : 'text-sm text-muted-foreground'}>{t(req.labelKey)}</span>
                   </li>
                 )
               })}
             </ul>
           </div>
 
-          <div className="rounded-lg border border-[#8c1f28] bg-[#8c1f28] p-4 text-[#f2f2f2]">
-            <h4 className="mb-2 text-sm font-medium">Security Best Practices</h4>
-            <ul className="space-y-2 text-sm text-[#f2f2f2]">
-              <li className="flex items-start gap-2"><span className="mt-1">-</span><span>Change your password regularly (every 90 days).</span></li>
-              <li className="flex items-start gap-2"><span className="mt-1">-</span><span>Never share your password with anyone.</span></li>
-              <li className="flex items-start gap-2"><span className="mt-1">-</span><span>Use a unique password for each account.</span></li>
-              <li className="flex items-start gap-2"><span className="mt-1">-</span><span>Consider using a password manager.</span></li>
+          <div className="rounded-lg border border-[#A04D1F] bg-[#A04D1F] p-4 text-[#FAF6EF]">
+            <h4 className="mb-2 text-sm font-medium">{t('settings.securityBestPractices')}</h4>
+            <ul className="space-y-2 text-sm text-[#FAF6EF]">
+              <li className="flex items-start gap-2"><span className="mt-1">-</span><span>{t('settings.securityChangeRegularly')}</span></li>
+              <li className="flex items-start gap-2"><span className="mt-1">-</span><span>{t('settings.securityNeverShare')}</span></li>
+              <li className="flex items-start gap-2"><span className="mt-1">-</span><span>{t('settings.securityUnique')}</span></li>
+              <li className="flex items-start gap-2"><span className="mt-1">-</span><span>{t('settings.securityManager')}</span></li>
             </ul>
           </div>
         </div>

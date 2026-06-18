@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync, copyFileSync, writeFileSync, readFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { basename, dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -18,10 +19,10 @@ function truncate(value) {
   return `${output.slice(0, maxOutput)}\n\n[truncated ${output.length - maxOutput} chars]`
 }
 
-function shell(command, { timeoutMs = 600_000 } = {}) {
+function shell(command, { timeoutMs = 600_000, cwd = projectRoot } = {}) {
   return new Promise((resolve) => {
     const child = spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', command], {
-      cwd: projectRoot,
+      cwd,
       env: {
         ...process.env,
         COMSPEC: process.env.COMSPEC || 'C:\\Windows\\System32\\cmd.exe',
@@ -87,6 +88,20 @@ function prepareVercelOutput() {
   return { files: files.length, bytes, outputDir: relative(projectRoot, outputDir) }
 }
 
+function prepareNonGitVercelDeployDir() {
+  const sourceOutput = join(projectRoot, '.vercel', 'output')
+  const sourceProject = join(projectRoot, '.vercel', 'project.json')
+  if (!existsSync(join(sourceOutput, 'config.json'))) prepareVercelOutput()
+  if (!existsSync(sourceProject)) throw new Error('.vercel/project.json does not exist. Run vercel link first.')
+
+  const deployRoot = join(tmpdir(), 'opencode', 'redrise-vercel-prebuilt')
+  if (existsSync(deployRoot)) rmSync(deployRoot, { recursive: true, force: true })
+  mkdirSync(join(deployRoot, '.vercel'), { recursive: true })
+  copyFileSync(sourceProject, join(deployRoot, '.vercel', 'project.json'))
+  copyDirectory(sourceOutput, join(deployRoot, '.vercel', 'output'))
+  return deployRoot
+}
+
 function appendMemory(fileName, heading, lines) {
   const allowed = new Set(['TASK_LOG.md', 'HANDOFF.md', 'DECISIONS.md', 'CONTEXT.md', 'TECHNICAL.md'])
   if (!allowed.has(fileName)) throw new Error(`Unsupported memory file: ${fileName}`)
@@ -134,9 +149,9 @@ const tools = {
       properties: { force: { type: 'boolean', default: true } },
     },
     run: async ({ force = true } = {}) => {
-      if (!existsSync(join(projectRoot, '.vercel', 'output', 'config.json'))) prepareVercelOutput()
+      const deployRoot = prepareNonGitVercelDeployDir()
       const forceFlag = force ? ' --force' : ''
-      return text(JSON.stringify(await shell(`vercel deploy --prebuilt --prod --yes${forceFlag}`, { timeoutMs: 900_000 }), null, 2))
+      return text(JSON.stringify(await shell(`vercel deploy --prebuilt --prod --yes${forceFlag}`, { timeoutMs: 900_000, cwd: deployRoot }), null, 2))
     },
   },
   check_vercel_status: {

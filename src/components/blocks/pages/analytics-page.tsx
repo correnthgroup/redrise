@@ -5,24 +5,26 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useAnalytics } from '@/hooks/use-analytics'
 import { buildKpis } from '@/lib/analytics'
+import { useI18n } from '@/hooks/use-i18n'
 
 const STATUS_BADGE: Record<string, string> = {
-  completed: 'border-[#2F4858]/25 bg-[#2F4858]/8 text-[#2F4858]',
+  completed: 'border-[#2F5D5A]/25 bg-[#2F5D5A]/8 text-[#2F5D5A]',
   failed: 'border-primary/18 bg-primary/8 text-primary',
-  rejected: 'border-[#B7791F]/18 bg-[#FFF4DB] text-[#8A6116]',
+  rejected: 'border-[#B7791F]/18 bg-[#FFF8E1] text-[#7A3E14]',
   running: 'border-blue-200 bg-blue-50 text-blue-700',
   pending: 'border-slate-200 bg-slate-50 text-slate-600',
 }
 
 export function AnalyticsPage() {
+  const { t } = useI18n()
   const analytics = useAnalytics()
 
   if (analytics.loading) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-6 w-6 animate-spin text-[#2F4858]" />
-          <p className="text-sm text-muted-foreground">Loading analytics...</p>
+          <Loader2 className="h-6 w-6 animate-spin text-[#2F5D5A]" />
+          <p className="text-sm text-muted-foreground">{t('analytics.loading')}</p>
         </div>
       </div>
     )
@@ -38,21 +40,21 @@ export function AnalyticsPage() {
 
         {/* Per-agent breakdown */}
         <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
-          <CardHeader><CardTitle className="text-sm font-semibold">Per-agent Breakdown</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm font-semibold">{t('analytics.perAgentBreakdown')}</CardTitle></CardHeader>
           <CardContent>
             {analytics.agentBreakdown.length === 0 ? (
               <div className="text-center py-8 text-sm text-muted-foreground">
-                No agent executions yet. Run a task to see breakdown data.
+                {t('analytics.noAgentExecutions')}
               </div>
             ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
-                    <th className="py-2">Agent</th>
-                    <th>Model</th>
-                    <th>Requests</th>
-                    <th>Errors</th>
-                    <th>Avg tokens</th>
+                    <th className="py-2">{t('analytics.agent')}</th>
+                    <th>{t('analytics.model')}</th>
+                    <th>{t('analytics.requests')}</th>
+                    <th>{t('analytics.errors')}</th>
+                    <th>{t('analytics.avgTokens')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -79,19 +81,19 @@ export function AnalyticsPage() {
 
         {/* Recent executions */}
         <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
-          <CardHeader><CardTitle className="text-sm font-semibold">Recent Executions</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm font-semibold">{t('analytics.recentExecutions')}</CardTitle></CardHeader>
           <CardContent>
             {analytics.recentExecutions.length === 0 ? (
               <div className="text-center py-8 text-sm text-muted-foreground">
-                No executions yet. Run a task to see activity here.
+                {t('analytics.noExecutions')}
               </div>
             ) : (
               <div className="space-y-2">
                 {analytics.recentExecutions.map((exec) => (
                   <div key={exec.id} className="flex items-center gap-3 rounded-lg border p-3 text-sm">
                     <div className={`h-2 w-2 rounded-full shrink-0 ${
-                      exec.status === 'completed' ? 'bg-[#2F4858]' :
-                      exec.status === 'failed' ? 'bg-[#8c1f28]' :
+                      exec.status === 'completed' ? 'bg-[#2F5D5A]' :
+                      exec.status === 'failed' ? 'bg-[#A04D1F]' :
                       exec.status === 'rejected' ? 'bg-amber-500' :
                       'bg-slate-400'
                     }`} />

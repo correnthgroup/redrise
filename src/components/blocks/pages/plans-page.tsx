@@ -3,54 +3,56 @@ import { Check, Crown, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { useI18n } from '@/hooks/use-i18n'
 
 type Plan = {
   name: 'Free' | 'Business' | 'Corporate'
-  badge: string
+  badgeKey: string
   price: string
-  description: string
-  highlights: string[]
-  access: string[]
-  cta?: string
+  descriptionKey: string
+  highlightKeys: string[]
+  accessKeys: string[]
+  ctaKey?: string
   featured?: boolean
 }
 
 const PLANS: Plan[] = [
   {
     name: 'Free',
-    badge: 'Current placeholder',
+    badgeKey: 'plans.freeBadge',
     price: '$0',
-    description: 'Starter workspace for early setup, validation and lightweight operations.',
-    highlights: ['Placeholder workspace limit', 'Placeholder member limit', 'Basic tasks and flows', 'Community-level support'],
-    access: ['Admin: manages own workspace', 'Member: contributes to assigned work', 'Viewer: read-only visibility'],
+    descriptionKey: 'plans.freeDesc',
+    highlightKeys: ['plans.placeholderWorkspaceLimit', 'plans.placeholderMemberLimit', 'plans.basicTasksFlows', 'plans.communitySupport'],
+    accessKeys: ['plans.accessFreeAdmin', 'plans.accessFreeMember', 'plans.accessFreeViewer'],
   },
   {
     name: 'Business',
-    badge: 'Growth placeholder',
+    badgeKey: 'plans.businessBadge',
     price: '$-- / mo',
-    description: 'Operational plan for teams that need more flows, agents and integrations.',
-    highlights: ['Expanded workspace limits', 'More team seats', 'Advanced flow automation', 'Priority operational analytics'],
-    access: ['Admin: manages team and billing', 'Member: creates tasks and flows', 'Viewer: reviews dashboards and progress'],
-    cta: 'Join Now',
+    descriptionKey: 'plans.businessDesc',
+    highlightKeys: ['plans.expandedWorkspaceLimits', 'plans.moreTeamSeats', 'plans.advancedFlowAutomation', 'plans.priorityAnalytics'],
+    accessKeys: ['plans.accessBusinessAdmin', 'plans.accessBusinessMember', 'plans.accessBusinessViewer'],
+    ctaKey: 'plans.joinNow',
     featured: true,
   },
   {
     name: 'Corporate',
-    badge: 'Scale placeholder',
+    badgeKey: 'plans.corporateBadge',
     price: 'Custom',
-    description: 'Enterprise-grade controls for larger teams, compliance and guided rollout.',
-    highlights: ['Custom seat model', 'Advanced audit controls', 'Dedicated onboarding', 'Security and governance options'],
-    access: ['Admin: governs teams and policies', 'Member: operates approved workflows', 'Viewer: access-controlled reporting'],
-    cta: 'Join Now',
+    descriptionKey: 'plans.corporateDesc',
+    highlightKeys: ['plans.customSeatModel', 'plans.advancedAuditControls', 'plans.dedicatedOnboarding', 'plans.securityGovernance'],
+    accessKeys: ['plans.accessCorporateAdmin', 'plans.accessCorporateMember', 'plans.accessCorporateViewer'],
+    ctaKey: 'plans.joinNow',
   },
 ]
 
 export function PlansPage() {
+  const { t } = useI18n()
   const [notice] = useState(() => new URLSearchParams(window.location.search).get('checkout') === 'success')
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null)
 
   function startCheckout(plan: Plan['name']) {
-    setCheckoutMessage(`${plan} checkout is ready for Stripe configuration. Payment links and webhooks will be connected next.`)
+    setCheckoutMessage(t('plans.checkoutReady', { plan }))
   }
 
   function restartApp() {
@@ -62,11 +64,11 @@ export function PlansPage() {
       <Card className="gap-3 rounded-xl border p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Plans</h2>
-            <p className="mt-1.5 text-sm text-muted-foreground">Compare Free, Business and Corporate access before Stripe billing is connected.</p>
+            <h2 className="text-2xl font-semibold tracking-tight">{t('settings.plans')}</h2>
+            <p className="mt-1.5 text-sm text-muted-foreground">{t('plans.desc')}</p>
           </div>
-          <Badge variant="outline" className="w-fit border-[#2F4858]/25 bg-[#2F4858]/8 text-[#2F4858]">
-            Placeholder content
+          <Badge variant="outline" className="w-fit border-[#2F5D5A]/25 bg-[#2F5D5A]/8 text-[#2F5D5A]">
+            {t('plans.placeholderContent')}
           </Badge>
         </div>
         {notice ? (
@@ -74,14 +76,14 @@ export function PlansPage() {
             <div className="flex items-start gap-3">
               <RefreshCw className="mt-0.5 h-4 w-4" />
               <div className="space-y-3">
-                <p className="font-medium">Restart the app for the new features to take effect.</p>
-                <Button type="button" size="sm" onClick={restartApp}>Restart Now</Button>
+                <p className="font-medium">{t('plans.restart')}</p>
+                <Button type="button" size="sm" onClick={restartApp}>{t('plans.restartNow')}</Button>
               </div>
             </div>
           </div>
         ) : null}
         {checkoutMessage ? (
-          <div className="rounded-xl border border-[#2F4858]/20 bg-[#2F4858]/8 p-4 text-sm text-[#2F4858]">
+          <div className="rounded-xl border border-[#2F5D5A]/20 bg-[#2F5D5A]/8 p-4 text-sm text-[#2F5D5A]">
             {checkoutMessage}
           </div>
         ) : null}
@@ -93,37 +95,37 @@ export function PlansPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  {plan.name === 'Free' ? <Sparkles className="h-4 w-4 text-[#2F4858]" /> : plan.name === 'Business' ? <Crown className="h-4 w-4 text-primary" /> : <ShieldCheck className="h-4 w-4 text-[#2F4858]" />}
+                  {plan.name === 'Free' ? <Sparkles className="h-4 w-4 text-[#2F5D5A]" /> : plan.name === 'Business' ? <Crown className="h-4 w-4 text-primary" /> : <ShieldCheck className="h-4 w-4 text-[#2F5D5A]" />}
                   <h3 className="text-lg font-semibold">{plan.name}</h3>
                 </div>
-                <Badge variant="outline">{plan.badge}</Badge>
+                <Badge variant="outline">{t(plan.badgeKey)}</Badge>
               </div>
               <div>
                 <p className="text-2xl font-semibold">{plan.price}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{t(plan.descriptionKey)}</p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Includes</p>
-              {plan.highlights.map((item) => (
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('plans.includes')}</p>
+              {plan.highlightKeys.map((item) => (
                 <div key={item} className="flex gap-2 text-sm">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-                  <span>{item}</span>
+                  <span>{t(item)}</span>
                 </div>
               ))}
             </div>
 
             <div className="space-y-2 rounded-lg bg-muted/35 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Access levels</p>
-              {plan.access.map((item) => <p key={item} className="text-xs leading-5 text-muted-foreground">{item}</p>)}
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('plans.accessLevels')}</p>
+              {plan.accessKeys.map((item) => <p key={item} className="text-xs leading-5 text-muted-foreground">{t(item)}</p>)}
             </div>
 
             <div className="mt-auto">
-              {plan.cta ? (
-                <Button type="button" className="w-full" onClick={() => startCheckout(plan.name)}>{plan.cta}</Button>
+              {plan.ctaKey ? (
+                <Button type="button" className="w-full" onClick={() => startCheckout(plan.name)}>{t(plan.ctaKey)}</Button>
               ) : (
-                <Button type="button" variant="outline" className="w-full" disabled>Current Plan</Button>
+                <Button type="button" variant="outline" className="w-full" disabled>{t('plans.currentPlan')}</Button>
               )}
             </div>
           </Card>

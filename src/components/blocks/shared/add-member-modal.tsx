@@ -19,6 +19,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { addTeamMember, type TeamMemberRole } from '@/lib/team-members'
+import { useI18n } from '@/hooks/use-i18n'
+
+type InviteRoleOption = 'staff' | TeamMemberRole
 
 export function AddMemberModal({
   trigger,
@@ -33,8 +36,9 @@ export function AddMemberModal({
   ownerUserId: string
   onMemberAdded?: () => void
 }) {
+  const { t } = useI18n()
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
-  const [perm, setPerm] = useState<TeamMemberRole>('member')
+  const [perm, setPerm] = useState<InviteRoleOption>('staff')
   const [email, setEmail] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -44,14 +48,22 @@ export function AddMemberModal({
   async function handleInvite() {
     setError(null)
     setSubmitting(true)
-    const created = await addTeamMember(ownerUserId, email, perm)
+    const resolvedRole: TeamMemberRole = perm === 'staff' ? 'admin' : perm
+    const memberFunction = perm === 'staff'
+      ? 'Staff'
+      : perm === 'member'
+        ? 'Member'
+        : perm === 'viewer'
+          ? 'Viewer'
+          : 'Admin'
+    const created = await addTeamMember(ownerUserId, email, resolvedRole, memberFunction)
     setSubmitting(false)
     if (!created) {
-      setError('Could not send the invite. Check the email and try again.')
+      setError(t('settings.inviteError'))
       return
     }
     setEmail('')
-    setPerm('member')
+    setPerm('staff')
     onMemberAdded?.()
     setOpen(false)
   }
@@ -61,22 +73,23 @@ export function AddMemberModal({
       {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add team members</DialogTitle>
-          <DialogDescription>Invite people and assign their default permission.</DialogDescription>
+          <DialogTitle>{t('settings.addTeamMembers')}</DialogTitle>
+          <DialogDescription>{t('settings.invitePeople')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_8rem] sm:items-end">
             <div className="space-y-1">
-            <Label htmlFor="new-email">Invite a new email</Label>
+            <Label htmlFor="new-email">{t('settings.inviteEmail')}</Label>
               <Input id="new-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
             </div>
-            <Select value={perm} onValueChange={(value) => setPerm(value as TeamMemberRole)}>
+            <Select value={perm} onValueChange={(value) => setPerm(value as InviteRoleOption)}>
               <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="member">Member</SelectItem>
-                <SelectItem value="viewer">Viewer</SelectItem>
+                <SelectItem value="staff">{t('settings.roleStaff')}</SelectItem>
+                <SelectItem value="admin">{t('settings.roleAdmin')}</SelectItem>
+                <SelectItem value="member">{t('settings.roleMember')}</SelectItem>
+                <SelectItem value="viewer">{t('settings.roleViewer')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -84,8 +97,8 @@ export function AddMemberModal({
         </div>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)} disabled={submitting}>Cancel</Button>
-          <Button onClick={handleInvite} disabled={submitting || !email.trim()}>Send invites</Button>
+          <Button variant="ghost" onClick={() => setOpen(false)} disabled={submitting}>{t('common.cancel')}</Button>
+          <Button onClick={handleInvite} disabled={submitting || !email.trim()}>{t('settings.sendInvites')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

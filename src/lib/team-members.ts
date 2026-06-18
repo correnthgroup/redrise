@@ -57,7 +57,7 @@ export async function loadTeamMembers(ownerUserId: string): Promise<TeamMember[]
     .from('team_members')
     .select('*')
     .eq('owner_user_id', ownerUserId)
-    .order('joined_at', { ascending: true })
+    .order('joined_at', { ascending: false })
 
   if (error) return []
 
@@ -88,7 +88,12 @@ export async function loadTeamMembers(ownerUserId: string): Promise<TeamMember[]
   })
 }
 
-export async function addTeamMember(_ownerUserId: string, email: string, role: TeamMemberRole) {
+export async function addTeamMember(
+  ownerUserId: string,
+  email: string,
+  role: TeamMemberRole,
+  memberFunction?: string,
+) {
   const cleanEmail = email.trim().toLowerCase()
   if (!cleanEmail) return null
 
@@ -97,6 +102,15 @@ export async function addTeamMember(_ownerUserId: string, email: string, role: T
   })
 
   if (error) return null
+
+  if (memberFunction) {
+    await supabase
+      .from('team_members')
+      .update({ function: memberFunction })
+      .eq('owner_user_id', ownerUserId)
+      .eq('invite_email', cleanEmail)
+  }
+
   return data as { ok: true; emailSent?: boolean; emailError?: string | null; existingAccount?: boolean }
 }
 

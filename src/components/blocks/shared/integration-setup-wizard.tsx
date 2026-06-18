@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { createIntegration, loadIntegrations, type Integration } from '@/lib/integrations'
+import { useI18n } from '@/hooks/use-i18n'
 
 type IntegrationOption = {
   id: string
@@ -25,10 +26,10 @@ const INTEGRATIONS: IntegrationOption[] = [
 ]
 
 const STEPS = [
-  { id: 1, label: 'Select Integration' },
-  { id: 2, label: 'Configure' },
-  { id: 3, label: 'Test Connection' },
-  { id: 4, label: 'Review' },
+  { id: 1, labelKey: 'integration.stepSelect' },
+  { id: 2, labelKey: 'integration.stepConfigure' },
+  { id: 3, labelKey: 'integration.stepTest' },
+  { id: 4, labelKey: 'integration.stepReview' },
 ] as const
 
 export function IntegrationSetupWizard() {
@@ -41,6 +42,7 @@ export function IntegrationSetupWizard() {
   const [completed, setCompleted] = useState(false)
   const [saving, setSaving] = useState(false)
   const [existing, setExisting] = useState<Integration[]>([])
+  const { t } = useI18n()
 
   useEffect(() => {
     loadIntegrations().then(setExisting).catch(() => {})
@@ -79,13 +81,13 @@ export function IntegrationSetupWizard() {
   return (
     <Card className="gap-0 rounded-xl p-6">
       <div className="flex flex-col gap-1">
-        <h3 className="text-base font-semibold">Integration Setup</h3>
-        <p className="text-sm text-muted-foreground">Connect the workspace to external services in 4 steps.</p>
+        <h3 className="text-base font-semibold">{t('integration.title')}</h3>
+        <p className="text-sm text-muted-foreground">{t('integration.desc')}</p>
       </div>
 
       {existing.length > 0 && (
         <div className="mt-4 space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Active Integrations</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('integration.activeIntegrations')}</p>
           <div className="flex flex-wrap gap-2">
             {existing.map((ig) => (
               <Badge key={ig.id} variant="outline" className="gap-1">
@@ -105,7 +107,7 @@ export function IntegrationSetupWizard() {
           return (
             <li key={item.id} className={isCurrent ? 'flex items-center gap-2 rounded-md border border-foreground bg-foreground px-3 py-2 text-xs font-medium text-background' : isDone ? 'flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700' : 'flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-xs font-medium text-muted-foreground'}>
               {isDone ? <Check className="h-3.5 w-3.5" /> : isCurrent ? <CircleDashed className="h-3.5 w-3.5" /> : <span className="text-[10px] font-semibold">{item.id}</span>}
-              {item.label}
+              {t(item.labelKey)}
             </li>
           )
         })}
@@ -115,7 +117,7 @@ export function IntegrationSetupWizard() {
 
       {step === 1 ? (
         <div className="space-y-3">
-          <p className="text-sm font-medium">Choose an Integration</p>
+          <p className="text-sm font-medium">{t('integration.chooseIntegration')}</p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {INTEGRATIONS.map((integration) => {
               const isActive = selected?.id === integration.id
@@ -140,12 +142,12 @@ export function IntegrationSetupWizard() {
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-muted">{selected?.icon}</span>
-            Configuring <span className="font-semibold text-foreground">{selected?.name}</span>
+            {t('integration.configuring')} <span className="font-semibold text-foreground">{selected?.name}</span>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2"><Label htmlFor="integrationName">Display Name</Label><Input id="integrationName" value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Production Slack" /></div>
-            <div className="space-y-2"><Label htmlFor="integrationEndpoint">Endpoint URL</Label><Input id="integrationEndpoint" value={endpoint} onChange={(event) => setEndpoint(event.target.value)} placeholder="https://hooks.example.com/..." /></div>
-            <div className="space-y-2 sm:col-span-2"><Label htmlFor="integrationToken">API Token</Label><Input id="integrationToken" type="password" value={token} onChange={(event) => setToken(event.target.value)} placeholder="Paste your integration token" /></div>
+            <div className="space-y-2"><Label htmlFor="integrationName">{t('integration.displayName')}</Label><Input id="integrationName" value={name} onChange={(event) => setName(event.target.value)} placeholder={t('integration.displayNamePlaceholder')} /></div>
+            <div className="space-y-2"><Label htmlFor="integrationEndpoint">{t('integration.endpointUrl')}</Label><Input id="integrationEndpoint" value={endpoint} onChange={(event) => setEndpoint(event.target.value)} placeholder="https://hooks.example.com/..." /></div>
+            <div className="space-y-2 sm:col-span-2"><Label htmlFor="integrationToken">{t('integration.apiToken')}</Label><Input id="integrationToken" type="password" value={token} onChange={(event) => setToken(event.target.value)} placeholder={t('integration.apiTokenPlaceholder')} /></div>
           </div>
         </div>
       ) : null}
@@ -154,35 +156,35 @@ export function IntegrationSetupWizard() {
         <div className="space-y-4">
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div className="space-y-1">
-              <p className="text-sm font-medium">Test Connection</p>
-              <p className="text-xs text-muted-foreground">Send a synthetic ping to <span className="font-mono">{endpoint || ''}</span>.</p>
+              <p className="text-sm font-medium">{t('integration.testConnection')}</p>
+              <p className="text-xs text-muted-foreground">{t('integration.testConnectionDesc')} <span className="font-mono">{endpoint || ''}</span>.</p>
             </div>
             <Button type="button" onClick={() => {
               setTestStatus('running')
               window.setTimeout(() => setTestStatus(endpoint.startsWith('https://') ? 'ok' : 'fail'), 900)
             }} disabled={testStatus === 'running'}>
               <PlugZap className="h-4 w-4" />
-              {testStatus === 'running' ? 'Testing...' : 'Run Test'}
+              {testStatus === 'running' ? t('common.testing') : t('common.runTest')}
             </Button>
           </div>
-          {testStatus === 'ok' ? <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700"><CheckCircle2 className="h-4 w-4" />Connection successful.</div> : null}
-          {testStatus === 'fail' ? <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">The test failed. Use an HTTPS endpoint placeholder to continue.</div> : null}
+          {testStatus === 'ok' ? <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700"><CheckCircle2 className="h-4 w-4" />{t('integration.connectionSuccessful')}</div> : null}
+          {testStatus === 'fail' ? <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{t('integration.testFailed')}</div> : null}
         </div>
       ) : null}
 
       {step === 4 ? (
         <div className="space-y-4 rounded-lg border p-4 text-sm">
-          <div><strong>Integration:</strong> {selected?.name ?? ''}</div>
-          <div><strong>Display Name:</strong> {name || ''}</div>
-          <div><strong>Endpoint:</strong> {endpoint || ''}</div>
-          <div><strong>Token:</strong> {token ? 'configured' : 'empty'}</div>
+          <div><strong>{t('integration.integrationLabel')}</strong> {selected?.name ?? ''}</div>
+          <div><strong>{t('integration.displayLabel')}</strong> {name || ''}</div>
+          <div><strong>{t('integration.endpointLabel')}</strong> {endpoint || ''}</div>
+          <div><strong>{t('integration.tokenLabel')}</strong> {token ? t('integration.tokenConfigured') : t('integration.tokenEmpty')}</div>
         </div>
       ) : null}
 
       <div className="mt-6 flex items-center justify-between">
         <Button type="button" variant="outline" onClick={() => setStep((current) => current === 1 ? 1 : current === 2 ? 1 : current === 3 ? 2 : 3)} disabled={step === 1}>
           <ArrowLeft className="h-4 w-4" />
-          Back
+          {t('common.back')}
         </Button>
         <Button type="button" onClick={() => {
           if (step === 4) {
@@ -191,7 +193,7 @@ export function IntegrationSetupWizard() {
           }
           setStep((current) => current === 1 ? 2 : current === 2 ? 3 : current === 3 ? 4 : 4)
         }} disabled={(step === 1 && !selected) || (step === 2 && (!name.trim() || !endpoint.trim())) || (step === 3 && testStatus !== 'ok') || saving}>
-          {step === 4 ? (saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</> : 'Finish') : 'Next'}
+          {step === 4 ? (saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('common.saving')}</> : t('common.finish')) : t('common.next')}
           {step === 4 || saving ? null : <ArrowRight className="h-4 w-4" />}
         </Button>
       </div>

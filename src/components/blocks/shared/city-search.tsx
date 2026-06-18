@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { MapPin } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { searchCities, type CityData } from '@/lib/cities'
+import { useI18n } from '@/hooks/use-i18n'
 
 export function CitySearch({
   value,
@@ -13,6 +14,7 @@ export function CitySearch({
   const [query, setQuery] = useState(value)
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const { t } = useI18n()
 
   const results = query.length >= 2 ? searchCities(query) : []
 
@@ -31,7 +33,7 @@ export function CitySearch({
       <div className="relative">
         <MapPin className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search city..."
+          placeholder={t('citySearch.placeholder')}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value)

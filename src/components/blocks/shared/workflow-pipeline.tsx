@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
+import { useI18n } from '@/hooks/use-i18n'
 
 interface FlowCard {
   name: string
@@ -44,6 +45,7 @@ export function WorkflowPipeline({ cards }: WorkflowPipelineProps) {
     : hasSelection ? [] : PLACEHOLDER_NODES
 
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
+  const { t } = useI18n()
 
   function toggleCheck(id: string) {
     setCheckedIds((prev) => {
@@ -70,7 +72,7 @@ export function WorkflowPipeline({ cards }: WorkflowPipelineProps) {
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
-        <CardTitle className="text-sm font-semibold">Workflow Pipeline</CardTitle>
+        <CardTitle className="text-sm font-semibold">{t('pipeline.title')}</CardTitle>
         <div className="flex gap-1">
           <Button variant="ghost" size="icon" className="h-7 w-7"><Play className="h-3.5 w-3.5" /></Button>
           <Button variant="ghost" size="icon" className="h-7 w-7"><Pause className="h-3.5 w-3.5" /></Button>
@@ -79,9 +81,9 @@ export function WorkflowPipeline({ cards }: WorkflowPipelineProps) {
       </CardHeader>
       <CardContent>
         {!hasSelection ? (
-          <p className="text-sm text-muted-foreground text-center py-8">Select a Flow to Run It</p>
+          <p className="text-sm text-muted-foreground text-center py-8">{t('pipeline.selectFlow')}</p>
         ) : nodes.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">No cards in this flow</p>
+          <p className="text-sm text-muted-foreground text-center py-8">{t('pipeline.noCards')}</p>
         ) : (
           <>
             <div className="flex items-center gap-2 mb-3">
@@ -90,7 +92,7 @@ export function WorkflowPipeline({ cards }: WorkflowPipelineProps) {
                 onCheckedChange={toggleAll}
               />
               <button type="button" onClick={toggleAll} className="text-xs text-muted-foreground hover:text-foreground">
-                {allSelected ? 'Deselect All' : 'Select All'}
+                {allSelected ? t('pipeline.deselectAll') : t('pipeline.selectAll')}
               </button>
             </div>
             <ol className="space-y-2">
@@ -105,12 +107,12 @@ export function WorkflowPipeline({ cards }: WorkflowPipelineProps) {
                     <div className="font-medium truncate">{n.name}</div>
                     {(n.members.length > 0 || n.agents.length > 0) && (
                       <div className="text-xs text-muted-foreground truncate">
-                        {n.members.length > 0 && <span>Members: {n.members.join(', ')}</span>}
+                        {n.members.length > 0 && <span>{t('pipeline.members')} {n.members.join(', ')}</span>}
                         {n.members.length > 0 && n.agents.length > 0 && <span> · </span>}
-                        {n.agents.length > 0 && <span>Agents: {n.agents.join(', ')}</span>}
+                        {n.agents.length > 0 && <span>{t('pipeline.agents')} {n.agents.join(', ')}</span>}
                       </div>
                     )}
-                    <div className="text-[10px] text-muted-foreground/60 font-mono">ID: {n.id}</div>
+                    <div className="text-[10px] text-muted-foreground/60 font-mono">{t('common.id', { id: n.id })}</div>
                   </div>
                   <Badge variant="outline" className="text-[10px] uppercase">{n.status}</Badge>
                 </li>

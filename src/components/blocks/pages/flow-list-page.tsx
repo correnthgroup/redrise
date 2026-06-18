@@ -43,9 +43,9 @@ const PLACEHOLDER_FLOW_CARDS: Record<string, FlowCard[]> = {
 function badgeClassName(status: string) {
   switch (status) {
     case 'running':
-      return 'border-[#2F4858]/25 bg-[#2F4858]/8 text-[#2F4858]'
+      return 'border-[#2F5D5A]/25 bg-[#2F5D5A]/8 text-[#2F5D5A]'
     case 'paused':
-      return 'border-[#B7791F]/20 bg-[#FFF4DB] text-[#8A6116]'
+      return 'border-[#B7791F]/20 bg-[#FFF8E1] text-[#7A3E14]'
     default:
       return 'border-primary/20 bg-primary/8 text-primary'
   }
@@ -97,12 +97,12 @@ export function FlowListPage({
         <div className="flex items-center gap-2">
           <div className="relative max-w-sm flex-1">
             <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search flows" className="pl-7 h-9" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('flow.searchFlows')} className="pl-7 h-9" />
           </div>
         </div>
 
         <Card className="min-h-0 flex-1 border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
-          <CardHeader><CardTitle className="text-sm font-semibold">Flows</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm font-semibold">{t('flow.flows')}</CardTitle></CardHeader>
           <CardContent>
             {filtered.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">{t('flow.noFlows')}</p>
@@ -142,8 +142,8 @@ export function FlowListPage({
                         ) : (
                           <>
                             <div className="font-medium truncate">{f.name}</div>
-                            <div className="mt-0.5 text-xs text-muted-foreground truncate">Members: {f.members?.join(', ') || 'None'}</div>
-                            <div className="mt-0.5 text-[10px] text-muted-foreground/60 font-mono">ID: {f.id}</div>
+                            <div className="mt-0.5 text-xs text-muted-foreground truncate">{t('flow.members', { members: f.members?.join(', ') || t('flow.none') })}</div>
+                            <div className="mt-0.5 text-[10px] text-muted-foreground/60 font-mono">{t('common.id', { id: f.id })}</div>
                           </>
                         )}
                       </div>
@@ -163,10 +163,10 @@ export function FlowListPage({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="w-56">
-                            <DropdownMenuLabel>Select members</DropdownMenuLabel>
+                            <DropdownMenuLabel>{t('flow.selectMembers')}</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            {loadingMembers ? <div className="px-2 py-1.5 text-sm text-muted-foreground">Loading members...</div> : null}
-                            {!loadingMembers && teamMembers.length === 0 ? <div className="px-2 py-1.5 text-sm text-muted-foreground">No members available</div> : null}
+                            {loadingMembers ? <div className="px-2 py-1.5 text-sm text-muted-foreground">{t('flow.loadingMembers')}</div> : null}
+                            {!loadingMembers && teamMembers.length === 0 ? <div className="px-2 py-1.5 text-sm text-muted-foreground">{t('flow.noMembersAvailable')}</div> : null}
                             {teamMembers.map((member) => (
                               <DropdownMenuCheckboxItem
                                 key={member.id}
@@ -203,14 +203,14 @@ export function FlowListPage({
       <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open) { setDeleteTarget(null); setDeleteConfirm('') } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Flow</DialogTitle>
+            <DialogTitle>{t('flow.deleteFlow')}</DialogTitle>
             <DialogDescription>
-              This action cannot be undone. Type <strong>DELETE</strong> to confirm.
+              {t('flow.deleteFlowDesc')}
             </DialogDescription>
           </DialogHeader>
-          <Input value={deleteConfirm} onChange={(event) => setDeleteConfirm(event.target.value)} placeholder="Type DELETE to confirm" />
+          <Input value={deleteConfirm} onChange={(event) => setDeleteConfirm(event.target.value)} placeholder={t('flow.typeDelete')} />
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setDeleteTarget(null); setDeleteConfirm('') }}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setDeleteTarget(null); setDeleteConfirm('') }}>{t('common.cancel')}</Button>
             <Button
               variant="destructive"
               disabled={deleteConfirm !== 'DELETE' || !deleteTarget}
@@ -220,7 +220,7 @@ export function FlowListPage({
                 setDeleteConfirm('')
               }}
             >
-              Delete Flow
+              {t('flow.deleteFlow')}
             </Button>
           </DialogFooter>
         </DialogContent>

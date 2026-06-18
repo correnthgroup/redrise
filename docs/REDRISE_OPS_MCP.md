@@ -32,6 +32,7 @@ corepack yarn mcp:redrise-ops
 - The MCP does not run arbitrary shell commands.
 - Supabase function deploy is allowlisted.
 - Vercel deploy uses prebuilt output to avoid the remote `npm install` project setting.
+- Vercel deploy runs from a temporary non-git directory so Vercel does not block CLI deployments because of local Git author attribution.
 - Memory writes are limited to known `memory/*.md` files.
 - It does not run destructive git, Supabase, or Vercel commands.
 

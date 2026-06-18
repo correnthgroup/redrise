@@ -7,10 +7,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { createApiKey, loadApiKeys, revokeApiKey, type ApiKey } from '@/lib/api-keys'
+import { useI18n } from '@/hooks/use-i18n'
 
 const SCOPE_OPTIONS = ['agents:read', 'agents:write', 'tasks:read', 'tasks:write', 'analytics:read', 'integrations:manage'] as const
 
 export function ApiKeysManager() {
+  const { t, locale } = useI18n()
   const [keys, setKeys] = useState<ApiKey[]>([])
   const [loading, setLoading] = useState(true)
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({})
@@ -52,30 +54,30 @@ export function ApiKeysManager() {
   }
 
   function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    return new Date(iso).toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })
   }
 
   return (
     <Card className="gap-0 rounded-xl p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-base font-semibold">API Keys</h3>
-          <p className="text-sm text-muted-foreground">Create and manage API keys to access the workspace programmatically. Keep them secret.</p>
+          <h3 className="text-base font-semibold">{t('settings.apiKeysTitle')}</h3>
+          <p className="text-sm text-muted-foreground">{t('settings.apiKeysFullDesc')}</p>
         </div>
         <Button type="button" size="sm" onClick={() => setShowCreate((value) => !value)}>
           <Plus className="h-4 w-4" />
-          New Key
+          {t('settings.newKey')}
         </Button>
       </div>
 
       {showCreate ? (
         <form className="mt-4 space-y-4 rounded-lg border bg-muted/30 p-4" onSubmit={handleCreate}>
           <div className="space-y-2">
-            <Label htmlFor="keyName">Key Name</Label>
-            <Input id="keyName" value={newName} onChange={(event) => setNewName(event.target.value)} placeholder="e.g. Production · dashboard" />
+            <Label htmlFor="keyName">{t('settings.keyName')}</Label>
+            <Input id="keyName" value={newName} onChange={(event) => setNewName(event.target.value)} placeholder={t('settings.keyNamePlaceholder')} />
           </div>
           <div className="space-y-2">
-            <Label>Scopes</Label>
+            <Label>{t('settings.scopes')}</Label>
             <div className="flex flex-wrap gap-2">
               {SCOPE_OPTIONS.map((scope) => {
                 const active = newScopes.includes(scope)
@@ -93,9 +95,9 @@ export function ApiKeysManager() {
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={() => setShowCreate(false)}>{t('common.cancel')}</Button>
             <Button type="submit" disabled={!newName.trim() || newScopes.length === 0 || saving}>
-              {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating...</> : 'Create Key'}
+              {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('settings.creating')}</> : t('settings.createKey')}
             </Button>
           </div>
         </form>
@@ -103,7 +105,7 @@ export function ApiKeysManager() {
 
       {createdSecret && createdKeyId ? (
         <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-medium text-amber-800">Copy your API key now. It will not be shown again.</p>
+          <p className="text-sm font-medium text-amber-800">{t('settings.copyApiKeyNow')}</p>
           <div className="mt-2 flex items-center gap-2 rounded-md bg-background px-3 py-2 font-mono text-xs">
             <span className="flex-1 truncate">{createdSecret}</span>
             <button type="button" onClick={async () => {
@@ -114,8 +116,8 @@ export function ApiKeysManager() {
               <Copy className="h-4 w-4" />
             </button>
           </div>
-          {copiedId === createdKeyId ? <p className="mt-1 text-xs text-emerald-600">Copied to clipboard.</p> : null}
-          <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => { setCreatedSecret(null); setCreatedKeyId(null) }}>Dismiss</Button>
+          {copiedId === createdKeyId ? <p className="mt-1 text-xs text-emerald-600">{t('settings.copiedClipboard')}</p> : null}
+          <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => { setCreatedSecret(null); setCreatedKeyId(null) }}>{t('settings.dismiss')}</Button>
         </div>
       ) : null}
 
@@ -128,7 +130,7 @@ export function ApiKeysManager() {
       ) : (
         <div className="space-y-3">
           {keys.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">No API keys yet.</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">{t('settings.noApiKeys')}</p>
           ) : (
             keys.map((key) => {
               const revealed = showSecrets[key.id]
@@ -140,11 +142,11 @@ export function ApiKeysManager() {
                         <KeyRound className="h-4 w-4 text-muted-foreground" />
                         <p className="text-sm font-semibold">{key.name}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground">Created {formatDate(key.created_at)}{key.last_used_at ? ` · Last used ${formatDate(key.last_used_at)}` : ' · Never used'}</p>
+                      <p className="text-xs text-muted-foreground">{t('settings.createdDate', { date: formatDate(key.created_at) })}{key.last_used_at ? ` · ${t('settings.lastUsedDate', { date: formatDate(key.last_used_at) })}` : ` · ${t('settings.neverUsed')}`}</p>
                     </div>
                     <Button type="button" variant="outline" size="sm" onClick={() => handleRevoke(key.id)}>
                       <Trash2 className="h-4 w-4" />
-                      Revoke
+                      {t('sessions.revoke')}
                     </Button>
                   </div>
 
@@ -165,7 +167,7 @@ export function ApiKeysManager() {
                       <Copy className="h-4 w-4" />
                     </button>
                   </div>
-                  {copiedId === key.id ? <p className="text-xs text-emerald-600">Copied to clipboard.</p> : null}
+                  {copiedId === key.id ? <p className="text-xs text-emerald-600">{t('settings.copiedClipboard')}</p> : null}
                   <div className="flex flex-wrap gap-1.5">
                     {key.scopes.map((scope) => (
                       <Badge key={scope} variant="outline" className="bg-background text-muted-foreground">{scope}</Badge>

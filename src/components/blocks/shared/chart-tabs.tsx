@@ -1,5 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useI18n } from '@/hooks/use-i18n'
 
 type ChartTabsProps = {
   executionsByDay?: { date: string; count: number }[]
@@ -30,27 +31,28 @@ function SimpleAreaChart({ data, stroke }: { data: { x: string; y: number }[]; s
 }
 
 export function ChartTabs({ executionsByDay = [] }: ChartTabsProps) {
+  const { t } = useI18n()
   const usageData = executionsByDay.map((d) => ({ x: d.date.slice(5), y: d.count }))
   const errorData = usageData.map((d) => ({ x: d.x, y: Math.round(d.y * 0.05 + (d.y % 3)) }))
   const latencyData = usageData.map((d) => ({ x: d.x, y: Math.round(300 + Math.sin(d.y) * 100 + (d.y % 5) * 10) }))
 
   const SERIES = {
-    usage: { stroke: '#2F4858', label: 'AI executions per day', data: usageData.length > 0 ? usageData : [{ x: 'No data', y: 0 }] },
-    errors: { stroke: '#8c1f28', label: 'Failed executions', data: errorData.length > 0 ? errorData : [{ x: 'No data', y: 0 }] },
-    latency: { stroke: '#64748B', label: 'Avg response time (ms)', data: latencyData.length > 0 ? latencyData : [{ x: 'No data', y: 0 }] },
+    usage: { stroke: '#2F5D5A', label: t('dashboard.aiExecutionsPerDay'), data: usageData.length > 0 ? usageData : [{ x: t('dashboard.noData'), y: 0 }] },
+    errors: { stroke: '#A04D1F', label: t('dashboard.failedExecutions'), data: errorData.length > 0 ? errorData : [{ x: t('dashboard.noData'), y: 0 }] },
+    latency: { stroke: '#64748B', label: t('dashboard.avgResponseTime'), data: latencyData.length > 0 ? latencyData : [{ x: t('dashboard.noData'), y: 0 }] },
   } as const
 
   return (
     <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
       <CardHeader>
-        <CardTitle className="text-sm font-semibold">Operational Overview</CardTitle>
+        <CardTitle className="text-sm font-semibold">{t('dashboard.operationalOverview')}</CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="usage">
           <TabsList className="bg-muted/80">
-            <TabsTrigger value="usage">Executions</TabsTrigger>
-            <TabsTrigger value="errors">Errors</TabsTrigger>
-            <TabsTrigger value="latency">Latency</TabsTrigger>
+            <TabsTrigger value="usage">{t('dashboard.executions')}</TabsTrigger>
+            <TabsTrigger value="errors">{t('dashboard.errors')}</TabsTrigger>
+            <TabsTrigger value="latency">{t('dashboard.latency')}</TabsTrigger>
           </TabsList>
           {Object.entries(SERIES).map(([key, meta]) => (
             <TabsContent key={key} value={key} className="h-64">

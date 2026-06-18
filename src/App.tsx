@@ -1,12 +1,13 @@
-﻿import { useEffect, useState } from 'react'
+﻿import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppFrame } from '@/components/layout/app-frame'
 import { AuthFlow } from '@/components/auth/auth-flow'
+import { LoadingScreen } from '@/components/auth/loading-screen'
 import { AppShell } from '@/components/layout/app-shell'
 import { supabase } from '@/lib/supabase'
-import type { User } from '@supabase/supabase-js'
+import type { Session, User } from '@supabase/supabase-js'
 import { I18nProvider } from '@/components/providers/i18n-provider'
 import { ErrorBoundary } from '@/components/error-boundary'
-import { loadUserProfile, PROFILE_UPDATED_EVENT, touchPresence, type UserProfile } from '@/lib/user-profile'
+import { loadUserProfile, PROFILE_UPDATED_EVENT, registerActiveSession, revokeCurrentActiveSession, touchCurrentActiveSession, touchPresence, type UserProfile } from '@/lib/user-profile'
 import { FlowBuilderPage } from '@/components/blocks/pages/flow-builder-page'
 import { AgentCreatePage } from '@/components/blocks/pages/agent-create-page'
 import { AgentDetailPage } from '@/components/blocks/pages/agent-detail-page'
@@ -20,36 +21,73 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showLoading, setShowLoading] = useState(false)
+  const [authCheckError, setAuthCheckError] = useState(false)
+  const [loadingMessage, setLoadingMessage] = useState('Verifying your session...')
+  const suppressNextAuthSessionRef = useRef(false)
 
-  useEffect(() => {
-    async function syncSessionUser(sessionUser: User | null) {
-      setUser(sessionUser)
-      if (!sessionUser) {
-        setProfile(null)
-        return
-      }
-
-      const nextProfile = await loadUserProfile({
-        id: sessionUser.id,
-        name: sessionUser.user_metadata?.full_name || sessionUser.email?.split('@')[0] || 'User',
-        email: sessionUser.email || '',
-      })
-      setProfile(nextProfile)
-      await touchPresence(sessionUser.id)
+  const syncSessionUser = useCallback(async (session: Session | null) => {
+    const sessionUser = session?.user ?? null
+    if (sessionUser && suppressNextAuthSessionRef.current) {
+      suppressNextAuthSessionRef.current = false
+      setUser(null)
+      setProfile(null)
+      await supabase.auth.signOut()
+      return
     }
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      await syncSessionUser(session?.user ?? null)
-      setLoading(false)
+    setUser(sessionUser)
+    if (!sessionUser) {
+      setProfile(null)
+      return
+    }
+
+    setLoadingMessage('Loading your profile...')
+    const nextProfile = await loadUserProfile({
+      id: sessionUser.id,
+      name: sessionUser.user_metadata?.full_name || sessionUser.email?.split('@')[0] || 'User',
+      email: sessionUser.email || '',
     })
+    setProfile(nextProfile)
+    setLoadingMessage('Preparing your workspace...')
+    await registerActiveSession({ user: sessionUser, session, remembered: false, source: 'password' })
+    await Promise.all([touchPresence(sessionUser.id), touchCurrentActiveSession()])
+  }, [])
+
+  const checkSession = useCallback(async () => {
+    setLoading(true)
+    setAuthCheckError(false)
+    setLoadingMessage('Verifying your session...')
+    const { data: { session }, error } = await supabase.auth.getSession()
+    if (error) throw error
+    await syncSessionUser(session)
+    setLoading(false)
+  }, [syncSessionUser])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowLoading(true), 200)
+
+    Promise.resolve().then(checkSession)
+      .catch(() => {
+        setAuthCheckError(true)
+        setLoadingMessage('Unable to verify your session.')
+        setLoading(false)
+      })
+      .finally(() => window.clearTimeout(timer))
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      await syncSessionUser(session?.user ?? null)
-      setLoading(false)
+      try {
+        await syncSessionUser(session)
+      } finally {
+        setLoading(false)
+      }
     })
 
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => {
+      window.clearTimeout(timer)
+      subscription.unsubscribe()
+    }
+  }, [checkSession, syncSessionUser])
 
   useEffect(() => {
     if (!user) return
@@ -74,20 +112,31 @@ export default function App() {
     return () => window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated)
   }, [user])
 
-  if (loading) {
+  if (authCheckError) {
     return (
-      <AppFrame>
-        <div className="flex h-full items-center justify-center">
-          <div className="text-sm text-muted-foreground">Loading...</div>
-        </div>
-      </AppFrame>
+      <LoadingScreen
+        message="Unable to verify your session."
+        state="error"
+        onRetry={() => {
+          setShowLoading(true)
+          void checkSession().catch(() => {
+            setAuthCheckError(true)
+            setLoading(false)
+          })
+        }}
+        onGoToSignIn={() => { setAuthCheckError(false); setUser(null); setProfile(null); setLoading(false) }}
+      />
     )
+  }
+
+  if (loading && showLoading) {
+    return <LoadingScreen message={loadingMessage} />
   }
 
   if (!user) {
     return (
       <AppFrame>
-        <AuthFlow />
+        <AuthFlow onAccountCreationStart={() => { suppressNextAuthSessionRef.current = true }} />
       </AppFrame>
     )
   }
@@ -103,10 +152,13 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AppFrame>
-        <I18nProvider>
+        <I18nProvider locale={profile?.language ?? 'en-US'}>
           <AppShell
             user={userProfile}
-            onSignOut={() => supabase.auth.signOut()}
+            onSignOut={async () => {
+              await revokeCurrentActiveSession()
+              await supabase.auth.signOut()
+            }}
           />
         </I18nProvider>
       </AppFrame>

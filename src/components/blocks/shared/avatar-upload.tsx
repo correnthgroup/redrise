@@ -2,6 +2,7 @@
 import { Camera } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { useI18n } from '@/hooks/use-i18n'
 
 type AvatarUploadProps = {
   initialSrc?: string
@@ -16,6 +17,7 @@ function initials(name: string) {
 export function AvatarUpload({ initialSrc, name, onChange }: AvatarUploadProps) {
   const [src, setSrc] = useState<string | undefined>(initialSrc)
   const ref = useRef<HTMLInputElement>(null)
+  const { t } = useI18n()
 
   function pick(file: File) {
     const url = URL.createObjectURL(file)
@@ -36,7 +38,7 @@ export function AvatarUpload({ initialSrc, name, onChange }: AvatarUploadProps) 
           size="icon"
           className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full"
           onClick={() => ref.current?.click()}
-          aria-label="Upload avatar"
+          aria-label={t('avatar.uploadLabel')}
         >
           <Camera className="h-3.5 w-3.5" />
         </Button>
@@ -52,8 +54,8 @@ export function AvatarUpload({ initialSrc, name, onChange }: AvatarUploadProps) 
         />
       </div>
       <div className="text-xs text-muted-foreground">
-        <div>Click the camera to upload.</div>
-        <div>PNG or JPG up to 2MB.</div>
+        <div>{t('avatar.clickCamera')}</div>
+        <div>{t('avatar.fileInfo')}</div>
       </div>
     </div>
   )

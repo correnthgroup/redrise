@@ -22,29 +22,21 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu'
-import { Pencil, Check, X, Keyboard, CheckCircle2, ChevronDown } from 'lucide-react'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem } from '@/components/ui/dropdown-menu'
+import { Pencil, Check, X, Keyboard, CheckCircle2 } from 'lucide-react'
 import { useFlowCards } from '@/hooks/use-flow-cards'
 import { useTeamMemberOptions } from '@/hooks/use-team-member-options'
+import { useI18n } from '@/hooks/use-i18n'
+import { MultiSelectDropdown } from '../shared/multi-select-dropdown'
+import { loadAgents } from '@/lib/agents'
+import type { Agent } from '@/types/agent'
 
 type FlowNode = Node<{ label: string; instructions?: string; members?: string[]; agents?: string[] }>
-
-const SHORTCUTS = [
-  { key: 'N', action: 'New card' },
-  { key: 'Del', action: 'Delete selected' },
-  { key: 'Ctrl/⌘ + A', action: 'Select all' },
-  { key: 'Ctrl/⌘ + C', action: 'Copy selected' },
-  { key: 'Ctrl/⌘ + V', action: 'Paste' },
-  { key: 'Ctrl/⌘ + Z', action: 'Undo' },
-  { key: 'Ctrl/⌘ + Shift + Z', action: 'Redo' },
-  { key: 'Mouse scroll', action: 'Zoom in/out' },
-]
-
-const PLACEHOLDER_AGENTS = ['Agent 1', 'Agent 2', 'Agent 3', 'Agent 4', 'Agent 5']
 
 let nodeIdCounter = 5
 
 function FlowCardWithEdit({ data, selected, id }: NodeProps<FlowNode>) {
+  const { t } = useI18n()
   const openCardEditor = (window as unknown as Record<string, (id: string) => void>).__flowCardEdit
   const members = data.members ?? []
   const agents = data.agents ?? []
@@ -62,7 +54,7 @@ function FlowCardWithEdit({ data, selected, id }: NodeProps<FlowNode>) {
         <Button
           variant="ghost"
           size="icon"
-          className="h-5 w-5 shrink-0 text-[#8c1f28] hover:text-[#8c1f28]/80"
+          className="h-5 w-5 shrink-0 text-[#A04D1F] hover:text-[#A04D1F]/80"
           onClick={(e) => {
             e.stopPropagation()
             openCardEditor?.(id)
@@ -72,13 +64,13 @@ function FlowCardWithEdit({ data, selected, id }: NodeProps<FlowNode>) {
         </Button>
       </div>
       {members.length > 0 && (
-        <div className="text-xs text-muted-foreground truncate">Members: {members.join(', ')}</div>
+        <div className="text-xs text-muted-foreground truncate">{t('flowBuilder.members', { members: members.join(', ') })}</div>
       )}
       {agents.length > 0 && (
-        <div className="text-xs text-muted-foreground truncate">Agents: {agents.join(', ')}</div>
+        <div className="text-xs text-muted-foreground truncate">{t('flowBuilder.agents', { agents: agents.join(', ') })}</div>
       )}
       {members.length === 0 && agents.length === 0 && (
-        <div className="text-xs text-muted-foreground">Undefined</div>
+        <div className="text-xs text-muted-foreground">{t('flowBuilder.undefined')}</div>
       )}
       <div className="text-[10px] text-muted-foreground/60 font-mono mt-0.5">ID: {id}</div>
       <Handle type="source" position={Position.Right} />
@@ -90,10 +82,11 @@ const defaultNodes: FlowNode[] = []
 const defaultEdges: Edge[] = []
 
 function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave }: { flowId?: string | null; flowName?: string; onBack?: () => void; onSave?: () => void }) {
+  const { t } = useI18n()
   const { cards, edges: dbEdges, load, save } = useFlowCards(flowId ?? null)
   const [nodes, setNodes, onNodesChange] = useNodesState<FlowNode>(defaultNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(defaultEdges)
-  const [flowName, setFlowName] = useState(initialFlowName ?? 'New Flow')
+  const [flowName, setFlowName] = useState(initialFlowName ?? t('flow.newFlow'))
   const [editingName, setEditingName] = useState(false)
   const [tempName, setTempName] = useState('')
   const [editingCardId, setEditingCardId] = useState<string | null>(null)
@@ -101,11 +94,35 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
   const [cardInstructions, setCardInstructions] = useState('')
   const [cardMembers, setCardMembers] = useState<string[]>([])
   const [cardAgents, setCardAgents] = useState<string[]>([])
+  const [agents, setAgents] = useState<Agent[]>([])
+  const [loadingAgents, setLoadingAgents] = useState(true)
   const [saving, setSaving] = useState(false)
   const { members: teamMembers, loading: loadingMembers } = useTeamMemberOptions()
   const { screenToFlowPosition, getNodes, setNodes: setReactFlowNodes, setEdges: setReactFlowEdges } = useReactFlow()
   const containerRef = useRef<HTMLDivElement>(null)
   const loadedRef = useRef(false)
+  const shortcutItems = [
+    { key: 'N', action: t('flowBuilder.newCard') },
+    { key: 'Del', action: t('flowBuilder.deleteSelected') },
+    { key: 'Ctrl/⌘ + A', action: t('flowBuilder.selectAll') },
+    { key: 'Ctrl/⌘ + C', action: t('flowBuilder.copySelected') },
+    { key: 'Ctrl/⌘ + V', action: t('flowBuilder.paste') },
+    { key: 'Ctrl/⌘ + Z', action: t('flowBuilder.undo') },
+    { key: 'Ctrl/⌘ + Shift + Z', action: t('flowBuilder.redo') },
+    { key: 'Mouse scroll', action: t('flowBuilder.zoom') },
+  ]
+  const teamMemberOptions = teamMembers.map((member) => ({ value: member.name, label: member.name }))
+  const agentOptions = agents.map((agent) => ({
+    value: agent.name,
+    label: agent.name === 'Default Agent' ? t('agents.defaultAgent') : agent.name,
+  }))
+
+  useEffect(() => {
+    loadAgents().then((data) => {
+      setAgents(data)
+      setLoadingAgents(false)
+    })
+  }, [])
 
   const nodeTypes = { flowCard: FlowCardWithEdit }
 
@@ -202,10 +219,10 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
       id: `n${nodeIdCounter++}`,
       type: 'flowCard',
       position,
-      data: { label: `Step ${nodes.length + 1}: new step` },
+      data: { label: t('flowBuilder.newStep', { count: nodes.length + 1 }) },
     }
     setNodes((nds) => [...nds, newNode])
-  }, [nodes.length, screenToFlowPosition, setNodes, saveHistory])
+  }, [nodes.length, screenToFlowPosition, setNodes, saveHistory, t])
 
   const selectAll = useCallback(() => {
     setNodes((nds) => nds.map((n) => ({ ...n, selected: true })))
@@ -317,14 +334,6 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
     setEditingCardId(null)
   }
 
-  function toggleMember(member: string) {
-    setCardMembers((prev) => prev.includes(member) ? prev.filter((m) => m !== member) : [...prev, member])
-  }
-
-  function toggleAgent(agent: string) {
-    setCardAgents((prev) => prev.includes(agent) ? prev.filter((a) => a !== agent) : [...prev, agent])
-  }
-
   async function handleSave() {
     if (!flowId) {
       onSave?.()
@@ -392,9 +401,9 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-64">
-              <DropdownMenuLabel>Keyboard Shortcuts</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('flowBuilder.shortcuts')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {SHORTCUTS.map((s) => (
+              {shortcutItems.map((s) => (
                 <DropdownMenuItem key={s.key} className="flex items-center justify-between">
                   <span>{s.action}</span>
                   <kbd className="ml-4 rounded border bg-muted px-1.5 py-0.5 text-[10px] font-mono">{s.key}</kbd>
@@ -403,10 +412,10 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
             </DropdownMenuContent>
           </DropdownMenu>
           {onBack && (
-            <Button variant="ghost" size="sm" onClick={onBack}>Cancel</Button>
+            <Button variant="ghost" size="sm" onClick={onBack}>{t('common.cancel')}</Button>
           )}
           <Button size="sm" onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? t('flowBuilder.saving') : t('common.save')}
           </Button>
         </div>
       </div>
@@ -427,86 +436,70 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
             zoomable
             style={{ backgroundColor: '#F8FAFC', border: '1px solid #E5E7EB' }}
             maskColor="rgba(15, 23, 42, 0.08)"
-            nodeColor="#2F4858"
+            nodeColor="#2F5D5A"
           />
         </ReactFlow>
 
         <Dialog open={editingCardId !== null} onOpenChange={(open) => { if (!open) setEditingCardId(null) }}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Edit Card</DialogTitle>
+              <DialogTitle>{t('flowBuilder.editCard')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Title</label>
+                <label className="text-sm font-medium">{t('flowBuilder.title')}</label>
                 <Input
                   value={cardTitle}
                   onChange={(e) => setCardTitle(e.target.value)}
-                  placeholder="Card title"
+                  placeholder={t('flowBuilder.cardTitlePlaceholder')}
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Instructions</label>
+                <label className="text-sm font-medium">{t('flowBuilder.instructions')}</label>
                 <Textarea
                   value={cardInstructions}
                   onChange={(e) => setCardInstructions(e.target.value)}
-                  placeholder="What should this card do?"
+                  placeholder={t('flowBuilder.instructionsPlaceholder')}
                   rows={3}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Members</label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between">
-                        {cardMembers.length > 0 ? `${cardMembers.length} selected` : 'Select members'}
-                        <ChevronDown className="h-4 w-4 opacity-50" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-full">
-                      {loadingMembers ? <div className="px-2 py-1.5 text-sm text-muted-foreground">Loading members...</div> : null}
-                      {!loadingMembers && teamMembers.length === 0 ? <div className="px-2 py-1.5 text-sm text-muted-foreground">No members available</div> : null}
-                      {teamMembers.map((member) => (
-                        <DropdownMenuCheckboxItem
-                          key={member.id}
-                          checked={cardMembers.includes(member.name)}
-                          onCheckedChange={() => toggleMember(member.name)}
-                        >
-                          {member.name}
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <label className="text-sm font-medium">{t('flowBuilder.membersLabel')}</label>
+                  <MultiSelectDropdown
+                    options={teamMemberOptions}
+                    selectedValues={cardMembers}
+                    onChange={setCardMembers}
+                    placeholder={t('flowBuilder.selectMembers')}
+                    selectedLabel={(count) => t('common.selectedCount', { count })}
+                    selectAllLabel={t('common.selectAll')}
+                    loading={loadingMembers}
+                    loadingLabel={t('flow.loadingMembers')}
+                    emptyLabel={t('flow.noMembersAvailable')}
+                    contentClassName="min-w-[var(--radix-dropdown-menu-trigger-width)]"
+                  />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Agents</label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between">
-                        {cardAgents.length > 0 ? `${cardAgents.length} selected` : 'Select agents'}
-                        <ChevronDown className="h-4 w-4 opacity-50" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-full">
-                      {PLACEHOLDER_AGENTS.map((agent) => (
-                        <DropdownMenuCheckboxItem
-                          key={agent}
-                          checked={cardAgents.includes(agent)}
-                          onCheckedChange={() => toggleAgent(agent)}
-                        >
-                          {agent}
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <label className="text-sm font-medium">{t('flowBuilder.agentsLabel')}</label>
+                  <MultiSelectDropdown
+                    options={agentOptions}
+                    selectedValues={cardAgents}
+                    onChange={setCardAgents}
+                    placeholder={t('flowBuilder.selectAgents')}
+                    selectedLabel={(count) => t('common.selectedCount', { count })}
+                    selectAllLabel={t('common.selectAll')}
+                    loading={loadingAgents}
+                    loadingLabel={t('agents.loadingAgents')}
+                    emptyLabel={t('flowBuilder.noAgentsAvailable')}
+                    contentClassName="min-w-[var(--radix-dropdown-menu-trigger-width)]"
+                  />
                 </div>
               </div>
               <div className="text-[10px] text-muted-foreground/60 font-mono">ID: {editingCardId}</div>
             </div>
             <DialogFooter>
-              <Button variant="ghost" onClick={() => setEditingCardId(null)}>Cancel</Button>
-              <Button onClick={saveCardEditor} disabled={!cardTitle.trim()}>Save</Button>
+              <Button variant="ghost" onClick={() => setEditingCardId(null)}>{t('common.cancel')}</Button>
+              <Button onClick={saveCardEditor} disabled={!cardTitle.trim()}>{t('common.save')}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

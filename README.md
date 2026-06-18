@@ -1,96 +1,64 @@
-# app
+# Redrise
 
-> App scaffold generated from `D:\REDSCALE\_PLANROOT\` Planroot framework.
-> The interview was auto-filled by observing `D:\Worthness\Agentra` as a confirmed-fact reference.
-> All copy, brand tokens and external URLs are placeholder-only.
+Workspace-first SaaS for flows, tasks, agents, analytics, settings, team operations, and operational control.
 
-## What this is
+## Current Stack
 
-A modular Vite + React 19 + TypeScript + Tailwind v4 scaffold with:
+- Vite 8 + React 19 + TypeScript 6.
+- Tailwind CSS v4 through `@tailwindcss/vite`.
+- Radix/shadcn-style UI primitives under `src/components/ui/`.
+- Supabase Auth, PostgreSQL, RLS, migrations, and Edge Functions.
+- Vercel static SPA deployment at `https://redrise-app.vercel.app`.
+- Yarn via Corepack. Do not add npm lockfiles.
 
-- **Viewport-locked shell** (`AppFrame`) → outer gray padding + inner white rounded panel
-- **Auth gate** (`AuthFlow`) → sign-in, sign-up, confirm-code (3 modes in one 2-column layout)
-- **Authenticated shell** (`AppShell`) → sidebar + topbar + main content
-- **Idempotent sidebar** (`Sidebar`) → collapsible/expandable, persisted in `localStorage`
-- **20 UI primitives** (shadcn-style, Radix + CVA) under `src/components/ui/`
-- **28 page/shared blocks** under `src/components/blocks/{pages,shared}/`
-- **Thin route shims** under `src/app/` (for future router wiring)
+## Current Architecture
 
-## Z-order (back to front)
+- `src/main.tsx`: React entry.
+- `src/App.tsx`: Supabase session gate, profile loading, active session registration, authenticated vs unauthenticated render.
+- `src/components/auth/auth-flow.tsx`: current Sign In and Sign Up flow.
+- `src/components/layout/app-frame.tsx`: viewport-locked outer frame.
+- `src/components/layout/app-shell.tsx`: authenticated shell and page state machine.
+- `src/components/layout/sidebar.tsx`: primary navigation and profile footer.
+- `src/components/layout/topbar.tsx`: page title/actions.
+- `src/components/blocks/pages/`: page blocks.
+- `src/components/blocks/shared/`: reusable page blocks.
+- `src/lib/`: Supabase-backed domain libraries.
+- `supabase/migrations/`: database schema and auth/profile/session/team changes.
+- `supabase/functions/`: Supabase Edge Functions.
+- `memory/`: current/future operational memory for humans and agents.
+- `updates/`: active or future product update specs only.
 
-Full doc: see `AGENTS.md` § Z-order.
+## Current Auth Behavior
 
-1. Body / root
-2. `AppFrame` outer + inner panel
-3. Sidebar (left column) + Topbar (top row)
-4. Main content + cards / lists / kanban / flow canvas
-5. Radix overlays (`z-50`) — Dialog, DropdownMenu, Popover, Select, Tooltip
+- Sign In uses Supabase e-mail/password.
+- Sign Up uses First Name, optional Middle Name, optional Last Name, e-mail, password, and confirmation password.
+- Supabase Auth e-mail confirmation is currently disabled.
+- After Sign Up, the app suppresses the automatic Supabase sign-up session, signs out, and returns to Sign In.
+- OAuth buttons are intentionally not shown until official provider credentials exist.
+- Active Sessions are stored in Supabase `active_sessions` with `supabase_session_id`, device metadata, and `remembered` flag.
 
-## Directory map
-
-```
-app/
-├── public/                              favicon, icons (SVG placeholders)
-├── src/
-│   ├── main.tsx                         React entry
-│   ├── App.tsx                          root gate (auth vs shell)
-│   ├── index.css                        Tailwind v4 + theme vars + keyframes
-│   ├── lib/utils.ts                     cn() helper
-│   ├── components/
-│   │   ├── auth/auth-flow.tsx           sign-in | sign-up | confirm-code
-│   │   ├── layout/
-│   │   │   ├── app-frame.tsx            viewport-locked rounded shell
-│   │   │   ├── app-shell.tsx            authenticated shell
-│   │   │   ├── sidebar.tsx              idempotent collapsible sidebar
-│   │   │   ├── topbar.tsx               per-page topbar
-│   │   │   └── card-list.tsx            shared list surface
-│   │   ├── ui/                          20 primitives (avatar, button, …)
-│   │   └── blocks/
-│   │       ├── pages/                   14 page blocks (dashboard, tasks, …)
-│   │       └── shared/                  17 shared blocks (kpi-cards, …)
-│   └── app/                             route shims (page.tsx each)
-├── AGENTS.md                            z-order + invariants
-├── README.md                            this file
-├── components.json                      shadcn registry config
-├── package.json
-├── tsconfig.json / tsconfig.app.json / tsconfig.node.json
-├── vite.config.ts
-├── eslint.config.js
-└── index.html
-```
-
-## How to run
+## Commands
 
 ```powershell
-npm install
-npm run dev
+corepack yarn install
+corepack yarn dev
+corepack yarn lint
+corepack yarn typecheck
+corepack yarn test
+corepack yarn build
+corepack yarn test:e2e
 ```
 
-Then open the printed URL.
+## Deploy
 
-## How to extend
+- Preferred frontend deploy path is prebuilt Vercel output from a temporary directory without `.git`.
+- Normal deploys from the Git worktree can be blocked by Vercel team attribution.
+- Use the operational MCP when possible: `corepack yarn mcp:redrise-ops`.
 
-- **Add a UI primitive**: create `src/components/ui/<name>.tsx` following the existing pattern (Radix + CVA, `cn()` for class merging).
-- **Add a shared block**: create `src/components/blocks/shared/<name>.tsx` and re-export it from `shared/index.ts`.
-- **Add a page**: create `src/components/blocks/pages/<name>-page.tsx`, then add it to the `pages` prop in `App.tsx` and to `SIDEBAR_KEYS` in `sidebar.tsx`.
-- **Add a route shim**: create `src/app/<path>/page.tsx` that re-exports the page block.
+## Current References
 
-## Placeholders
-
-All visible copy is wrapped in `[Placeholder: …]` or `[Token]` so you can grep and replace:
-
-```powershell
-rg "\[Placeholder" src/
-rg "\[.*?\]" src/ --only-matching
-```
-
-## Stack details
-
-- **React 19** with Vite 8
-- **Tailwind v4** via `@tailwindcss/vite` (no `tailwind.config.ts`; theme in `src/index.css`)
-- **Radix UI** primitives under the hood for `dialog`, `dropdown-menu`, `popover`, `select`, `tabs`, `tooltip`, `switch`, `slider`, `scroll-area`, etc.
-- **lucide-react** for icons
-- **@xyflow/react** for the flow canvas
-- **recharts** for KPI sparklines and area charts
-- **react-day-picker** for the calendar widget
-- **class-variance-authority** + **tailwind-merge** + **clsx** for the variant system
+- Architecture and agent rules: `AGENTS.md`.
+- Human-readable technical map: `memory/TECHNICAL.md`.
+- Current decisions: `memory/DECISIONS.md`.
+- Handoff and next work: `memory/HANDOFF.md`.
+- Active/future auth specs: `updates/update1.3.md` and `updates/update1.4_colors.md`.

@@ -22,7 +22,7 @@ function sparklinePath(series: number[]) {
 }
 
 function KpiCard({ kpi }: { kpi: Kpi }) {
-  const stroke = kpi.trend === 'up' ? '#2F4858' : kpi.trend === 'down' ? '#8c1f28' : '#64748B'
+  const stroke = kpi.trend === 'up' ? '#2F5D5A' : kpi.trend === 'down' ? '#A04D1F' : '#64748B'
   const line = sparklinePath(kpi.series)
 
   return (

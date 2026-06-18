@@ -1,31 +1,156 @@
 @import "tailwindcss";
 
 :root {
-  --background: #eef2f6;
-  --foreground: #101828;
-  --card: #ffffff;
-  --card-foreground: #101828;
-  --popover: #ffffff;
-  --popover-foreground: #101828;
-  --primary: #8c1f28;
-  --primary-foreground: #ffffff;
-  --secondary: #2f4858;
-  --secondary-foreground: #ffffff;
-  --muted: #f8fafc;
-  --muted-foreground: #475467;
-  --accent: #dbe4ec;
-  --accent-foreground: #101828;
-  --destructive: #b42318;
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --ring: rgba(140, 31, 40, 0.28);
-  --header: #0f172a;
-  --header-foreground: #ffffff;
-  --surface-muted: #f8fafc;
+  /* ── Logo ── */
+  --logo-yellow: #FCAF2D;
+  --logo-orange-light: #EA8F2B;
+  --logo-orange: #E26F27;
+  --logo-brown: #A04D1F;
+
+  /* ── Semantic shadcn tokens ── */
+  --background: #FAF6EF;
+  --foreground: #241A16;
+  --card: #FFFDF8;
+  --card-foreground: #241A16;
+  --popover: #FFFDF8;
+  --popover-foreground: #241A16;
+  --primary: #A04D1F;
+  --primary-foreground: #FFF7ED;
+  --secondary: #2F5D5A;
+  --secondary-foreground: #FFF7ED;
+  --muted: #F3E8D8;
+  --muted-foreground: #7A6A5D;
+  --accent: #E26F27;
+  --accent-foreground: #FAF6EF;
+  --destructive: #B42318;
+  --border: #E4D7C7;
+  --input: #E4D7C7;
+  --ring: rgba(160, 77, 31, 0.28);
+  --header: #F3E8D8;
+  --header-foreground: #241A16;
+  --surface-muted: #F3E8D8;
   --radius: 0.625rem;
+
+  /* ── App base ── */
+  --surface: #FFFDF8;
+  --surface-dark: #3A2A22;
+
+  /* ── Text ── */
+  --text-primary: #241A16;
+  --text-secondary: #7A6A5D;
+  --text-inverse: #FFF7ED;
+  --text-inverse-muted: #D8C6B3;
+
+  /* ── Viewport (light, warm) ── */
+  --viewport-light: #FAF6EF;
+  --viewport-gray-light: #F3E8D8;
+  --viewport-gray: #E4D7C7;
+  --viewport-gray-dark: #D8C6B3;
+  --viewport-gray-vdark: #7A6A5D;
+  --viewport-gray-xdark: #4A3A2E;
+  --viewport-gray-xxdark: #3A2A22;
+  --viewport-black: #241A16;
+
+  /* ── Sidebar ── */
+  --sidebar-light: #FFFDF8;
+  --sidebar-gray-light: #F3E8D8;
+  --sidebar-gray: #E4D7C7;
+  --sidebar-gray-dark: #D8C6B3;
+  --sidebar-gray-vdark: #7A6A5D;
+  --sidebar-gray-xdark: #4A3A2E;
+  --sidebar-gray-xxdark: #3A2A22;
+  --sidebar-black: #241A16;
+
+  /* ── Surface ── */
+  --surface-white: #FFFFFF;
+  --surface-white-pure: #FFFDF8;
+  --surface-white-off: #FAF6EF;
+  --surface-light: #F3E8D8;
+  --surface-gray: #E4D7C7;
+  --surface-gray-dark: #D8C6B3;
+  --surface-gray-vdark: #7A6A5D;
+  --surface-gray-xdark: #4A3A2E;
+
+  /* ── Text extended ── */
+  --text-black: #241A16;
+  --text-dark: #3A2A22;
+  --text-medium: #4A3A2E;
+  --text-gray: #7A6A5D;
+  --text-gray-light: #BFAE9D;
+  --text-gray-vlight: #D8C6B3;
+  --text-gray-xlight: #E4D7C7;
+  --text-gray-xxlight: #F3E8D8;
+
+  /* ── Border ── */
+  --border-visible: #E4D7C7;
+  --border-medium: #D8C6B3;
+  --border-dark: #BFAE9D;
+  --border-emphasis: #7A6A5D;
+  --border-strong: #4A3A2E;
+  --border-accent-primary: #A04D1F;
+  --border-accent-secondary: #2F5D5A;
+  --border-subtle: #F3E8D8;
+
+  /* ── CTA / Primary ── */
+  --cta-light: #FFF7ED;
+  --cta-medium-light: #F5D9BC;
+  --cta-medium: #D4956A;
+  --cta-dark: #7F3C18;
+  --cta-primary: #A04D1F;
+  --cta-deep: #7F3C18;
+  --cta-very-deep: #5C2C12;
+  --cta-darkest: #3A1A0B;
+
+  /* ── Gold / Premium ── */
+  --gold-light: #FFF8E1;
+  --gold-medium-light: #FEE7A0;
+  --gold-medium: #FCAF2D;
+  --gold-dark: #E26F27;
+  --gold-primary: #FCAF2D;
+  --gold-deep: #EA8F2B;
+  --gold-very-deep: #C2611F;
+  --gold-darkest: #7A3E14;
+
+  /* ── Success ── */
+  --success-light: #F0FFF4;
+  --success-medium-light: #C6F6D5;
+  --success-medium: #9AE6B4;
+  --success-dark: #68D391;
+  --success-primary: #2F7D4F;
+  --success-deep: #276840;
+  --success-very-deep: #1F5333;
+  --success-darkest: #123220;
+
+  /* ── Warning ── */
+  --warning-light: #FFFFF0;
+  --warning-medium-light: #FEFCBF;
+  --warning-medium: #FAF089;
+  --warning-dark: #F6E05E;
+  --warning-primary: #D9822B;
+  --warning-deep: #B86D1F;
+  --warning-very-deep: #8A5217;
+  --warning-darkest: #5C370F;
+
+  /* ── Input ── */
+  --input-border: #E4D7C7;
+  --input-border-focus: #A04D1F;
+  --input-background: #FFFFFF;
+  --input-background-disabled: #F3E8D8;
+  --input-placeholder: #BFAE9D;
+
+  /* ── State ── */
+  --state-success: #2F7D4F;
+  --state-success-bg: #F0FFF4;
+  --state-warning: #D9822B;
+  --state-warning-bg: #FFFFF0;
+  --state-error: #B42318;
+  --state-error-bg: #FFF7ED;
+  --state-info: #2F5D5A;
+  --state-info-bg: #F3E8D8;
 }
 
 @theme inline {
+  /* ── Semantic shadcn mappings ── */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -47,6 +172,115 @@
   --color-header: var(--header);
   --color-header-foreground: var(--header-foreground);
   --color-surface-muted: var(--surface-muted);
+
+  /* ── Viewport ── */
+  --color-viewport-light: var(--viewport-light);
+  --color-viewport-gray-light: var(--viewport-gray-light);
+  --color-viewport-gray: var(--viewport-gray);
+  --color-viewport-gray-dark: var(--viewport-gray-dark);
+  --color-viewport-gray-vdark: var(--viewport-gray-vdark);
+  --color-viewport-gray-xdark: var(--viewport-gray-xdark);
+  --color-viewport-gray-xxdark: var(--viewport-gray-xxdark);
+  --color-viewport-black: var(--viewport-black);
+
+  /* ── Sidebar ── */
+  --color-sidebar-light: var(--sidebar-light);
+  --color-sidebar-gray-light: var(--sidebar-gray-light);
+  --color-sidebar-gray: var(--sidebar-gray);
+  --color-sidebar-gray-dark: var(--sidebar-gray-dark);
+  --color-sidebar-gray-vdark: var(--sidebar-gray-vdark);
+  --color-sidebar-gray-xdark: var(--sidebar-gray-xdark);
+  --color-sidebar-gray-xxdark: var(--sidebar-gray-xxdark);
+  --color-sidebar-black: var(--sidebar-black);
+
+  /* ── Surface ── */
+  --color-surface-white: var(--surface-white);
+  --color-surface-white-pure: var(--surface-white-pure);
+  --color-surface-white-off: var(--surface-white-off);
+  --color-surface-light: var(--surface-light);
+  --color-surface-gray: var(--surface-gray);
+  --color-surface-gray-dark: var(--surface-gray-dark);
+  --color-surface-gray-vdark: var(--surface-gray-vdark);
+  --color-surface-gray-xdark: var(--surface-gray-xdark);
+
+  /* ── Text ── */
+  --color-text-black: var(--text-black);
+  --color-text-dark: var(--text-dark);
+  --color-text-medium: var(--text-medium);
+  --color-text-gray: var(--text-gray);
+  --color-text-gray-light: var(--text-gray-light);
+  --color-text-gray-vlight: var(--text-gray-vlight);
+  --color-text-gray-xlight: var(--text-gray-xlight);
+  --color-text-gray-xxlight: var(--text-gray-xxlight);
+
+  /* ── Border ── */
+  --color-border-visible: var(--border-visible);
+  --color-border-medium: var(--border-medium);
+  --color-border-dark: var(--border-dark);
+  --color-border-emphasis: var(--border-emphasis);
+  --color-border-strong: var(--border-strong);
+  --color-border-accent-primary: var(--border-accent-primary);
+  --color-border-accent-secondary: var(--border-accent-secondary);
+  --color-border-subtle: var(--border-subtle);
+
+  /* ── CTA / Primary ── */
+  --color-cta-light: var(--cta-light);
+  --color-cta-medium-light: var(--cta-medium-light);
+  --color-cta-medium: var(--cta-medium);
+  --color-cta-dark: var(--cta-dark);
+  --color-cta-primary: var(--cta-primary);
+  --color-cta-deep: var(--cta-deep);
+  --color-cta-very-deep: var(--cta-very-deep);
+  --color-cta-darkest: var(--cta-darkest);
+
+  /* ── Gold / Premium ── */
+  --color-gold-light: var(--gold-light);
+  --color-gold-medium-light: var(--gold-medium-light);
+  --color-gold-medium: var(--gold-medium);
+  --color-gold-dark: var(--gold-dark);
+  --color-gold-primary: var(--gold-primary);
+  --color-gold-deep: var(--gold-deep);
+  --color-gold-very-deep: var(--gold-very-deep);
+  --color-gold-darkest: var(--gold-darkest);
+
+  /* ── Success ── */
+  --color-success-light: var(--success-light);
+  --color-success-medium-light: var(--success-medium-light);
+  --color-success-medium: var(--success-medium);
+  --color-success-dark: var(--success-dark);
+  --color-success-primary: var(--success-primary);
+  --color-success-deep: var(--success-deep);
+  --color-success-very-deep: var(--success-very-deep);
+  --color-success-darkest: var(--success-darkest);
+
+  /* ── Warning ── */
+  --color-warning-light: var(--warning-light);
+  --color-warning-medium-light: var(--warning-medium-light);
+  --color-warning-medium: var(--warning-medium);
+  --color-warning-dark: var(--warning-dark);
+  --color-warning-primary: var(--warning-primary);
+  --color-warning-deep: var(--warning-deep);
+  --color-warning-very-deep: var(--warning-very-deep);
+  --color-warning-darkest: var(--warning-darkest);
+
+  /* ── Input ── */
+  --color-input-border: var(--input-border);
+  --color-input-border-focus: var(--input-border-focus);
+  --color-input-background: var(--input-background);
+  --color-input-background-disabled: var(--input-background-disabled);
+  --color-input-placeholder: var(--input-placeholder);
+
+  /* ── State ── */
+  --color-state-success: var(--state-success);
+  --color-state-success-bg: var(--state-success-bg);
+  --color-state-warning: var(--state-warning);
+  --color-state-warning-bg: var(--state-warning-bg);
+  --color-state-error: var(--state-error);
+  --color-state-error-bg: var(--state-error-bg);
+  --color-state-info: var(--state-info);
+  --color-state-info-bg: var(--state-info-bg);
+
+  /* ── Radius (unchanged) ── */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -71,6 +305,15 @@
   ::selection {
     background: color-mix(in srgb, var(--primary) 18%, white);
   }
+
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
+  }
+}
+
+.loading-message {
+  transition: opacity 200ms ease-out;
 }
 
 @keyframes app-rise {
@@ -99,15 +342,15 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d5d5d5;
+  background: #D8C6B3;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #b0b0b0;
+  background: #BFAE9D;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #d5d5d5 transparent;
+  scrollbar-color: #D8C6B3 transparent;
 }
