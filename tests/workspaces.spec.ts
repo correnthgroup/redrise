@@ -28,7 +28,7 @@ test('workspace lifecycle: create → review → cancel → delete', async ({ pa
 
   // Wait for board to fully render with the workspace
   await expect(page.getByRole('heading', { name: /Dashboard|Painel/ })).toBeVisible({ timeout: 10000 })
-  await expect(page.getByText(WS_NAME)).toBeVisible({ timeout: 10000 })
+  await expect(page.locator('button', { hasText: WS_NAME }).first()).toBeVisible({ timeout: 10000 })
 
   // ── Open review ──
   const cardButton = page.locator('button', { hasText: WS_NAME }).first()

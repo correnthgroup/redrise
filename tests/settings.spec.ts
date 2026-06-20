@@ -13,12 +13,16 @@ async function openSettings(page: Page) {
   }
 }
 
+async function openSettingsShortcut(page: Page, name: RegExp) {
+  await page.getByRole('button', { name }).click()
+}
+
 test('personal information persists to dashboard and sidebar', async ({ page }) => {
   const ts = Date.now()
   const firstName = `E2E${ts}`
 
   await openSettings(page)
-  await page.getByText('Personal Information').click()
+  await openSettingsShortcut(page, /Personal Information|Informa..es Pessoais/)
 
   await page.locator('#firstName').fill(firstName)
   await page.locator('#lastName').fill('User')
@@ -33,7 +37,7 @@ test('personal information persists to dashboard and sidebar', async ({ page }) 
 
 test('profile language controls dashboard and settings copy', async ({ page }) => {
   await openSettings(page)
-  await page.getByText('Personal Information').click()
+  await openSettingsShortcut(page, /Personal Information|Informa..es Pessoais/)
 
   await page.locator('#language').click()
   await page.getByRole('option', { name: 'Português-BR' }).click()
@@ -47,7 +51,7 @@ test('profile language controls dashboard and settings copy', async ({ page }) =
   await expect(page.getByRole('heading', { name: 'Configurações' })).toBeVisible({ timeout: 15000 })
   await expect(page.getByText('Atalhos da Conta')).toBeVisible()
 
-  await page.getByText('Informações Pessoais').click()
+  await openSettingsShortcut(page, /Personal Information|Informa..es Pessoais/)
   await page.locator('#language').click()
   await page.getByRole('option', { name: 'English-US' }).click()
   await page.getByRole('button', { name: 'Salvar Alterações' }).click()
@@ -56,7 +60,7 @@ test('profile language controls dashboard and settings copy', async ({ page }) =
 
 test('remember me creates active session entry', async ({ page }) => {
   await openSettings(page)
-  await page.getByText(/Active Sessions|Sess.es Ativas/).click()
+  await openSettingsShortcut(page, /Active Sessions|Sess.es Ativas/)
   await expect(page.getByText(/Current device|Dispositivo atual/).first()).toBeVisible({ timeout: 15000 })
 })
 
@@ -64,7 +68,7 @@ test('team member invite creates invited member row', async ({ page }) => {
   const email = `team-invite-${Date.now()}@gmail.com`
 
   await openSettings(page)
-  await page.getByText(/Members List|Team Members|Lista de Membros|Membros da Equipe/).click()
+  await openSettingsShortcut(page, /Members List|Team Members|Lista de Membros|Membros da Equipe/)
   await expect(page.getByRole('heading', { name: /Members List|Lista de Membros/ })).toBeVisible({ timeout: 15000 })
 
   await page.getByRole('button', { name: /Add Member|Adicionar Membro/ }).click()
@@ -76,7 +80,7 @@ test('team member invite creates invited member row', async ({ page }) => {
 
 test('plans submenu shows plan cards and checkout placeholder', async ({ page }) => {
   await openSettings(page)
-  await page.getByText(/Plans|Planos/).click()
+  await openSettingsShortcut(page, /Plans|Planos/)
 
   await expect(page.getByRole('heading', { name: /Plans|Planos/ })).toBeVisible({ timeout: 15000 })
   await expect(page.getByRole('heading', { name: 'Free' })).toBeVisible()
@@ -89,7 +93,7 @@ test('plans submenu shows plan cards and checkout placeholder', async ({ page })
 
 test('personal information access details opens plans', async ({ page }) => {
   await openSettings(page)
-  await page.getByText(/Personal Information|Informa..es Pessoais/).click()
+  await openSettingsShortcut(page, /Personal Information|Informa..es Pessoais/)
 
   await page.getByRole('button', { name: /Active access:|Acesso ativo:/ }).click()
   await page.getByRole('button', { name: /Details|Detalhes/ }).click()

@@ -26,7 +26,7 @@ setup('authenticate via UI', async ({ page }) => {
   await page.getByLabel('Remember Me').check()
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
 
-  const dashboardBtn = page.getByRole('button', { name: /New Workspace/i })
+  const dashboardBtn = page.getByRole('button', { name: /New Workspace/i }).first()
   const errorMsg = page.locator('[class*="error"], [class*="destructive"]').first()
 
   await Promise.race([
