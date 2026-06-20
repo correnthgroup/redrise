@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
@@ -6,11 +6,12 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 function loadEnv(): Record<string, string> {
+  const env: Record<string, string> = { ...process.env } as Record<string, string>
   const envPath = resolve(__dirname, '..', '.env')
+  if (!existsSync(envPath)) return env
   const raw = readFileSync(envPath, 'utf-8')
   const content = raw.charCodeAt(0) === 0xFEFF ? raw.slice(1) : raw
   const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
-  const env: Record<string, string> = {}
   for (const line of normalized.split('\n')) {
     const trimmed = line.trim()
     if (!trimmed || trimmed.startsWith('#')) continue
