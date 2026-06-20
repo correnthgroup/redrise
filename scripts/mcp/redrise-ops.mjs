@@ -10,6 +10,7 @@ const projectRoot = join(__dirname, '..', '..')
 const serverName = 'redrise-ops'
 const serverVersion = '0.1.0'
 const maxOutput = 24_000
+const productionUrl = process.env.APP_BASE_URL || 'http://localhost:5173'
 
 const text = (value) => ({ content: [{ type: 'text', text: String(value) }] })
 
@@ -155,9 +156,9 @@ const tools = {
     },
   },
   check_vercel_status: {
-    description: 'Inspect the official production alias on Vercel.',
+    description: 'Inspect the configured production alias on Vercel.',
     inputSchema: { type: 'object', properties: {} },
-    run: async () => text(JSON.stringify(await shell('vercel inspect https://redrise-app.vercel.app', { timeoutMs: 180_000 }), null, 2)),
+    run: async () => text(JSON.stringify(await shell(`vercel inspect ${productionUrl}`, { timeoutMs: 180_000 }), null, 2)),
   },
   deploy_supabase_function: {
     description: 'Deploy one allowlisted Supabase Edge Function.',

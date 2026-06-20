@@ -21,7 +21,7 @@ corepack yarn mcp:redrise-ops
 - `build_frontend`: runs `corepack yarn build`.
 - `prepare_vercel_prebuilt`: creates `.vercel/output` from `dist`.
 - `deploy_frontend_prebuilt`: deploys `.vercel/output` with `vercel deploy --prebuilt --prod --yes --force`.
-- `check_vercel_status`: inspects `https://redrise-app.vercel.app`.
+- `check_vercel_status`: inspects the configured `APP_BASE_URL` production alias.
 - `deploy_supabase_function`: deploys allowlisted Supabase Edge Functions. Current allowlist: `invite-member`.
 - `check_supabase_status`: lists Supabase Edge Functions.
 - `graph_status`: checks whether `graphify-out/graph.json` exists.
@@ -38,9 +38,18 @@ corepack yarn mcp:redrise-ops
 
 ## Current Vercel Context
 
-Normal Vercel deploys can still fail because the remote project settings currently show:
+The current operating target is a fresh GitHub/Vercel/Supabase setup owned through `integration@correnth.com`.
 
-- Install Command: `npm install`
-- Build Command: `npm run build`
+Normal Vercel deploys should use the repository connection once the new Vercel project is linked to:
 
-Until that is changed in Vercel, prefer the MCP prebuilt deploy path.
+```text
+https://github.com/correnthintegration/redrise.git
+```
+
+If remote project settings ever diverge from this repository, verify they match:
+
+- Install Command: `corepack yarn install --frozen-lockfile`
+- Build Command: `corepack yarn build`
+- Output Directory: `dist`
+
+The MCP prebuilt deploy path remains available as a fallback, not the primary CI/CD path.

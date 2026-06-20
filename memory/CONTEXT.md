@@ -4,10 +4,12 @@
 
 - Name: `Redrise`.
 - Purpose: workspace-first SaaS for flows, tasks, agents, analytics, settings, team members, plans, and operational control.
-- Owner: `Redscale`.
-- Official production URL: `https://redrise-app.vercel.app`.
-- Supabase project ref: `ndfsselzilmdzywcdyoo`.
-- Vercel project: `worth-team-s-projects/redrise-app`.
+- Owner: `Correnth Integration`.
+- Base operational account: `integration@correnth.com`.
+- GitHub repository: `https://github.com/correnthintegration/redrise.git`.
+- Official production URL: `[PENDENTE: dominio]`.
+- Supabase project ref: `[PENDENTE: novo projeto]`.
+- Vercel project: `[PENDENTE: novo projeto]`.
 
 ## Current Product Rules
 
@@ -26,5 +28,5 @@
 - Use Yarn through Corepack.
 - Do not add `package-lock.json`.
 - Run lint, typecheck, tests, build, and E2E for auth, settings, navigation, deploy, or cross-screen changes.
-- Keep production deploys on `https://redrise-app.vercel.app`.
-- Use the non-git prebuilt Vercel deploy path while Vercel settings/attribution remain sensitive.
+- Keep production deploys on the new Vercel project connected to `https://github.com/correnthintegration/redrise.git`.
+- Use Vercel GitHub CI/CD as the primary deploy path after the new project is linked.

@@ -1,15 +1,21 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const ALLOWED_ORIGINS = [
-  'https://redrise-app.vercel.app',
-  'https://redrise-bxi59y7xv-worth-team-s--projects.vercel.app',
+const DEFAULT_ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
 ]
 
+function getAllowedOrigins(): string[] {
+  const configured = Deno.env.get('APP_ALLOWED_ORIGINS')
+  if (!configured) return DEFAULT_ALLOWED_ORIGINS
+  return configured.split(',').map((origin) => origin.trim()).filter(Boolean)
+}
+
 function getCorsHeaders(origin: string | null): Record<string, string> {
-  const allowed = ALLOWED_ORIGINS.some((o) => {
+  const allowedOrigins = getAllowedOrigins()
+  const fallbackOrigin = allowedOrigins[0] ?? '*'
+  const allowed = allowedOrigins.some((o) => {
     if (o.includes('*')) {
       const prefix = o.replace('*', '')
       return origin?.startsWith(prefix) ?? false
@@ -17,7 +23,7 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
     return origin === o
   })
   return {
-    'Access-Control-Allow-Origin': allowed ? (origin ?? '*') : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Origin': allowed ? (origin ?? '*') : fallbackOrigin,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   }
 }

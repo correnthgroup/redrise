@@ -5,8 +5,10 @@
 ## Current State
 
 - App is a Vite/React/TypeScript/Tailwind SPA backed by Supabase.
-- Official production URL is `https://redrise-app.vercel.app`.
-- Current production deployment is `dpl_E9vNusUPSEmHbB7ipu1teUJsY2iD`, status `Ready`.
+- Official production URL is `[PENDENTE: dominio]`.
+- Current production deployment is `[PENDENTE: novo deploy Vercel]`.
+- GitHub repository is `https://github.com/correnthintegration/redrise.git`.
+- GitHub, Vercel, and Supabase should use the base operational account `integration@correnth.com`.
 - Auth flow is simplified: e-mail/password Sign In, account creation through Sign Up, no OAuth buttons, no e-mail confirmation UI.
 - Sign Up returns to Sign In and must not flash Dashboard.
 - Active Sessions use Supabase `active_sessions` with current-session detection through `supabase_session_id`.
@@ -14,9 +16,9 @@
 - Settings > Plans is not billing yet; it is a future-plan surface.
 - `redrise-ops` MCP exists for validation, prebuilt deploys, status checks, Supabase function deploy, graph status, and memory notes.
 - Graphify code graph exists and should be updated after relevant code/architecture/product behavior changes; latest code update produced 1193 nodes, 1270 edges, and 201 communities.
-- Workspace root `D:\REDSCALE\_REDRISE` should remain focused on `redrise-app/`; old briefing/framework/backlog folders are not active guidance.
+- Workspace root is now `D:\studio\redrise`; old briefing/framework/backlog folders are not active guidance.
 - Update 2.0 test bundle now covers Create Task, Flow Builder, Agent Detail, Create Workspace, Create Flow, Personal Information field locks/search, and auxiliary `team-members-card` copy.
-- Update 2.0 preview deployment: `dpl_3LmZgiWhD2xWCXk2uCVW8QvvMDB3`, `https://redrise-ea332zxti-worth-team-s-projects.vercel.app`, status `Ready`; preview fetch can return Vercel 401 because preview protection is enabled.
+- Previous Vercel/Supabase deployments are legacy and are no longer active targets for this project reset.
 
 ## Current Validation Baseline
 
@@ -28,15 +30,16 @@
 
 ## Open Work
 
+- **PRD3 (Update 3.0)**: Resolve Settings menu definitively. Covers 4 phases: Critical Fixes (Change Password functional, Plans real state, Integration real test), High-Priority Gaps (member removal, revoke all sessions, API key delete, integration management, audit log coverage), Quality/Polish (avatar to Storage, username uniqueness, unsaved-changes warning, audit pagination, polling reduction, dead component cleanup), i18n Completion (hardcoded strings, gender locale-neutral storage). See `updates/prd3.md`.
 - Execute the future auth visual update in `updates/update1.4_colors.md` if approved.
 - Finish Update 2.0 deep-copy pass for remaining auxiliary blocks, wizards, menus, and placeholders not covered by the current PRD2 test-bundle pass.
-- Replace Settings > Plans with real plan matrix after business approval.
 - Add Stripe checkout Edge Function and webhook.
 - Persist real plan state and enforce permissions in backend/RLS.
 - Decide whether existing-account team member additions require explicit acceptance before becoming active.
-- Add CI.
-- Normalize Vercel settings/team attribution so normal deploys can replace the non-git prebuilt workaround.
-- Integrate custom domain after acquisition.
+- Confirm GitHub push access for `integration@correnth.com` and push the current repository to `correnthintegration/redrise`.
+- Create/link the new Vercel project from GitHub and configure CI/CD.
+- Create/link the new Supabase project, apply migrations, and configure environment variables.
+- Integrate custom domain after domain decision.
 - Re-enable OAuth after official provider credentials are configured and tested.
 - Re-enable e-mail confirmation after official SMTP/sender/template policy is configured.
 - Rebuild/update `graphify-out` after the latest PRD2 code changes; the local session confirmed `graphify-out/graph.json` exists, but `graphify` CLI was unavailable in PATH during this update.
@@ -45,7 +48,7 @@
 
 - Use Yarn/Corepack only.
 - Do not add npm lockfiles.
-- Do not deploy to or document `https://redrise.vercel.app` as the official URL.
-- Use prebuilt Vercel deployment from a temporary directory without `.git` until deployment settings are normalized.
+- Do not deploy to or document previous Vercel aliases as the official URL.
+- Use Vercel GitHub CI/CD as primary deploy path once the new project is linked.
 - Do not reintroduce `localStorage` persistence for domain data.
 - Do not reintroduce OAuth or e-mail confirmation UI without official credentials/configuration.

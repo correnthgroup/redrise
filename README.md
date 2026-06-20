@@ -8,7 +8,7 @@ Workspace-first SaaS for flows, tasks, agents, analytics, settings, team operati
 - Tailwind CSS v4 through `@tailwindcss/vite`.
 - Radix/shadcn-style UI primitives under `src/components/ui/`.
 - Supabase Auth, PostgreSQL, RLS, migrations, and Edge Functions.
-- Vercel static SPA deployment at `https://redrise-app.vercel.app`.
+- Vercel static SPA deployment from `https://github.com/correnthintegration/redrise.git`.
 - Yarn via Corepack. Do not add npm lockfiles.
 
 ## Current Architecture
@@ -51,8 +51,12 @@ corepack yarn test:e2e
 
 ## Deploy
 
-- Preferred frontend deploy path is prebuilt Vercel output from a temporary directory without `.git`.
-- Normal deploys from the Git worktree can be blocked by Vercel team attribution.
+- Target GitHub repository: `https://github.com/correnthintegration/redrise.git`.
+- Base operational account for GitHub/Vercel/Supabase: `integration@correnth.com`.
+- Preferred frontend deploy path is Vercel CI/CD connected to the GitHub repository.
+- Build command: `corepack yarn build`.
+- Install command: `corepack yarn install --frozen-lockfile`.
+- Output directory: `dist`.
 - Use the operational MCP when possible: `corepack yarn mcp:redrise-ops`.
 
 ## Current References
@@ -61,4 +65,4 @@ corepack yarn test:e2e
 - Human-readable technical map: `memory/TECHNICAL.md`.
 - Current decisions: `memory/DECISIONS.md`.
 - Handoff and next work: `memory/HANDOFF.md`.
-- Active/future auth specs: `updates/update1.3.md` and `updates/update1.4_colors.md`.
+- Active/future specs: `updates/`.

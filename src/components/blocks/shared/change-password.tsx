@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react'
-import { CheckCircle2, Eye, EyeOff, Lock, Shield, XCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Eye, EyeOff, Lock, Shield, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -35,7 +35,7 @@ const PASSWORD_REQUIREMENTS = [
   { labelKey: 'settings.passwordSpecial', regex: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/ },
 ]
 
-export function ChangePassword() {
+export function ChangePassword({ onBack }: { onBack?: () => void }) {
   const { t } = useI18n()
   const [newPassword, setNewPassword] = useState('')
 
@@ -60,7 +60,10 @@ export function ChangePassword() {
             <PasswordField id="new-password" label={t('settings.newPassword')} value={newPassword} onChange={setNewPassword} />
             <PasswordField id="confirm-password" label={t('settings.confirmNewPassword')} />
             <div className="mt-8 flex gap-3">
-              <Button type="button" variant="outline" className="flex-1">{t('common.cancel')}</Button>
+              <Button type="button" variant="outline" className="flex-1" onClick={onBack}>
+                <ArrowLeft className="h-4 w-4" />
+                {t('common.back')}
+              </Button>
               <Button type="submit" className="flex-1">{t('settings.updatePassword')}</Button>
             </div>
           </form>

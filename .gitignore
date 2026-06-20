@@ -39,3 +39,5 @@ supabase/*.sql
 *.njsproj
 *.sln
 *.sw?
+
+.vercel

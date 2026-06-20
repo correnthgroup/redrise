@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Shield, Loader2, Search } from 'lucide-react'
+import { ArrowLeft, Shield, Loader2, Search } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { loadAuditLogs, type AuditLog, type AuditAction, type AuditEntityType } from '@/lib/audit-logs'
@@ -29,7 +30,7 @@ const ENTITY_ICONS: Record<AuditEntityType, string> = {
   user: 'User',
 }
 
-export function AuditLogCard() {
+export function AuditLogCard({ onBack }: { onBack?: () => void }) {
   const { t, locale } = useI18n()
   const [logs, setLogs] = useState<AuditLog[]>([])
   const [loading, setLoading] = useState(true)
@@ -108,6 +109,12 @@ export function AuditLogCard() {
             </div>
           ))
         )}
+      </div>
+      <div className="mt-4 flex justify-between border-t pt-4">
+        <Button type="button" variant="outline" size="sm" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4" />
+          {t('common.back')}
+        </Button>
       </div>
     </Card>
   )

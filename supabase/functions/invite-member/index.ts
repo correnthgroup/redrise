@@ -112,7 +112,8 @@ Deno.serve(async (req) => {
     })
   }
 
-  const redirectTo = `${req.headers.get('Origin') || 'https://redrise-app.vercel.app'}?invited=1&email=${encodeURIComponent(email)}`
+  const appBaseUrl = Deno.env.get('APP_BASE_URL') ?? req.headers.get('Origin') ?? 'http://localhost:5173'
+  const redirectTo = `${appBaseUrl}?invited=1&email=${encodeURIComponent(email)}`
   const { error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
     redirectTo,
     data: { invited_by: user.id },

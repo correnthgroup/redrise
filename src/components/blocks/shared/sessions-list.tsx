@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Laptop, Loader2, LogOut, MapPin, Monitor, RefreshCcw, Smartphone, Tablet } from 'lucide-react'
+import { ArrowLeft, Laptop, Loader2, LogOut, MapPin, Monitor, RefreshCcw, Smartphone, Tablet } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -37,7 +37,7 @@ function formatLastActive(value: string, t: (key: string, params?: Record<string
   return t('sessions.lastActiveDate', { date: new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(date) })
 }
 
-export function SessionsList({ userId }: { userId: string }) {
+export function SessionsList({ userId, onBack }: { userId: string; onBack?: () => void }) {
   const { t } = useI18n()
   const [sessions, setSessions] = useState<RememberedSession[]>([])
   const [loading, setLoading] = useState(true)
@@ -66,10 +66,6 @@ export function SessionsList({ userId }: { userId: string }) {
           <h3 className="text-base font-semibold">{t('sessions.title')}</h3>
           <p className="text-sm text-muted-foreground">{t('sessions.desc')}</p>
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={refreshSessions} disabled={loading}>
-          <RefreshCcw className="h-4 w-4" />
-          {t('sessions.refresh')}
-        </Button>
       </div>
 
       <Separator className="my-4" />
@@ -144,6 +140,17 @@ export function SessionsList({ userId }: { userId: string }) {
           </div>
         </div>
       ) : null}
+
+      <div className="mt-4 flex justify-between border-t pt-4">
+        <Button type="button" variant="outline" size="sm" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4" />
+          {t('common.back')}
+        </Button>
+        <Button type="button" variant="outline" size="sm" onClick={refreshSessions} disabled={loading}>
+          <RefreshCcw className="h-4 w-4" />
+          {t('sessions.refresh')}
+        </Button>
+      </div>
     </Card>
   )
 }

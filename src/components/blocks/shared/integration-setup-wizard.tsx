@@ -32,7 +32,7 @@ const STEPS = [
   { id: 4, labelKey: 'integration.stepReview' },
 ] as const
 
-export function IntegrationSetupWizard() {
+export function IntegrationSetupWizard({ onBack }: { onBack?: () => void }) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
   const [selected, setSelected] = useState<IntegrationOption | null>(null)
   const [name, setName] = useState('')
@@ -182,7 +182,7 @@ export function IntegrationSetupWizard() {
       ) : null}
 
       <div className="mt-6 flex items-center justify-between">
-        <Button type="button" variant="outline" onClick={() => setStep((current) => current === 1 ? 1 : current === 2 ? 1 : current === 3 ? 2 : 3)} disabled={step === 1}>
+        <Button type="button" variant="outline" onClick={() => step === 1 ? onBack?.() : setStep((current) => current === 1 ? 1 : current === 2 ? 1 : current === 3 ? 2 : 3)}>
           <ArrowLeft className="h-4 w-4" />
           {t('common.back')}
         </Button>

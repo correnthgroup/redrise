@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react'
-import { Copy, Eye, EyeOff, KeyRound, Loader2, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, Copy, Eye, EyeOff, KeyRound, Loader2, Plus, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -11,7 +11,7 @@ import { useI18n } from '@/hooks/use-i18n'
 
 const SCOPE_OPTIONS = ['agents:read', 'agents:write', 'tasks:read', 'tasks:write', 'analytics:read', 'integrations:manage'] as const
 
-export function ApiKeysManager() {
+export function ApiKeysManager({ onBack }: { onBack?: () => void }) {
   const { t, locale } = useI18n()
   const [keys, setKeys] = useState<ApiKey[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,10 +64,6 @@ export function ApiKeysManager() {
           <h3 className="text-base font-semibold">{t('settings.apiKeysTitle')}</h3>
           <p className="text-sm text-muted-foreground">{t('settings.apiKeysFullDesc')}</p>
         </div>
-        <Button type="button" size="sm" onClick={() => setShowCreate((value) => !value)}>
-          <Plus className="h-4 w-4" />
-          {t('settings.newKey')}
-        </Button>
       </div>
 
       {showCreate ? (
@@ -179,6 +175,16 @@ export function ApiKeysManager() {
           )}
         </div>
       )}
+      <div className="mt-4 flex justify-between border-t pt-4">
+        <Button type="button" variant="outline" size="sm" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4" />
+          {t('common.back')}
+        </Button>
+        <Button type="button" size="sm" onClick={() => setShowCreate((value) => !value)}>
+          <Plus className="h-4 w-4" />
+          {t('settings.newKey')}
+        </Button>
+      </div>
     </Card>
   )
 }

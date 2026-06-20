@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Crown, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowLeft, Check, Crown, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -46,7 +46,7 @@ const PLANS: Plan[] = [
   },
 ]
 
-export function PlansPage() {
+export function PlansPage({ onBack }: { onBack?: () => void }) {
   const { t } = useI18n()
   const [notice] = useState(() => new URLSearchParams(window.location.search).get('checkout') === 'success')
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null)
@@ -130,6 +130,12 @@ export function PlansPage() {
             </div>
           </Card>
         ))}
+      </div>
+      <div className="flex justify-between">
+        <Button type="button" variant="outline" size="sm" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4" />
+          {t('common.back')}
+        </Button>
       </div>
     </div>
   )

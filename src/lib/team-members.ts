@@ -137,3 +137,16 @@ export async function updateTeamMember(member: Pick<TeamMember, 'id' | 'function
 
   return !error
 }
+
+export async function checkEmailExists(email: string): Promise<boolean> {
+  const cleanEmail = email.trim().toLowerCase()
+  if (!cleanEmail) return false
+
+  const { data } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', cleanEmail)
+    .limit(1)
+
+  return (data ?? []).length > 0
+}

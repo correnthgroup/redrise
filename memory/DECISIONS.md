@@ -12,7 +12,7 @@
 
 ## Current Backend Decisions
 
-- Supabase project `ndfsselzilmdzywcdyoo` is the backend source for Auth, database, migrations, RLS, and Edge Functions.
+- Supabase must be recreated or relinked under the `integration@correnth.com` operational account; the previous project is no longer the active target.
 - `profiles` stores personal information, avatar, language, presence, and profile fields used by Dashboard/Sidebar/Settings.
 - `active_sessions` stores authenticated session metadata, `supabase_session_id`, `remembered`, last activity, and revoke state.
 - `team_members` stores Settings > Team Members and feeds member pickers in Flow and Tasks.
@@ -30,7 +30,7 @@
 
 ## Current Product Decisions
 
-- `https://redrise-app.vercel.app` remains the official production URL until a custom domain is acquired and configured.
+- The official production URL is pending domain selection and must be bound to the new Vercel project.
 - Settings > Plans remains a placeholder-like planning surface only; it must not unlock paid features from frontend state.
 - Real billing requires Stripe checkout, webhook, persisted plan state, and permission matrix.
 - Admin/Member/Viewer labels remain informational until backend/RLS enforcement is approved.
@@ -41,5 +41,5 @@
 
 - Re-enable OAuth only after GitHub, Google, and Microsoft/Azure credentials are configured in Supabase and provider dashboards.
 - Re-enable e-mail confirmation only after official transactional e-mail setup exists.
-- Keep prebuilt Vercel deploys from a temporary non-git directory until Vercel settings and team attribution are normalized.
+- Prefer Vercel GitHub CI/CD from `https://github.com/correnthintegration/redrise.git`; keep prebuilt deploy only as fallback.
 - Keep `memory/TECHNICAL.md` as PT-BR operational documentation for humans and deterministic agents.

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
-import { Camera, Globe, Info, Loader2, Mail, Phone, ShieldCheck, Trash2, Upload, User } from 'lucide-react'
+import { Camera, Globe, Info, Loader2, Mail, Phone, ShieldCheck, Trash2, Upload, User, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -554,8 +554,11 @@ export function AccountBasicInfoPage({
           </div>
           )}
 
-          <div className="flex justify-end gap-3 border-t pt-5">
-            <Button type="button" variant="outline" onClick={onBack} disabled={saving}>{t('common.back')}</Button>
+          <div className="flex justify-between gap-3 border-t pt-5">
+            <Button type="button" variant="outline" onClick={onBack} disabled={saving}>
+              <ArrowLeft className="h-4 w-4" />
+              {t('common.back')}
+            </Button>
             <Button type="button" disabled={saving || profileLoading || !profile} onClick={handleSave}>
               {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('account.saving')}</> : t('account.saveChanges')}
             </Button>

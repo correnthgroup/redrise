@@ -1,6 +1,5 @@
 ﻿import { useState, type ReactNode } from 'react'
 import {
-  ArrowLeft,
   KeyRound,
   CreditCard,
   PlugZap,
@@ -10,7 +9,6 @@ import {
   UserPlus,
   Users,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { AccountBasicInfoPage } from './account-basic-info-page'
@@ -43,13 +41,13 @@ type SettingShortcut = {
   icon: ReactNode
 }
 
-function TeamMembersView({ user }: { user: SettingsUser }) {
+function TeamMembersView({ user, onBack }: { user: SettingsUser; onBack: () => void }) {
   const [open, setOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
   return (
     <>
-      <MemberListTable key={refreshKey} user={user} onAddMember={() => setOpen(true)} />
+      <MemberListTable key={refreshKey} user={user} onAddMember={() => setOpen(true)} onBack={onBack} />
       <AddMemberModal ownerUserId={user.id} open={open} onOpenChange={setOpen} onMemberAdded={() => setRefreshKey((value) => value + 1)} />
     </>
   )
@@ -110,31 +108,21 @@ export function SettingsPage({ user }: { user: SettingsUser }) {
     },
   ]
 
+  const goBack = () => setActive(null)
+
   let detail: ReactNode = null
-  if (active === 'personal-info') detail = <AccountBasicInfoPage user={user} onBack={() => setActive(null)} onSave={() => setActive(null)} onOpenPlans={() => setActive('plans')} />
-  else if (active === 'change-password') detail = <ChangePassword />
-  else if (active === 'active-sessions') detail = <SessionsList userId={user.id} />
-  else if (active === 'api-keys') detail = <ApiKeysManager />
-  else if (active === 'integrations') detail = <IntegrationSetupWizard />
-  else if (active === 'team-members') detail = <TeamMembersView user={user} />
-  else if (active === 'plans') detail = <PlansPage />
-  else if (active === 'audit-log') detail = <AuditLogCard />
+  if (active === 'personal-info') detail = <AccountBasicInfoPage user={user} onBack={goBack} onSave={goBack} onOpenPlans={() => setActive('plans')} />
+  else if (active === 'change-password') detail = <ChangePassword onBack={goBack} />
+  else if (active === 'active-sessions') detail = <SessionsList userId={user.id} onBack={goBack} />
+  else if (active === 'api-keys') detail = <ApiKeysManager onBack={goBack} />
+  else if (active === 'integrations') detail = <IntegrationSetupWizard onBack={goBack} />
+  else if (active === 'team-members') detail = <TeamMembersView user={user} onBack={goBack} />
+  else if (active === 'plans') detail = <PlansPage onBack={goBack} />
+  else if (active === 'audit-log') detail = <AuditLogCard onBack={goBack} />
 
   if (active) {
     return (
       <div className="flex h-full flex-col overflow-hidden animate-app-rise">
-        <div className="flex h-16 items-center gap-3 border-b px-6">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setActive(null)}
-            aria-label="Back to settings shortcuts"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {t('common.back')}
-          </Button>
-        </div>
         <div className="min-h-0 flex-1 overflow-auto bg-muted/20">
           <div className="flex min-h-full w-full items-center justify-center p-6">
             <div className="w-full max-w-3xl">{detail}</div>

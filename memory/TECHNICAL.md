@@ -25,7 +25,7 @@
 - `HITL` significa Human-in-the-loop: humanos revisam, aprovam ou bloqueiam ações importantes antes da execução final.
 - O app usa Supabase para autenticação, banco de dados e funções de backend.
 - O app usa Vercel como hospedagem pública.
-- A URL oficial atual é `https://redrise-app.vercel.app`.
+- A URL oficial atual é `[PENDENTE: dominio]`.
 - A navegação principal fica na Sidebar à esquerda.
 - O título da tela atual fica na Topbar no topo.
 - O conteúdo principal fica no centro, dentro do `main` do AppShell.
@@ -416,8 +416,8 @@
 ## Planejado: OAuth E E-mail De Confirmação
 
 - Reativar GitHub, Google e Microsoft/Azure no Sign In/Sign Up somente depois de configurar Client ID e Client Secret oficiais em Supabase Authentication > Providers.
-- Callback autorizado nos provedores deve apontar para `https://ndfsselzilmdzywcdyoo.supabase.co/auth/v1/callback`.
-- Redirects do app devem incluir `http://localhost:5173/auth/callback` e `https://redrise-app.vercel.app/auth/callback` quando OAuth voltar.
+- Callback autorizado nos provedores deve apontar para o callback do novo projeto Supabase: `https://[NOVO_PROJECT_REF].supabase.co/auth/v1/callback`.
+- Redirects do app devem incluir `http://localhost:5173/auth/callback`, `http://127.0.0.1:5173/auth/callback` e o callback do novo domínio quando OAuth voltar.
 - Reativar confirmação de e-mail somente depois de configurar remetente oficial, SMTP/template e política de reenvio.
 
 ## Aviso De Acesso Em Personal Information
@@ -513,14 +513,12 @@
 
 ## Infraestrutura, Deploy E Qualidade
 
-- Produção oficial atual: `https://redrise-app.vercel.app`.
+- Produção oficial atual: `[PENDENTE: dominio]`.
 - O frontend é uma SPA estática.
 - SPA significa Single Page Application: o navegador carrega um app único e o React troca as telas internamente.
-- Deploy frontend normal na Vercel pode falhar enquanto as settings remotas/atribuição do time não estiverem normalizadas.
-- Deploy frontend seguro atual usa Build Output API/prebuilt através do MCP ou comando equivalente.
-- O deploy prebuilt deve rodar fora do worktree Git local, em diretório temporário sem `.git`, porque a Vercel pode bloquear deployment quando o autor Git local não é membro verificado do time Vercel.
-- O MCP `redrise-ops` já prepara esse diretório temporário no tool `deploy_frontend_prebuilt`.
-- Supabase project ref atual: `ndfsselzilmdzywcdyoo`.
+- Deploy frontend normal deve usar Vercel GitHub CI/CD conectado a `https://github.com/correnthintegration/redrise.git`.
+- Deploy prebuilt via MCP fica como fallback operacional, não como caminho principal.
+- Supabase project ref atual: `[PENDENTE: novo projeto]`.
 - Validação mínima para mudança relevante: `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, `corepack yarn build`.
 - Validação para mudança de fluxo visual: também rodar `corepack yarn test:e2e`.
 - Testes unitários usam Vitest.

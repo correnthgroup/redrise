@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Loader2, Pencil, Search, UserPlus } from 'lucide-react'
+import { ArrowLeft, Loader2, Pencil, Search, UserPlus } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -20,7 +20,7 @@ function initials(name: string) {
   return name.replace(/[[\]]/g, '').split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase()
 }
 
-export function MemberListTable({ user, onAddMember }: { user: CurrentUser; onAddMember?: () => void }) {
+export function MemberListTable({ user, onAddMember, onBack }: { user: CurrentUser; onAddMember?: () => void; onBack?: () => void }) {
   const { t } = useI18n()
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
@@ -76,10 +76,6 @@ export function MemberListTable({ user, onAddMember }: { user: CurrentUser; onAd
           <h2 className="text-xl font-semibold tracking-tight">{t('settings.membersList')}</h2>
           <p className="text-sm text-muted-foreground">{t('settings.membersListDesc')}</p>
         </div>
-        <Button type="button" onClick={onAddMember}>
-          <UserPlus className="h-4 w-4" />
-          {t('settings.addMember')}
-        </Button>
       </div>
 
       <div className="mt-4 flex items-center gap-2">
@@ -192,6 +188,16 @@ export function MemberListTable({ user, onAddMember }: { user: CurrentUser; onAd
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <div className="mt-4 flex justify-between border-t pt-4">
+        <Button type="button" variant="outline" size="sm" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4" />
+          {t('common.back')}
+        </Button>
+        <Button type="button" size="sm" onClick={onAddMember}>
+          <UserPlus className="h-4 w-4" />
+          {t('settings.addMember')}
+        </Button>
+      </div>
     </Card>
   )
 }

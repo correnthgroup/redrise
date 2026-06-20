@@ -10,8 +10,8 @@
 - **UI primitives**: shadcn-style components under `src/components/ui/` (Radix + CVA + tailwind-merge)
 - **Routing**: state machine in `src/components/layout/app-shell.tsx` via `SidebarKey` + thin route shims in `src/app/`
 - **State**: React hooks + Supabase-backed domain libraries; `localStorage` only for UI preferences such as sidebar collapse
-- **Backend**: Supabase project `ndfsselzilmdzywcdyoo` for Auth, PostgreSQL, RLS, migrations, and Edge Functions
-- **Hosting**: Vercel project `worth-team-s-projects/redrise-app`, official URL `https://redrise-app.vercel.app`
+- **Backend**: Supabase Auth, PostgreSQL, RLS, migrations, and Edge Functions. The active project must be the new `integration@correnth.com` owned Redrise project.
+- **Hosting**: Vercel project connected to `https://github.com/correnthintegration/redrise.git` under `integration@correnth.com`.
 - **Package manager**: Yarn via Corepack. Do not add npm lockfiles.
 - **Operational MCP**: `redrise-ops` in `scripts/mcp/redrise-ops.mjs`
 
@@ -146,11 +146,10 @@ corepack yarn mcp:redrise-ops:self-test
 
 ## Deploy
 
-- Preferred frontend deploy while remote Vercel project settings still show npm: use prebuilt Build Output API.
-- Safe path: `corepack yarn build`, prepare `.vercel/output` from `dist`, then `vercel deploy --prebuilt --prod --yes --force`.
-- The `redrise-ops` MCP exposes this as `build_frontend`, `prepare_vercel_prebuilt`, and `deploy_frontend_prebuilt`.
-- Normal `vercel deploy --prod` can be blocked by Vercel settings or team attribution; use the prebuilt non-git path until settings are normalized.
-- Supabase Edge Functions are deployed with Supabase CLI; currently relevant allowlisted function is `invite-member`.
+- Preferred frontend deploy: Vercel CI/CD from `https://github.com/correnthintegration/redrise.git`.
+- Vercel settings must use `corepack yarn install --frozen-lockfile`, `corepack yarn build`, and output directory `dist`.
+- The `redrise-ops` MCP exposes fallback prebuilt deployment through `build_frontend`, `prepare_vercel_prebuilt`, and `deploy_frontend_prebuilt`.
+- Supabase Edge Functions are deployed with Supabase CLI after linking the new `integration@correnth.com` owned Supabase project.
 
 ## Language
 

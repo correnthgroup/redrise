@@ -16,18 +16,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: yarn
 
-      - run: npm ci
+      - run: corepack enable
+
+      - run: corepack yarn install --frozen-lockfile
 
       - name: Lint
-        run: npm run lint
+        run: corepack yarn lint
 
       - name: Typecheck
-        run: npm run typecheck
+        run: corepack yarn typecheck
 
       - name: Build
-        run: npm run build
+        run: corepack yarn build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
@@ -41,12 +43,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: yarn
 
-      - run: npm ci
+      - run: corepack enable
+
+      - run: corepack yarn install --frozen-lockfile
 
       - name: Test
-        run: npm run test
+        run: corepack yarn test
 
   test-e2e:
     name: E2E Tests
@@ -57,15 +61,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: yarn
 
-      - run: npm ci
+      - run: corepack enable
+
+      - run: corepack yarn install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: corepack yarn playwright install --with-deps chromium
 
       - name: E2E Test
-        run: npm run test:e2e
+        run: corepack yarn test:e2e
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
