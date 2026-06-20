@@ -41,8 +41,8 @@ test('workspace lifecycle: create → review → cancel → delete', async ({ pa
   await expect(page.getByText('pending').first()).toBeVisible()
 
   // ── Cancel → back to board ──
-  await page.getByRole('button', { name: /Cancel|Cancelar/ }).click()
-  await expect(page.getByText(WS_NAME)).toBeVisible()
+  await page.getByRole('button', { name: /Back|Voltar|Cancel|Cancelar/ }).click()
+  await expect(page.locator('button', { hasText: WS_NAME }).first()).toBeVisible()
 
   // ── Open review again → delete ──
   const cardButton2 = page.locator('button', { hasText: WS_NAME }).first()

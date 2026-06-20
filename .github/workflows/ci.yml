@@ -89,7 +89,7 @@ jobs:
 
       - name: E2E Test
         if: env.E2E_SKIPPED != '1'
-        run: corepack yarn test:e2e
+        run: corepack yarn test:e2e --workers=1
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}

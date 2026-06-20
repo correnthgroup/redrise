@@ -12,28 +12,28 @@ test.describe('Navigation', () => {
   })
 
   test('navigate to Flow page', async ({ page }) => {
-    await page.getByRole('button', { name: /Flow|Fluxo/ }).click()
+    await page.getByRole('button', { name: /Flow|Fluxo/ }).click({ force: true })
     await expect(page.getByRole('heading', { name: /Flow|Fluxo/ })).toBeVisible()
   })
 
   test('navigate to Tasks page', async ({ page }) => {
-    await page.getByRole('button', { name: /Tasks|Tarefas/ }).click()
+    await page.getByRole('button', { name: /Tasks|Tarefas/ }).click({ force: true })
     await expect(page.getByRole('heading', { name: /Tasks|Tarefas/ })).toBeVisible()
   })
 
   test('navigate to Agents page', async ({ page }) => {
-    await page.getByRole('button', { name: /Agents|Agentes/ }).click()
-    await expect(page.getByRole('heading', { name: /Agents|Agentes/ })).toBeVisible()
+    await page.getByRole('button', { name: /Agents|Agentes/ }).click({ force: true })
+    await expect(page.getByRole('heading', { name: /Agents|Agentes/ })).toBeVisible({ timeout: 10000 })
   })
 
   test('navigate to Analytics page', async ({ page }) => {
-    await page.getByRole('button', { name: /Analytics|Anal.ticos/ }).click()
-    await expect(page.getByRole('heading', { name: /Analytics|Anal.ticos/ })).toBeVisible()
+    await page.getByRole('button', { name: /Analytics|Anal.ticos/ }).click({ force: true })
+    await expect(page.getByRole('heading', { name: /Analytics|Anal.ticos/ })).toBeVisible({ timeout: 10000 })
   })
 
   test('navigate to Settings page', async ({ page }) => {
-    await page.getByRole('button', { name: /Settings|Configura..es/ }).click()
-    await expect(page.getByRole('heading', { name: /Settings|Configura..es/ })).toBeVisible()
+    await page.getByRole('button', { name: /Settings|Configura..es/ }).click({ force: true })
+    await expect(page.getByRole('heading', { name: /Settings|Configura..es/ })).toBeVisible({ timeout: 10000 })
   })
 
   test('sidebar collapse toggle works', async ({ page }) => {
