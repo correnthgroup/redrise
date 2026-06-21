@@ -27,7 +27,7 @@
 - `corepack yarn typecheck` passes.
 - `corepack yarn test` passes.
 - `corepack yarn build` passes.
-- `corepack yarn test:e2e --workers=1` passes with 22/22 tests after stabilizing sidebar/topbar selectors with `data-testid`.
+- E2E local passes both as full suite (`corepack yarn test:e2e --workers=1`, 22/22) and in the split CI format: smoke/navigation, workspaces, and settings groups.
 
 ## Open Work
 
