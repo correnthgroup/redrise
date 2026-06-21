@@ -14,6 +14,13 @@
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
+## Local Commit Recovery
+- If you are working only inside `D:\studio\redrise`, run `git log --oneline -5` to identify the latest local commit available in this repo.
+- To inspect the latest committed graph report without changing files, run `git show HEAD:graphify-out/GRAPH_REPORT.md`.
+- To inspect the latest committed graph JSON without changing files, run `git show HEAD:graphify-out/graph.json`.
+- To restore/import the latest committed graph artifacts into the current worktree, run `git checkout HEAD -- graphify-out/GRAPH_REPORT.md graphify-out/graph.json graphify-out/graph.html`.
+- After importing, run `git status --short -uall` and compare `git rev-parse HEAD` with the `Built from commit` line above before treating the graph as fresh.
+
 ## Community Hubs (Navigation)
 - [[_COMMUNITY_Community 0|Community 0]]
 - [[_COMMUNITY_Community 1|Community 1]]
