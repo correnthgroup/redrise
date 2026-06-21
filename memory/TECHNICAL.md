@@ -530,6 +530,16 @@
 - CTAs principais da Topbar também possuem `data-testid`: `dashboard-new-workspace`, `flow-new-flow`, `tasks-new-task`, `agents-new-agent`.
 - O CI roda E2E em matriz por módulo para reduzir interferência entre fluxos, facilitar diagnóstico e evitar que uma falha de menu esconda o estado dos demais menus.
 
+## Graphify Local
+
+- O grafo detalhado do app fica em `graphify-out/` dentro deste repositório.
+- Artefatos consultáveis versionáveis: `graphify-out/GRAPH_REPORT.md`, `graphify-out/graph.json` e `graphify-out/graph.html`.
+- Caches, backups datados, manifestos internos e arquivos `.graphify_*` ficam locais e não devem ser tratados como documentação canônica.
+- A última atualização estrutural foi feita com `C:\Python314\python.exe -m graphify update . --force`.
+- Resultado da última atualização estrutural limpa: 965 nós, 1126 relações e 137 comunidades.
+- A extração semântica completa depende de chave LLM no ambiente; sem chave, o grafo estrutural AST continua válido para navegação técnica e relações de código.
+- A matriz em `D:\graphify\repos\redrise\` mantém apenas catálogo macro e deve apontar para este grafo local quando for necessário investigar detalhes.
+
 ## Convenções De IDs
 
 - IDs curtos ajudam depuração visual, suporte e auditoria.

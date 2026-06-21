@@ -33,14 +33,14 @@
 - CI E2E now runs in split Playwright processes for smoke/navigation, workspaces, and settings to isolate remote state between groups.
 - E2E suite was restructured into 10 Playwright projects by domain/menu: auth-public, auth-session, navigation, dashboard, flow, tasks, agents, analytics, workspaces, settings.
 - Local modular matrix passed with 39 tests across all 10 E2E modules.
-- `C:\Python314\python.exe -m graphify update .` produced 1193 nodes, 1270 edges, and 201 communities after Update 2.0 i18n changes.
+- `C:\Python314\python.exe -m graphify update . --force` produced a clean graph with 965 nodes, 1126 edges, and 137 communities in `graphify-out` after E2E modularization and Render stabilization.
 
 ## Next Tasks
 
 - **PRD3 (Update 3.0)**: Resolve Settings menu definitively. 4 phases: Critical Fixes, High-Priority Gaps, Quality/Polish, i18n Completion. See `updates/prd3.md`.
 - Keep docs and memory current/future only; do not re-add historical implementation archives as active guidance.
 - Finish the remaining Update 2.0 deep-copy conversion outside the current PRD2 test-bundle scope before production deployment.
-- Refresh `graphify-out` for the latest PRD2 code changes when the local `graphify` CLI/interpreter path is available again.
+- Keep `graphify-out/GRAPH_REPORT.md`, `graphify-out/graph.json`, and `graphify-out/graph.html` refreshed after relevant architecture/code/product behavior changes; caches and backups remain local-only.
 - Execute `updates/update1.4_colors.md` only if the future auth visual update is approved.
 - Implement real Stripe billing only after plan matrix, checkout, webhook, and permission matrix are approved.
 - Re-enable OAuth only after official provider credentials exist.
