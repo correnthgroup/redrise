@@ -37,6 +37,7 @@ export function TeamListTable({ user, onBack }: { user: CurrentUser; onBack?: ()
   const [addQuery, setAddQuery] = useState('')
   const [addSelectedIds, setAddSelectedIds] = useState<Set<string>>(new Set())
   const [addFunctions, setAddFunctions] = useState<Record<string, string>>({})
+  const [createError, setCreateError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -87,21 +88,30 @@ export function TeamListTable({ user, onBack }: { user: CurrentUser; onBack?: ()
     setDescription('')
     setSelectedIds(new Set())
     setSelectedFunctions({})
+    setCreateError(null)
     setWizardOpen(false)
   }
 
   async function saveTeam() {
     if (!teamName.trim() || !canCreateTeam) return
+    setCreateError(null)
     setSaving(true)
-    const created = await createTeam({
-      ownerUserId: user.id,
-      name: teamName,
-      description,
-      assignments: selectedMembers.map((member) => ({ teamMemberId: member.id, function: selectedFunctions[member.id].trim() })),
-    })
-    if (created) resetCreateWizard()
-    await refresh()
-    setSaving(false)
+    try {
+      const created = await createTeam({
+        ownerUserId: user.id,
+        name: teamName,
+        description,
+        assignments: selectedMembers.map((member) => ({ teamMemberId: member.id, function: selectedFunctions[member.id].trim() })),
+      })
+      if (!created) {
+        setCreateError(t('settings.createTeamError'))
+        return
+      }
+      await refresh()
+      resetCreateWizard()
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function addMembersToTeam() {
@@ -181,6 +191,7 @@ export function TeamListTable({ user, onBack }: { user: CurrentUser; onBack?: ()
       >
         {wizardContent}
         {!canCreateTeam ? <p className="text-xs text-destructive">{t('settings.teamLimitReached')}</p> : null}
+        {createError ? <p className="text-xs text-destructive">{createError}</p> : null}
       </WizardShell>
     )
   }

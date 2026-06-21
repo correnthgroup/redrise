@@ -303,12 +303,14 @@
 - `TeamListTable` carrega membros com `loadTeamMembers(user.id)` e equipes formais com `loadTeams(user.id)`.
 - Ao abrir Team List, a tela mostra uma tabela de equipes semelhante à Members List.
 - O wizard de criação abre apenas pelo botão `New Team` / `Nova Equipe` e troca a área de Team List para uma tela dedicada, no mesmo padrão dos fluxos `New ...`.
+- As etapas do wizard aparecem como `Team identity` / `Identidade da equipe`, `Members and functions` / `Membros e funções`, e Review/Revisão.
 - Criar equipe é um wizard de 3 etapas: Nome da Equipe e Descrição, Selecionar Membros existentes com Function livre por membro, Revisão.
 - Nome da Equipe é obrigatório; Descrição é opcional.
 - Selecionar membros na criação é opcional, então é possível criar uma equipe vazia.
 - Na etapa 2, cada membro disponível aparece em linha com checkbox, identificação e campo `Function` / `Função`.
 - O campo `Function` na etapa 2 é texto livre, obrigatório apenas quando o respectivo membro está selecionado, e fica desabilitado quando o membro não está selecionado.
 - O limite atual é 7 equipes por owner, validado na UI e por trigger no Supabase.
+- Ao finalizar com `Create Team`, a UI cria registro em `teams`, cria assignments opcionais em `team_assignments`, recarrega a lista e volta para Team List; se o insert falhar, mostra erro traduzido.
 - O mesmo membro pode participar de várias equipes porque a associação fica em `team_assignments`, não no campo único `team_members.team`.
 - Clicar no nome/card da equipe abre o detalhe da equipe com lista de membros e funções daquela equipe.
 - O botão `Add Team Member` no detalhe abre uma tela/modal com membros cadastrados atualmente que ainda não fazem parte daquela equipe.
@@ -402,6 +404,7 @@
 - `team_members`: guarda relação entre dono da equipe, usuário membro, e-mail convidado, papel, função, time e status.
 - `teams`: guarda equipes formais criadas em Settings > Team List, com nome, descrição e limite de 7 por owner.
 - `team_assignments`: guarda quais membros estão em quais equipes e qual função livre exercem naquela equipe; permite o mesmo membro em múltiplas equipes.
+- As migrations `020`, `021` e `022` foram aplicadas no Supabase remoto `vsaropewydcjsvplpugx` via `supabase db push` após confirmação por `supabase migration list`.
 - `workspaces`: guarda workspaces do usuário.
 - `workspaces.flows` e `workspaces.status` são recalculados pelos triggers da migration 021 quando flows/tasks mudam.
 - `flows`: guarda flows associados a workspace.

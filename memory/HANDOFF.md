@@ -10,6 +10,8 @@
 - Slogan atual: EN `Add AI. Enhance Value.`; PT-BR `Add AI. Agregue Valor.`.
 - Add Member usa Role/Cargo obrigatório com a lista oficial `Owner/Board/Staff/Member/Viewer`; Function/Função livre por associação fica somente em Team List.
 - Add Member usa dropdown padrão para Team, alimentado por `loadTeams(user.id)`.
+- Remote Supabase migrations 020, 021, and 022 are applied on `vsaropewydcjsvplpugx`; New Team now depends on remote `teams` and `team_assignments` existing.
+- New Team wizard step labels are translated and successful creation returns to Team List after refreshing teams.
 - Team List foi ajustado para equipes formais: migration 022 cria `teams` e `team_assignments`; criação abre uma tela dedicada com wizard de 3 etapas, aceita equipe vazia, limita a 7 equipes e permite mesmo membro em várias equipes.
 - PRD parte 1 continuação aplicada localmente: Settings tem Members List para visualizar/convidar, Team List para criar equipe e atribuir membros/funções, e Personal Information mostra função/equipe atuais como leitura.
 - PRD parte 1 local foi aplicada no workspace: Dashboard operacional saiu de placeholders estáticos para dados derivados de Supabase já carregados pelo shell; Flow Pipeline lê cards reais de `flow_cards`; Plans fica desabilitado fora de dev.

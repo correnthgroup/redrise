@@ -35,6 +35,8 @@
 - Local modular matrix passed with 39 tests across all 10 E2E modules.
 - `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, `corepack yarn build`, and `corepack yarn test:e2e` passed after moving all dedicated wizards to shared `WizardShell` and updating the slogan to `Add AI. Enhance Value.` / `Add AI. Agregue Valor.`.
 - `C:\Python314\python.exe -m graphify update . --force` produced a clean structural graph with 1011 nodes, 1195 edges, and 144 communities in `graphify-out` after shared WizardShell refactor; semantic doc extraction remains pending without Gemini env keys.
+- `supabase db push` applied remote migrations 020, 021, and 022 to `vsaropewydcjsvplpugx`; this resolved New Team creation failing because `public.teams` was missing from the remote schema cache.
+- `corepack yarn test`, `corepack yarn build`, and `corepack yarn test:e2e` passed after applying remote migrations and fixing New Team wizard labels/error handling.
 
 ## Next Tasks
 
@@ -42,6 +44,7 @@
 - PRD parte 1 ajuste wizards: New Workspace, New Flow, New Task, New Agent, Integrations e New Team usam `WizardShell` como moldura compartilhada, mantendo individualidades de campos, validações e callbacks em seus próprios componentes.
 - PRD parte 1 ajuste slogan: texto mudou de `Adding AI. Enhance Value.` para `Add AI. Enhance Value.` em inglês e `Add AI. Agregue Valor.` em PT-BR.
 - PRD parte 1 ajuste Add Member: `AddMemberModal` removeu o campo Function separado, tornou Role/Cargo obrigatório usando a lista oficial de cargos e trocou Team para dropdown padrão carregado das equipes formais atuais.
+- PRD parte 1 ajuste New Team: etapas traduzidas, erro de criação explícito, e retorno para Team List após criação bem-sucedida.
 - PRD parte 1 ajuste obrigatório: criado `RequiredLabel` como componente padrão para campos obrigatórios e removidas marcações manuais de Sign Up, New Workspace, New Flow, New Task, Integrations, Add Member e Team List.
 - PRD parte 1 ajuste Team List: Team List agora usa `teams` e `team_assignments`, permite criar equipe vazia por wizard de 3 etapas, limita a 7 equipes, permite membro em múltiplas equipes e abre detalhe da equipe com Add Team Member.
 - PRD parte 1 continuação: Function oficial padronizada como Owner/Board/Staff/Member/Viewer; Members List virou leitura/convite sem edição; Team List foi adicionada para criar equipes e atribuir membros/funções; Personal Information agora mostra função e equipe atuais como campos não editáveis.

@@ -1,7 +1,7 @@
 # Graph Report - redrise  (2026-06-21)
 
 ## Corpus Check
-- 194 files · ~88,082 words
+- 194 files · ~88,358 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e58453d1`
+- Built from commit: `f26ec664`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -193,8 +193,8 @@ Cohesion: 0.15
 Nodes (14): STATUS_BADGE, DashboardPage(), areaPath(), ChartTabs(), ChartTabsProps, SimpleAreaChart(), Kpi, KpiCard() (+6 more)
 
 ### Community 6 - "Community 6"
-Cohesion: 0.09
-Nodes (19): Plan, PLANS, PlansPage(), SettingKey, SettingShortcut, SettingsPage(), SettingsUser, AddMemberModal() (+11 more)
+Cohesion: 0.11
+Nodes (15): Plan, PLANS, PlansPage(), SettingKey, SettingShortcut, SettingsPage(), SettingsUser, ApiKeysManager() (+7 more)
 
 ### Community 7 - "Community 7"
 Cohesion: 0.08
@@ -233,8 +233,8 @@ Cohesion: 0.18
 Nodes (7): AnalyticsData, useAnalytics(), useFlows(), useTasks(), useWorkspaces(), AppShell(), AnalyticsPage()
 
 ### Community 16 - "Community 16"
-Cohesion: 0.15
-Nodes (11): CommandPalette(), CommandPaletteProps, PaletteItem, CurrentUser, initials(), MemberListTable(), PaginationFooter(), PaginationFooterProps (+3 more)
+Cohesion: 0.12
+Nodes (14): CommandPalette(), CommandPaletteProps, PaletteItem, DropdownFilterByPriority(), PRIORITIES, PRIORITY_KEYS, CurrentUser, initials() (+6 more)
 
 ### Community 17 - "Community 17"
 Cohesion: 0.14
@@ -322,7 +322,7 @@ Nodes (5): ART_QUOTES, AuthFlow(), AuthMode, isValidEmail(), PASSWORD_RULES
 
 ### Community 39 - "Community 39"
 Cohesion: 0.29
-Nodes (6): admin, en-US, pt-BR, biological gender, en-US, pt-BR
+Nodes (6): admin, en-US, pt-BR, agent, en-US, pt-BR
 
 ### Community 40 - "Community 40"
 Cohesion: 0.25
@@ -453,8 +453,8 @@ Cohesion: 0.67
 Nodes (3): phone, en-US, pt-BR
 
 ### Community 75 - "Community 75"
-Cohesion: 0.67
-Nodes (3): agent, en-US, pt-BR
+Cohesion: 0.40
+Nodes (4): AddMemberModal(), FUNCTION_MAP, InviteRoleOption, ROLE_MAP
 
 ### Community 76 - "Community 76"
 Cohesion: 0.67
@@ -549,8 +549,8 @@ Cohesion: 0.50
 Nodes (3): AnalyticsForKpi, buildKpis(), Kpi
 
 ### Community 137 - "Community 137"
-Cohesion: 0.50
-Nodes (3): DropdownFilterByPriority(), PRIORITIES, PRIORITY_KEYS
+Cohesion: 0.67
+Nodes (3): biological gender, en-US, pt-BR
 
 ### Community 138 - "Community 138"
 Cohesion: 0.67
@@ -586,9 +586,9 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `getMemberFunctionLabelKey()` connect `Community 3` to `Community 71`?**
   _High betweenness centrality (0.095) - this node is a cross-community bridge._
-- **Why does `useI18n()` connect `Community 3` to `Community 5`, `Community 6`, `Community 9`, `Community 73`, `Community 43`, `Community 139`, `Community 137`, `Community 142`, `Community 15`, `Community 16`, `Community 20`, `Community 62`?**
+- **Why does `useI18n()` connect `Community 3` to `Community 5`, `Community 6`, `Community 9`, `Community 73`, `Community 43`, `Community 75`, `Community 139`, `Community 142`, `Community 15`, `Community 16`, `Community 20`, `Community 62`?**
   _High betweenness centrality (0.059) - this node is a cross-community bridge._
-- **Why does `t()` connect `Community 3` to `Community 5`, `Community 6`, `Community 9`, `Community 73`, `Community 43`, `Community 139`, `Community 137`, `Community 142`, `Community 15`, `Community 16`, `Community 59`?**
+- **Why does `t()` connect `Community 3` to `Community 5`, `Community 6`, `Community 9`, `Community 73`, `Community 43`, `Community 75`, `Community 139`, `Community 142`, `Community 15`, `Community 16`, `Community 59`?**
   _High betweenness centrality (0.058) - this node is a cross-community bridge._
 - **Are the 40 inferred relationships involving `useI18n()` (e.g. with `AppShell()` and `Sidebar()`) actually correct?**
   _`useI18n()` has 40 INFERRED edges - model-reasoned connections that need verification._

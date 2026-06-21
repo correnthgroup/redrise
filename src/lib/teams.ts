@@ -68,7 +68,10 @@ export async function loadTeams(ownerUserId: string): Promise<Team[]> {
     .eq('owner_user_id', ownerUserId)
     .order('created_at', { ascending: false })
 
-  if (error) return []
+  if (error) {
+    console.error('[loadTeams] Error:', error.message)
+    return []
+  }
 
   const teamIds = (teams ?? []).map((team) => team.id)
   const { data: assignments } = teamIds.length > 0
@@ -100,10 +103,13 @@ export async function createTeam(input: {
     .select('*')
     .single()
 
-  if (error) return null
+  if (error) {
+    console.error('[createTeam] Error:', error.message)
+    return null
+  }
 
   if (input.assignments.length > 0) {
-    await supabase.from('team_assignments').insert(input.assignments.map((assignment) => ({
+    const { error: assignmentError } = await supabase.from('team_assignments').insert(input.assignments.map((assignment) => ({
       id: generateShortId('ta'),
       team_id: id,
       team_member_id: assignment.teamMemberId,
@@ -111,6 +117,7 @@ export async function createTeam(input: {
       created_at: now,
       updated_at: now,
     })))
+    if (assignmentError) console.error('[createTeamAssignments] Error:', assignmentError.message)
   }
 
   return mapTeam(data as TeamRow, [])

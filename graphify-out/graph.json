@@ -2016,7 +2016,7 @@
       "source_file": "src/components/blocks/shared/add-member-modal.tsx",
       "source_location": "L1",
       "id": "shared_add_member_modal",
-      "community": 6,
+      "community": 75,
       "norm_label": "add-member-modal.tsx"
     },
     {
@@ -2025,7 +2025,7 @@
       "source_file": "src/components/blocks/shared/add-member-modal.tsx",
       "source_location": "L28",
       "id": "shared_add_member_modal_role_map",
-      "community": 6,
+      "community": 75,
       "norm_label": "role_map"
     },
     {
@@ -2034,7 +2034,7 @@
       "source_file": "src/components/blocks/shared/add-member-modal.tsx",
       "source_location": "L36",
       "id": "shared_add_member_modal_addmembermodal",
-      "community": 6,
+      "community": 75,
       "norm_label": "addmembermodal()"
     },
     {
@@ -2241,7 +2241,7 @@
       "source_file": "src/components/blocks/shared/dropdown-filter-priority.tsx",
       "source_location": "L1",
       "id": "shared_dropdown_filter_priority",
-      "community": 137,
+      "community": 16,
       "norm_label": "dropdown-filter-priority.tsx"
     },
     {
@@ -2250,7 +2250,7 @@
       "source_file": "src/components/blocks/shared/dropdown-filter-priority.tsx",
       "source_location": "L12",
       "id": "shared_dropdown_filter_priority_priorities",
-      "community": 137,
+      "community": 16,
       "norm_label": "priorities"
     },
     {
@@ -2259,7 +2259,7 @@
       "source_file": "src/components/blocks/shared/dropdown-filter-priority.tsx",
       "source_location": "L13",
       "id": "shared_dropdown_filter_priority_priority_keys",
-      "community": 137,
+      "community": 16,
       "norm_label": "priority_keys"
     },
     {
@@ -2268,7 +2268,7 @@
       "source_file": "src/components/blocks/shared/dropdown-filter-priority.tsx",
       "source_location": "L15",
       "id": "shared_dropdown_filter_priority_dropdownfilterbypriority",
-      "community": 137,
+      "community": 16,
       "norm_label": "dropdownfilterbypriority()"
     },
     {
@@ -4284,7 +4284,7 @@
       "source_file": "src/i18n/terms.json",
       "source_location": "L18",
       "id": "i18n_terms_agent",
-      "community": 75,
+      "community": 39,
       "norm_label": "agent"
     },
     {
@@ -4293,7 +4293,7 @@
       "source_file": "src/i18n/terms.json",
       "source_location": "L19",
       "id": "i18n_terms_agent_en_us",
-      "community": 75,
+      "community": 39,
       "norm_label": "en-us"
     },
     {
@@ -4302,7 +4302,7 @@
       "source_file": "src/i18n/terms.json",
       "source_location": "L20",
       "id": "i18n_terms_agent_pt_br",
-      "community": 75,
+      "community": 39,
       "norm_label": "pt-br"
     },
     {
@@ -4527,7 +4527,7 @@
       "source_file": "src/i18n/terms.json",
       "source_location": "L54",
       "id": "i18n_terms_biological_gender",
-      "community": 39,
+      "community": 137,
       "norm_label": "biological gender"
     },
     {
@@ -4536,7 +4536,7 @@
       "source_file": "src/i18n/terms.json",
       "source_location": "L55",
       "id": "i18n_terms_biological_gender_en_us",
-      "community": 39,
+      "community": 137,
       "norm_label": "en-us"
     },
     {
@@ -4545,7 +4545,7 @@
       "source_file": "src/i18n/terms.json",
       "source_location": "L56",
       "id": "i18n_terms_biological_gender_pt_br",
-      "community": 39,
+      "community": 137,
       "norm_label": "pt-br"
     },
     {
@@ -5506,7 +5506,7 @@
       "label": "t()",
       "file_type": "code",
       "source_file": "src/lib/i18n.ts",
-      "source_location": "L1574",
+      "source_location": "L1580",
       "id": "lib_i18n_t",
       "community": 3,
       "norm_label": "t()"
@@ -5515,7 +5515,7 @@
       "label": "LOCALES",
       "file_type": "code",
       "source_file": "src/lib/i18n.ts",
-      "source_location": "L1582",
+      "source_location": "L1588",
       "id": "lib_i18n_locales",
       "community": 59,
       "norm_label": "locales"
@@ -6037,7 +6037,7 @@
       "label": "createTeam()",
       "file_type": "code",
       "source_file": "src/lib/teams.ts",
-      "source_location": "L81",
+      "source_location": "L84",
       "id": "lib_teams_createteam",
       "community": 71,
       "norm_label": "createteam()"
@@ -6046,7 +6046,7 @@
       "label": "addTeamAssignments()",
       "file_type": "code",
       "source_file": "src/lib/teams.ts",
-      "source_location": "L119",
+      "source_location": "L126",
       "id": "lib_teams_addteamassignments",
       "community": 71,
       "norm_label": "addteamassignments()"
@@ -6055,7 +6055,7 @@
       "label": "updateTeamAssignmentFunction()",
       "file_type": "code",
       "source_file": "src/lib/teams.ts",
-      "source_location": "L136",
+      "source_location": "L143",
       "id": "lib_teams_updateteamassignmentfunction",
       "community": 71,
       "norm_label": "updateteamassignmentfunction()"
@@ -6064,7 +6064,7 @@
       "label": "loadCurrentTeamAssignments()",
       "file_type": "code",
       "source_file": "src/lib/teams.ts",
-      "source_location": "L145",
+      "source_location": "L152",
       "id": "lib_teams_loadcurrentteamassignments",
       "community": 71,
       "norm_label": "loadcurrentteamassignments()"
@@ -8044,7 +8044,7 @@
       "label": "Current Validation Baseline",
       "file_type": "document",
       "source_file": "memory/HANDOFF.md",
-      "source_location": "L33",
+      "source_location": "L35",
       "id": "memory_handoff_current_validation_baseline",
       "community": 50,
       "norm_label": "current validation baseline"
@@ -8053,7 +8053,7 @@
       "label": "Open Work",
       "file_type": "document",
       "source_file": "memory/HANDOFF.md",
-      "source_location": "L43",
+      "source_location": "L45",
       "id": "memory_handoff_open_work",
       "community": 50,
       "norm_label": "open work"
@@ -8062,7 +8062,7 @@
       "label": "Operational Rules",
       "file_type": "document",
       "source_file": "memory/HANDOFF.md",
-      "source_location": "L59",
+      "source_location": "L61",
       "id": "memory_handoff_operational_rules",
       "community": 50,
       "norm_label": "operational rules"
@@ -8116,7 +8116,7 @@
       "label": "Next Tasks",
       "file_type": "document",
       "source_file": "memory/TASK_LOG.md",
-      "source_location": "L39",
+      "source_location": "L41",
       "id": "memory_task_log_next_tasks",
       "community": 51,
       "norm_label": "next tasks"
@@ -8314,7 +8314,7 @@
       "label": "Como A Member List Alimenta Outros Menus",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L318",
+      "source_location": "L320",
       "id": "memory_technical_como_a_member_list_alimenta_outros_menus",
       "community": 1,
       "norm_label": "como a member list alimenta outros menus"
@@ -8323,7 +8323,7 @@
       "label": "Settings > Audit Log",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L330",
+      "source_location": "L332",
       "id": "memory_technical_settings_audit_log",
       "community": 1,
       "norm_label": "settings > audit log"
@@ -8332,7 +8332,7 @@
       "label": "Blocos Compartilhados",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L337",
+      "source_location": "L339",
       "id": "memory_technical_blocos_compartilhados",
       "community": 1,
       "norm_label": "blocos compartilhados"
@@ -8341,7 +8341,7 @@
       "label": "Sidebar",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L367",
+      "source_location": "L369",
       "id": "memory_technical_sidebar",
       "community": 1,
       "norm_label": "sidebar"
@@ -8350,7 +8350,7 @@
       "label": "Topbar",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L376",
+      "source_location": "L378",
       "id": "memory_technical_topbar",
       "community": 1,
       "norm_label": "topbar"
@@ -8359,7 +8359,7 @@
       "label": "Mapa De Navega\u00e7\u00e3o",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L383",
+      "source_location": "L385",
       "id": "memory_technical_mapa_de_navega\u00e7\u00e3o",
       "community": 1,
       "norm_label": "mapa de navegacao"
@@ -8368,7 +8368,7 @@
       "label": "Banco Supabase Atual",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L397",
+      "source_location": "L399",
       "id": "memory_technical_banco_supabase_atual",
       "community": 1,
       "norm_label": "banco supabase atual"
@@ -8377,7 +8377,7 @@
       "label": "Edge Function invite-member",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L416",
+      "source_location": "L419",
       "id": "memory_technical_edge_function_invite_member",
       "community": 1,
       "norm_label": "edge function invite-member"
@@ -8386,7 +8386,7 @@
       "label": "Settings > Plans",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L427",
+      "source_location": "L430",
       "id": "memory_technical_settings_plans",
       "community": 1,
       "norm_label": "settings > plans"
@@ -8395,7 +8395,7 @@
       "label": "Planejado: Conte\u00fado Dos Planos",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L455",
+      "source_location": "L458",
       "id": "memory_technical_planejado_conte\u00fado_dos_planos",
       "community": 1,
       "norm_label": "planejado: conteudo dos planos"
@@ -8404,7 +8404,7 @@
       "label": "Planejado: OAuth E E-mail De Confirma\u00e7\u00e3o",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L464",
+      "source_location": "L467",
       "id": "memory_technical_planejado_oauth_e_e_mail_de_confirma\u00e7\u00e3o",
       "community": 1,
       "norm_label": "planejado: oauth e e-mail de confirmacao"
@@ -8413,7 +8413,7 @@
       "label": "Aviso De Acesso Em Personal Information",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L471",
+      "source_location": "L474",
       "id": "memory_technical_aviso_de_acesso_em_personal_information",
       "community": 1,
       "norm_label": "aviso de acesso em personal information"
@@ -8422,7 +8422,7 @@
       "label": "Planejado: Mecanismo De Equipe E Convites",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L484",
+      "source_location": "L487",
       "id": "memory_technical_planejado_mecanismo_de_equipe_e_convites",
       "community": 1,
       "norm_label": "planejado: mecanismo de equipe e convites"
@@ -8431,7 +8431,7 @@
       "label": "Solu\u00e7\u00e3o Moderna Para Riscos Ao Alterar",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L509",
+      "source_location": "L512",
       "id": "memory_technical_solu\u00e7\u00e3o_moderna_para_riscos_ao_alterar",
       "community": 1,
       "norm_label": "solucao moderna para riscos ao alterar"
@@ -8440,7 +8440,7 @@
       "label": "Regras De Permiss\u00e3o Futuras",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L519",
+      "source_location": "L522",
       "id": "memory_technical_regras_de_permiss\u00e3o_futuras",
       "community": 1,
       "norm_label": "regras de permissao futuras"
@@ -8449,7 +8449,7 @@
       "label": "Riscos Ao Alterar",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L528",
+      "source_location": "L531",
       "id": "memory_technical_riscos_ao_alterar",
       "community": 1,
       "norm_label": "riscos ao alterar"
@@ -8458,7 +8458,7 @@
       "label": "Checklist Para Agentes Antes De Editar",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L539",
+      "source_location": "L542",
       "id": "memory_technical_checklist_para_agentes_antes_de_editar",
       "community": 1,
       "norm_label": "checklist para agentes antes de editar"
@@ -8467,7 +8467,7 @@
       "label": "MCP Redrise Ops",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L551",
+      "source_location": "L554",
       "id": "memory_technical_mcp_redrise_ops",
       "community": 1,
       "norm_label": "mcp redrise ops"
@@ -8476,7 +8476,7 @@
       "label": "Infraestrutura, Deploy E Qualidade",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L562",
+      "source_location": "L565",
       "id": "memory_technical_infraestrutura_deploy_e_qualidade",
       "community": 1,
       "norm_label": "infraestrutura, deploy e qualidade"
@@ -8485,7 +8485,7 @@
       "label": "Graphify Local",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L581",
+      "source_location": "L584",
       "id": "memory_technical_graphify_local",
       "community": 1,
       "norm_label": "graphify local"
@@ -8494,7 +8494,7 @@
       "label": "Conven\u00e7\u00f5es De IDs",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L592",
+      "source_location": "L595",
       "id": "memory_technical_conven\u00e7\u00f5es_de_ids",
       "community": 1,
       "norm_label": "convencoes de ids"
@@ -8503,7 +8503,7 @@
       "label": "Organiza\u00e7\u00e3o De Arquivos Na Raiz",
       "file_type": "document",
       "source_file": "memory/TECHNICAL.md",
-      "source_location": "L608",
+      "source_location": "L611",
       "id": "memory_technical_organiza\u00e7\u00e3o_de_arquivos_na_raiz",
       "community": 1,
       "norm_label": "organizacao de arquivos na raiz"
@@ -8945,7 +8945,7 @@
       "file_type": "code",
       "source_file": "src/components/blocks/shared/add-member-modal.tsx",
       "source_location": "L27",
-      "community": 6,
+      "community": 75,
       "norm_label": "inviteroleoption",
       "id": "shared_add_member_modal_inviteroleoption"
     },
@@ -8963,7 +8963,7 @@
       "file_type": "code",
       "source_file": "src/components/blocks/shared/add-member-modal.tsx",
       "source_location": "L33",
-      "community": 6,
+      "community": 75,
       "norm_label": "function_map",
       "id": "shared_add_member_modal_function_map"
     },
@@ -21412,5 +21412,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "e58453d17be84015fcead2c2212ece23f1f8719b"
+  "built_at_commit": "f26ec664fb5dbd97f1c674009d53a4216c950ba6"
 }
