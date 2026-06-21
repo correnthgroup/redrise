@@ -25,7 +25,7 @@
 - `HITL` significa Human-in-the-loop: humanos revisam, aprovam ou bloqueiam ações importantes antes da execução final.
 - O app usa Supabase para autenticação, banco de dados e funções de backend.
 - O app usa Render como hospedagem pública atual.
-- A URL oficial esperada é `https://redrise.onrender.com` depois que a Render confirmar o subdomínio do serviço.
+- A URL oficial é `https://redrise.onrender.com`.
 - A navegação principal fica na Sidebar à esquerda.
 - O título da tela atual fica na Topbar no topo.
 - O conteúdo principal fica no centro, dentro do `main` do AppShell.
@@ -513,10 +513,11 @@
 
 ## Infraestrutura, Deploy E Qualidade
 
-- Produção oficial esperada: `https://redrise.onrender.com` depois da criação do serviço na Render.
+- Produção oficial atual: `https://redrise.onrender.com`.
 - O frontend é uma SPA estática.
 - SPA significa Single Page Application: o navegador carrega um app único e o React troca as telas internamente.
 - Deploy frontend normal deve usar Render conectado a `https://github.com/correnthgroup/redrise.git`.
+- O serviço Render é `redrise` (`srv-d8rjudj6sc1c73bc9fu0`) e possui rewrite `/*` para `/index.html` para suportar rotas SPA.
 - Supabase project ref atual: `vsaropewydcjsvplpugx`.
 - Validação mínima para mudança relevante: `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, `corepack yarn build`.
 - Validação para mudança de fluxo visual: também rodar `corepack yarn test:e2e`.

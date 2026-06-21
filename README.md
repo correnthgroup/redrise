@@ -52,13 +52,14 @@ corepack yarn test:e2e
 ## Deploy
 
 - Target GitHub repository: `https://github.com/correnthgroup/redrise.git`.
-- Production URL: `https://redrise.onrender.com` after Render confirms the service subdomain.
+- Production URL: `https://redrise.onrender.com`.
 - Base operational account for GitHub/Render/Supabase: `integration@correnth.com`.
 - Preferred frontend deploy path is Render auto-deploy from the GitHub repository.
 - Build command: `corepack yarn build`.
 - Install command: `corepack yarn install --frozen-lockfile`.
 - Output directory: `dist`.
 - Render blueprint: `render.yaml`.
+- Render service: `redrise` (`srv-d8rjudj6sc1c73bc9fu0`).
 - Use the operational MCP when possible: `corepack yarn mcp:redrise-ops`.
 
 ## Current References

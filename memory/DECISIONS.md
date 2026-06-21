@@ -30,7 +30,7 @@
 
 ## Current Product Decisions
 
-- The official production host is Render for now; expected service URL is `https://redrise.onrender.com` if Render confirms the subdomain.
+- The official production host is Render at `https://redrise.onrender.com`.
 - Settings > Plans remains a placeholder-like planning surface only; it must not unlock paid features from frontend state.
 - Real billing requires Stripe checkout, webhook, persisted plan state, and permission matrix.
 - Admin/Member/Viewer labels remain informational until backend/RLS enforcement is approved.

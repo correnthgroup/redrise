@@ -4,13 +4,13 @@
 
 ## Current Production Snapshot
 
-- Official URL: expected `https://redrise.onrender.com` after Render confirms the service subdomain.
+- Official URL: `https://redrise.onrender.com`.
 - Current production deployment: Render.
-- Production status: Render deployment blocked by workspace billing requirement (`402 Payment information is required`).
+- Production status: Render static site `redrise` is live.
 - Backend: Supabase project `vsaropewydcjsvplpugx`.
 - GitHub repository: `https://github.com/correnthgroup/redrise.git`.
 - Package manager: Yarn through Corepack.
-- Deploy path: Render auto-deploy from GitHub using `render.yaml`.
+- Deploy path: Render auto-deploy from GitHub using `render.yaml`; manual deploy was also triggered for commit `6db3eae`.
 - Workspace root is now `D:\studio\redrise`; legacy briefing/framework/backlog folders are not active guidance.
 
 ## Current App Snapshot

@@ -5,8 +5,9 @@
 ## Current State
 
 - App is a Vite/React/TypeScript/Tailwind SPA backed by Supabase.
-- Official production URL is expected to be `https://redrise.onrender.com` after Render confirms the service subdomain.
+- Official production URL is `https://redrise.onrender.com`.
 - Current production deployment target is Render.
+- Render service is `redrise` (`srv-d8rjudj6sc1c73bc9fu0`) with rewrite route `/*` to `/index.html`.
 - GitHub repository is `https://github.com/correnthgroup/redrise.git`.
 - GitHub, Render, and Supabase should use the base operational account `integration@correnth.com`.
 - Auth flow is simplified: e-mail/password Sign In, account creation through Sign Up, no OAuth buttons, no e-mail confirmation UI.
@@ -37,7 +38,7 @@
 - Persist real plan state and enforce permissions in backend/RLS.
 - Decide whether existing-account team member additions require explicit acceptance before becoming active.
 - Keep GitHub push access working for `integration@correnth.com` on `correnthgroup/redrise`.
-- Keep Render deployment connected to the `Redrise` project/workspace; add payment information in Render billing before creating the static site.
+- Keep Render deployment connected to the `Redrise` project/workspace.
 - Keep Supabase project `vsaropewydcjsvplpugx` migrations, Auth redirects, and secrets aligned with production.
 - Keep Supabase Auth redirects and edge-function origins aligned with the final Render URL.
 - Re-enable OAuth after official provider credentials are configured and tested.
