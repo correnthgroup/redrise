@@ -1,14 +1,14 @@
 ﻿import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Progress } from '@/components/ui/progress'
+import { RequiredLabel } from '@/components/ui/required-label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useI18n } from '@/hooks/use-i18n'
 import { useTeamMemberOptions } from '@/hooks/use-team-member-options'
 import { MultiSelectDropdown } from '../shared/multi-select-dropdown'
+import { WizardShell } from '../shared/wizard-shell'
 
 const STEP_KEYS = ['workflow.basicInfo', 'workspace.healthTeam', 'workflow.review'] as const
 
@@ -32,22 +32,52 @@ export function CreateWorkspacePage({
     .filter((member) => initialMembers.includes(member.id))
     .map((member) => member.name)
   const teamMemberOptions = teamMembers.map((member) => ({ value: member.id, label: member.name }))
+  const currentStepLabel = t(STEP_KEYS[step])
 
   return (
-    <div data-testid="create-workspace-page" className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
-      <header>
-        <h1 className="text-lg font-semibold">{t('workspace.new')}</h1>
-        <p className="text-sm text-muted-foreground">{t('workflow.stepOf', { step: step + 1, total: STEP_KEYS.length, label: t(STEP_KEYS[step]) })}</p>
-      </header>
-      <Progress value={((step + 1) / STEP_KEYS.length) * 100} />
-
-      <Card className="flex-1 border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
-        <CardHeader><CardTitle className="text-sm font-semibold">{t(STEP_KEYS[step])}</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
+    <WizardShell
+      testId="create-workspace-page"
+      title={t('workspace.new')}
+      step={step + 1}
+      totalSteps={STEP_KEYS.length}
+      stepLabel={currentStepLabel}
+      progressLabel={t('workflow.stepOf', { step: step + 1, total: STEP_KEYS.length, label: currentStepLabel })}
+      footer={(
+        <>
+          <Button variant="ghost" onClick={step === 0 ? onBack : () => setStep((s) => s - 1)}>{t('common.back')}</Button>
+          <div className="ml-auto flex gap-2">
+            {error && <span className="self-center text-xs text-destructive">{error}</span>}
+            <Button
+              onClick={async () => {
+                if (step === STEP_KEYS.length - 1) {
+                  setError(null)
+                  setSubmitting(true)
+                  try {
+                    const result = await onCreate?.({ name, mission })
+                    if (!result) {
+                      setError(t('workspace.createError'))
+                    }
+                  } catch {
+                    setError(t('workspace.createError'))
+                  } finally {
+                    setSubmitting(false)
+                  }
+                  return
+                }
+                setStep((s) => Math.min(STEP_KEYS.length - 1, s + 1))
+              }}
+              disabled={submitting || (step === 0 && !name.trim())}
+            >
+              {step === STEP_KEYS.length - 1 ? (submitting ? t('workflow.creating') : t('workflow.done')) : t('workflow.next')}
+            </Button>
+          </div>
+        </>
+      )}
+    >
           {step === 0 && (
             <>
               <div className="space-y-1">
-                <Label htmlFor="w-name" className="text-[#A04D1F]">{t('workspace.name')}<span className="text-[#A04D1F]">*</span></Label>
+                <RequiredLabel htmlFor="w-name">{t('workspace.name')}</RequiredLabel>
                 <Input id="w-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('workspace.namePlaceholder')} />
               </div>
               <div className="space-y-1">
@@ -99,38 +129,6 @@ export function CreateWorkspacePage({
               <div><strong>{t('workspace.people')}:</strong> {selectedMemberNames.length > 0 ? selectedMemberNames.join(', ') : t('workflow.none')}</div>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <footer className="flex justify-between">
-        <Button variant="ghost" onClick={step === 0 ? onBack : () => setStep((s) => s - 1)}>{t('common.back')}</Button>
-        <div className="flex gap-2 ml-auto">
-          {error && <span className="self-center text-xs text-destructive">{error}</span>}
-          <Button
-            onClick={async () => {
-              if (step === STEP_KEYS.length - 1) {
-                setError(null)
-                setSubmitting(true)
-                try {
-                  const result = await onCreate?.({ name, mission })
-                  if (!result) {
-                    setError(t('workspace.createError'))
-                  }
-                } catch {
-                  setError(t('workspace.createError'))
-                } finally {
-                  setSubmitting(false)
-                }
-                return
-              }
-              setStep((s) => Math.min(STEP_KEYS.length - 1, s + 1))
-            }}
-            disabled={submitting || (step === 0 && !name.trim())}
-          >
-            {step === STEP_KEYS.length - 1 ? (submitting ? t('workflow.creating') : t('workflow.done')) : t('workflow.next')}
-          </Button>
-        </div>
-      </footer>
-    </div>
+    </WizardShell>
   )
 }

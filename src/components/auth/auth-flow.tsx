@@ -2,7 +2,7 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { Bot, Check, Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { RequiredLabel } from '@/components/ui/required-label'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import { registerActiveSession } from '@/lib/user-profile'
@@ -154,7 +154,7 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
             <div className={styles.brandMark}><Bot className="h-4 w-4" /></div>
             <div>
               <div className={styles.brandName}>Redrise</div>
-              <div className={styles.brandTag}>Adding AI. Enhance Value.</div>
+              <div className={styles.brandTag}>Add AI. Enhance Value.</div>
             </div>
           </div>
 
@@ -164,11 +164,11 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
               <p className={styles.subheading}>Welcome back. Enter your credentials to continue.</p>
 
               <div className={styles.fieldGroup}>
-                <Label htmlFor="email">Email</Label>
+                <RequiredLabel htmlFor="email">Email</RequiredLabel>
                 <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" />
               </div>
               <div className={styles.fieldGroup}>
-                <Label htmlFor="password">Password</Label>
+                <RequiredLabel htmlFor="password">Password</RequiredLabel>
                 <PasswordInput id="password" placeholder="Your password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" />
               </div>
               <label className={styles.checkRow}>
@@ -191,24 +191,24 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className={styles.fieldGroup}>
-                  <Label htmlFor="first-name" className={styles.requiredLabel}>First Name</Label>
+                  <RequiredLabel htmlFor="first-name">First Name</RequiredLabel>
                   <Input id="first-name" required value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="First" autoComplete="given-name" />
                 </div>
                 <div className={styles.fieldGroup}>
-                  <Label htmlFor="middle-name" className={styles.requiredLabel}>Middle Name</Label>
+                  <RequiredLabel htmlFor="middle-name">Middle Name</RequiredLabel>
                   <Input id="middle-name" required value={middleName} onChange={(event) => setMiddleName(event.target.value)} placeholder="Middle" autoComplete="additional-name" />
                 </div>
                 <div className={styles.fieldGroup}>
-                  <Label htmlFor="last-name" className={styles.requiredLabel}>Last Name</Label>
+                  <RequiredLabel htmlFor="last-name">Last Name</RequiredLabel>
                   <Input id="last-name" required value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Last" autoComplete="family-name" />
                 </div>
               </div>
               <div className={styles.fieldGroup}>
-                <Label htmlFor="email-su" className={styles.requiredLabel}>Email</Label>
+                <RequiredLabel htmlFor="email-su">Email</RequiredLabel>
                 <Input id="email-su" required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" autoComplete="email" />
               </div>
               <div className={styles.fieldGroup}>
-                <Label htmlFor="password-su" className={styles.requiredLabel}>Password</Label>
+                <RequiredLabel htmlFor="password-su">Password</RequiredLabel>
                 <PasswordInput id="password-su" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Choose a password" autoComplete="new-password" />
               </div>
               {password ? (
@@ -222,7 +222,7 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
                 </div>
               ) : null}
               <div className={styles.fieldGroup}>
-                <Label htmlFor="confirm-password" className={styles.requiredLabel}>Confirm Password</Label>
+                <RequiredLabel htmlFor="confirm-password">Confirm Password</RequiredLabel>
                 <PasswordInput id="confirm-password" required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Confirm password" autoComplete="new-password" />
                 {confirmPassword && confirmPassword !== password ? <p className={styles.errorText}>Passwords do not match.</p> : null}
               </div>

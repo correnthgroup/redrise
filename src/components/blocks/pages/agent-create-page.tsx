@@ -1,12 +1,11 @@
 ﻿import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
 import type { CreateAgentInput } from '@/types/agent'
 import { useI18n } from '@/hooks/use-i18n'
+import { WizardShell } from '../shared/wizard-shell'
 
 const STEP_KEYS = ['agentCreate.basicInfo', 'agentCreate.capabilities', 'agentCreate.limits', 'agentCreate.review'] as const
 
@@ -23,6 +22,7 @@ export function AgentCreatePage({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { t } = useI18n()
+  const currentStepLabel = t(STEP_KEYS[step])
 
   async function handleFinish() {
     if (!onCreate) return
@@ -43,16 +43,34 @@ export function AgentCreatePage({
   }
 
   return (
-    <div data-testid="agent-create-page" className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
-      <header>
-        <h1 className="text-lg font-semibold">{t('agentCreate.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('agentCreate.stepOf', { step: step + 1, total: STEP_KEYS.length, label: t(STEP_KEYS[step]) })}</p>
-      </header>
-      <Progress value={((step + 1) / STEP_KEYS.length) * 100} />
-
-      <Card className="flex-1 border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
-        <CardHeader><CardTitle className="text-sm font-semibold">{t(STEP_KEYS[step])}</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
+    <WizardShell
+      testId="agent-create-page"
+      title={t('agentCreate.title')}
+      step={step + 1}
+      totalSteps={STEP_KEYS.length}
+      stepLabel={currentStepLabel}
+      progressLabel={t('agentCreate.stepOf', { step: step + 1, total: STEP_KEYS.length, label: currentStepLabel })}
+      contentClassName="space-y-3"
+      footer={(
+        <>
+          <Button variant="ghost" onClick={step === 0 ? onBack : () => setStep((s) => s - 1)}>{t('common.back')}</Button>
+          <div className="ml-auto flex gap-2">
+            <Button
+              disabled={loading}
+              onClick={() => {
+                if (step === STEP_KEYS.length - 1) {
+                  handleFinish()
+                } else {
+                  setStep((s) => Math.min(STEP_KEYS.length - 1, s + 1))
+                }
+              }}
+            >
+              {loading ? t('common.creating') : step === STEP_KEYS.length - 1 ? t('common.finish') : t('common.next')}
+            </Button>
+          </div>
+        </>
+      )}
+    >
           {error && (
             <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
           )}
@@ -78,26 +96,6 @@ export function AgentCreatePage({
               <div><strong>{t('agentCreate.provider')}:</strong> openrouter</div>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <footer className="flex justify-between">
-        <Button variant="ghost" onClick={step === 0 ? onBack : () => setStep((s) => s - 1)}>{t('common.back')}</Button>
-        <div className="flex gap-2 ml-auto">
-          <Button
-            disabled={loading}
-            onClick={() => {
-              if (step === STEP_KEYS.length - 1) {
-                handleFinish()
-              } else {
-                setStep((s) => Math.min(STEP_KEYS.length - 1, s + 1))
-              }
-            }}
-          >
-            {loading ? t('common.creating') : step === STEP_KEYS.length - 1 ? t('common.finish') : t('common.next')}
-          </Button>
-        </div>
-      </footer>
-    </div>
+    </WizardShell>
   )
 }

@@ -93,6 +93,7 @@ export async function addTeamMember(
   email: string,
   role: TeamMemberRole,
   memberFunction?: string,
+  team?: string,
 ) {
   const cleanEmail = email.trim().toLowerCase()
   if (!cleanEmail) return null
@@ -103,10 +104,10 @@ export async function addTeamMember(
 
   if (error) return null
 
-  if (memberFunction) {
+  if (memberFunction || team !== undefined) {
     await supabase
       .from('team_members')
-      .update({ function: memberFunction })
+      .update({ function: memberFunction, team: team ?? '' })
       .eq('owner_user_id', ownerUserId)
       .eq('invite_email', cleanEmail)
   }
@@ -127,6 +128,19 @@ export async function loadCurrentAccessRole(userId: string): Promise<AccessRole>
   if (role === 'viewer') return 'viewer'
   if (role === 'member') return 'member'
   return 'admin'
+}
+
+export async function loadCurrentTeamAssignment(userId: string): Promise<{ function: string; team: string } | null> {
+  const { data } = await supabase
+    .from('team_members')
+    .select('function, team, owner_user_id, member_user_id')
+    .or(`owner_user_id.eq.${userId},member_user_id.eq.${userId}`)
+    .order('joined_at', { ascending: true })
+
+  const ownerRow = data?.find((member) => member.owner_user_id === userId)
+  const row = ownerRow ?? data?.[0]
+  if (!row) return null
+  return { function: row.function ?? '', team: row.team ?? '' }
 }
 
 export async function updateTeamMember(member: Pick<TeamMember, 'id' | 'function' | 'team' | 'role'>) {

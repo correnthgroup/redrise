@@ -2,12 +2,13 @@
 import { ArrowLeft, ArrowRight, Boxes, Check, CheckCircle2, CircleDashed, Code2, Database, Hash, Loader2, MessageSquare, PlugZap } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { RequiredLabel } from '@/components/ui/required-label'
 import { Separator } from '@/components/ui/separator'
 import { createIntegration, loadIntegrations, type Integration } from '@/lib/integrations'
 import { useI18n } from '@/hooks/use-i18n'
+import { WizardShell } from './wizard-shell'
 
 type IntegrationOption = {
   id: string
@@ -43,6 +44,8 @@ export function IntegrationSetupWizard({ onBack }: { onBack?: () => void }) {
   const [saving, setSaving] = useState(false)
   const [existing, setExisting] = useState<Integration[]>([])
   const { t } = useI18n()
+  const currentStep = STEPS.find((item) => item.id === step) ?? STEPS[0]
+  const currentStepLabel = t(currentStep.labelKey)
 
   useEffect(() => {
     loadIntegrations().then(setExisting).catch(() => {})
@@ -79,14 +82,35 @@ export function IntegrationSetupWizard({ onBack }: { onBack?: () => void }) {
   }
 
   return (
-    <Card className="gap-0 rounded-xl p-6">
-      <div className="flex flex-col gap-1">
-        <h3 className="text-base font-semibold">{t('integration.title')}</h3>
-        <p className="text-sm text-muted-foreground">{t('integration.desc')}</p>
-      </div>
+    <WizardShell
+      title={t('integration.title')}
+      step={step}
+      totalSteps={STEPS.length}
+      stepLabel={currentStepLabel}
+      progressLabel={t('workflow.stepOf', { step, total: STEPS.length, label: currentStepLabel })}
+      footer={(
+        <>
+          <Button type="button" variant="outline" onClick={() => step === 1 ? onBack?.() : setStep((current) => current === 1 ? 1 : current === 2 ? 1 : current === 3 ? 2 : 3)}>
+            <ArrowLeft className="h-4 w-4" />
+            {t('common.back')}
+          </Button>
+          <Button type="button" onClick={() => {
+            if (step === 4) {
+              handleFinish()
+              return
+            }
+            setStep((current) => current === 1 ? 2 : current === 2 ? 3 : current === 3 ? 4 : 4)
+          }} disabled={(step === 1 && !selected) || (step === 2 && (!name.trim() || !endpoint.trim())) || (step === 3 && testStatus !== 'ok') || saving}>
+            {step === 4 ? (saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('common.saving')}</> : t('common.finish')) : t('common.next')}
+            {step === 4 || saving ? null : <ArrowRight className="h-4 w-4" />}
+          </Button>
+        </>
+      )}
+    >
+      <p className="text-sm text-muted-foreground">{t('integration.desc')}</p>
 
       {existing.length > 0 && (
-        <div className="mt-4 space-y-2">
+        <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('integration.activeIntegrations')}</p>
           <div className="flex flex-wrap gap-2">
             {existing.map((ig) => (
@@ -145,8 +169,8 @@ export function IntegrationSetupWizard({ onBack }: { onBack?: () => void }) {
             {t('integration.configuring')} <span className="font-semibold text-foreground">{selected?.name}</span>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2"><Label htmlFor="integrationName">{t('integration.displayName')}</Label><Input id="integrationName" value={name} onChange={(event) => setName(event.target.value)} placeholder={t('integration.displayNamePlaceholder')} /></div>
-            <div className="space-y-2"><Label htmlFor="integrationEndpoint">{t('integration.endpointUrl')}</Label><Input id="integrationEndpoint" value={endpoint} onChange={(event) => setEndpoint(event.target.value)} placeholder="https://hooks.example.com/..." /></div>
+            <div className="space-y-2"><RequiredLabel htmlFor="integrationName">{t('integration.displayName')}</RequiredLabel><Input id="integrationName" value={name} onChange={(event) => setName(event.target.value)} placeholder={t('integration.displayNamePlaceholder')} /></div>
+            <div className="space-y-2"><RequiredLabel htmlFor="integrationEndpoint">{t('integration.endpointUrl')}</RequiredLabel><Input id="integrationEndpoint" value={endpoint} onChange={(event) => setEndpoint(event.target.value)} placeholder="https://hooks.example.com/..." /></div>
             <div className="space-y-2 sm:col-span-2"><Label htmlFor="integrationToken">{t('integration.apiToken')}</Label><Input id="integrationToken" type="password" value={token} onChange={(event) => setToken(event.target.value)} placeholder={t('integration.apiTokenPlaceholder')} /></div>
           </div>
         </div>
@@ -181,22 +205,6 @@ export function IntegrationSetupWizard({ onBack }: { onBack?: () => void }) {
         </div>
       ) : null}
 
-      <div className="mt-6 flex items-center justify-between">
-        <Button type="button" variant="outline" onClick={() => step === 1 ? onBack?.() : setStep((current) => current === 1 ? 1 : current === 2 ? 1 : current === 3 ? 2 : 3)}>
-          <ArrowLeft className="h-4 w-4" />
-          {t('common.back')}
-        </Button>
-        <Button type="button" onClick={() => {
-          if (step === 4) {
-            handleFinish()
-            return
-          }
-          setStep((current) => current === 1 ? 2 : current === 2 ? 3 : current === 3 ? 4 : 4)
-        }} disabled={(step === 1 && !selected) || (step === 2 && (!name.trim() || !endpoint.trim())) || (step === 3 && testStatus !== 'ok') || saving}>
-          {step === 4 ? (saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('common.saving')}</> : t('common.finish')) : t('common.next')}
-          {step === 4 || saving ? null : <ArrowRight className="h-4 w-4" />}
-        </Button>
-      </div>
-    </Card>
+    </WizardShell>
   )
 }

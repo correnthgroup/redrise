@@ -8,6 +8,7 @@ import {
   User,
   UserPlus,
   Users,
+  UsersRound,
 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -17,6 +18,7 @@ import { ChangePassword } from '../shared/change-password'
 import { SessionsList } from '../shared/sessions-list'
 import { ApiKeysManager } from '../shared/api-keys-manager'
 import { MemberListTable } from '../shared/member-list-table'
+import { TeamListTable } from '../shared/team-list-table'
 import { AddMemberModal } from '../shared/add-member-modal'
 import { AuditLogCard } from '../shared/audit-log-card'
 import { PlansPage } from './plans-page'
@@ -31,6 +33,7 @@ type SettingKey =
   | 'api-keys'
   | 'integrations'
   | 'team-members'
+  | 'team-list'
   | 'plans'
   | 'audit-log'
 
@@ -97,6 +100,12 @@ export function SettingsPage({ user }: { user: SettingsUser }) {
       icon: <UserPlus className="h-5 w-5" />,
     },
     {
+      key: 'team-list',
+      titleKey: 'settings.teamList',
+      descKey: 'settings.teamListDesc',
+      icon: <UsersRound className="h-5 w-5" />,
+    },
+    {
       key: 'plans',
       titleKey: 'settings.plans',
       descKey: 'settings.plansDesc',
@@ -120,6 +129,7 @@ export function SettingsPage({ user }: { user: SettingsUser }) {
   else if (active === 'api-keys') detail = <ApiKeysManager onBack={goBack} />
   else if (active === 'integrations') detail = <IntegrationSetupWizard onBack={goBack} />
   else if (active === 'team-members') detail = <TeamMembersView user={user} onBack={goBack} />
+  else if (active === 'team-list') detail = <TeamListTable user={user} onBack={goBack} />
   else if (active === 'plans') detail = <PlansPage onBack={goBack} />
   else if (active === 'audit-log') detail = <AuditLogCard onBack={goBack} />
 

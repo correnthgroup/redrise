@@ -4,6 +4,14 @@
 
 ## Current State
 
+- Settings diferencia Role/Cargo de membro da Function/Função dentro de uma equipe: Role usa lista oficial; Function em Team List é texto livre por associação de equipe.
+- Campos obrigatórios agora devem usar `RequiredLabel`; não reintroduzir asterisco manual nem classes locais para obrigatoriedade.
+- Wizards dedicados agora devem usar `WizardShell`; não recriar header/progress/card/footer localmente em novos wizards, mas manter campos e regras específicas no componente do fluxo.
+- Slogan atual: EN `Add AI. Enhance Value.`; PT-BR `Add AI. Agregue Valor.`.
+- Add Member usa Role/Cargo obrigatório com a lista oficial `Owner/Board/Staff/Member/Viewer`; Function/Função livre por associação fica somente em Team List.
+- Add Member usa dropdown padrão para Team, alimentado por `loadTeams(user.id)`.
+- Team List foi ajustado para equipes formais: migration 022 cria `teams` e `team_assignments`; criação abre uma tela dedicada com wizard de 3 etapas, aceita equipe vazia, limita a 7 equipes e permite mesmo membro em várias equipes.
+- PRD parte 1 continuação aplicada localmente: Settings tem Members List para visualizar/convidar, Team List para criar equipe e atribuir membros/funções, e Personal Information mostra função/equipe atuais como leitura.
 - PRD parte 1 local foi aplicada no workspace: Dashboard operacional saiu de placeholders estáticos para dados derivados de Supabase já carregados pelo shell; Flow Pipeline lê cards reais de `flow_cards`; Plans fica desabilitado fora de dev.
 - App is a Vite/React/TypeScript/Tailwind SPA backed by Supabase.
 - Official production URL is `https://redrise.onrender.com`.
@@ -17,7 +25,7 @@
 - Team Members use Supabase `team_members`; Flow/Tasks member dropdowns must read that source.
 - Settings > Plans is not billing yet; it is a future-plan surface.
 - `redrise-ops` MCP exists for validation, build/status checks, Supabase function deploy, graph status, and memory notes.
-- Detailed local Graphify output is in `graphify-out/`; the latest clean structural update produced 980 nodes, 1142 edges, and 139 communities.
+- Detailed local Graphify output is in `graphify-out/`; the latest clean structural update produced 1011 nodes, 1195 edges, and 144 communities.
 - Workspace root is now `D:\studio\redrise`; old briefing/framework/backlog folders are not active guidance.
 - Update 2.0 test bundle now covers Create Task, Flow Builder, Agent Detail, Create Workspace, Create Flow, Personal Information field locks/search, and auxiliary `team-members-card` copy.
 - Previous deployment targets are legacy and are no longer active targets for this project reset.
@@ -28,6 +36,7 @@
 - `corepack yarn typecheck` passes.
 - `corepack yarn test` passes.
 - `corepack yarn build` passes.
+- `corepack yarn test:e2e` passes with 27/27 tests after the shared WizardShell refactor and slogan update.
 - E2E is modularized by Playwright project: `auth-public`, `auth-session`, `navigation`, `dashboard`, `flow`, `tasks`, `agents`, `analytics`, `workspaces`, and `settings`.
 - E2E local modular matrix passes with 39 tests across the 10 modules.
 

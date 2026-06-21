@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { RequiredLabel } from '@/components/ui/required-label'
 import {
   Select,
   SelectContent,
@@ -19,22 +20,17 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { addTeamMember, checkEmailExists, type TeamMemberRole } from '@/lib/team-members'
+import { MEMBER_FUNCTIONS, getMemberFunctionLabelKey, normalizeMemberFunction, type MemberFunction } from '@/lib/member-functions'
+import { loadTeams, type Team } from '@/lib/teams'
+import { DROPDOWN_TRIGGER_CLASSES } from '@/lib/styles'
 import { useI18n } from '@/hooks/use-i18n'
 
-type InviteRoleOption = 'owner' | 'board' | 'member' | 'viewer'
-
-const ROLE_MAP: Record<InviteRoleOption, TeamMemberRole> = {
-  owner: 'owner',
-  board: 'admin',
-  member: 'member',
-  viewer: 'viewer',
-}
-
-const FUNCTION_MAP: Record<InviteRoleOption, string> = {
-  owner: 'Owner',
-  board: 'Board',
-  member: 'Member',
-  viewer: 'Viewer',
+const ROLE_MAP: Record<MemberFunction, TeamMemberRole> = {
+  Owner: 'owner',
+  Board: 'admin',
+  Staff: 'admin',
+  Member: 'member',
+  Viewer: 'viewer',
 }
 
 export function AddMemberModal({
@@ -52,7 +48,9 @@ export function AddMemberModal({
 }) {
   const { t } = useI18n()
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
-  const [perm, setPerm] = useState<InviteRoleOption>('owner')
+  const [role, setRole] = useState<MemberFunction | ''>('')
+  const [teamId, setTeamId] = useState('')
+  const [teams, setTeams] = useState<Team[]>([])
   const [email, setEmail] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -60,6 +58,11 @@ export function AddMemberModal({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const open = controlledOpen ?? uncontrolledOpen
   const setOpen = onOpenChange ?? setUncontrolledOpen
+
+  useEffect(() => {
+    if (!open) return
+    void loadTeams(ownerUserId).then(setTeams)
+  }, [open, ownerUserId])
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -80,16 +83,21 @@ export function AddMemberModal({
   async function handleInvite() {
     setError(null)
     setSubmitting(true)
-    const resolvedRole = ROLE_MAP[perm]
-    const memberFunction = FUNCTION_MAP[perm]
-    const created = await addTeamMember(ownerUserId, email, resolvedRole, memberFunction)
+    if (!role) {
+      setSubmitting(false)
+      setError(t('settings.roleRequired'))
+      return
+    }
+    const selectedTeam = teams.find((team) => team.id === teamId)
+    const created = await addTeamMember(ownerUserId, email, ROLE_MAP[role], role, selectedTeam?.name ?? '')
     setSubmitting(false)
     if (!created) {
       setError(t('settings.inviteError'))
       return
     }
     setEmail('')
-    setPerm('owner')
+    setRole('')
+    setTeamId('')
     setEmailStatus('idle')
     onMemberAdded?.()
     setOpen(false)
@@ -105,9 +113,9 @@ export function AddMemberModal({
         </DialogHeader>
 
         <div className="space-y-3">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_8rem] sm:items-end">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_12rem] sm:items-end">
             <div className="space-y-1">
-            <Label htmlFor="new-email">{t('settings.inviteEmail')}</Label>
+              <RequiredLabel htmlFor="new-email">{t('settings.inviteEmail')}</RequiredLabel>
               <Input id="new-email" type="email" value={email} onChange={handleEmailChange} />
               {emailStatus === 'registered' ? (
                 <p className="text-xs text-[#2F5D5A]">{t('settings.emailAlreadyRegistered')}</p>
@@ -115,13 +123,26 @@ export function AddMemberModal({
                 <p className="text-xs text-muted-foreground">{t('settings.emailNotRegistered')}</p>
               ) : null}
             </div>
-            <Select value={perm} onValueChange={(value) => setPerm(value as InviteRoleOption)}>
-              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+            <div className="space-y-1">
+              <RequiredLabel htmlFor="new-role">{t('settings.function')}</RequiredLabel>
+              <Select value={role} onValueChange={(value) => setRole(normalizeMemberFunction(value))}>
+                <SelectTrigger id="new-role" className={DROPDOWN_TRIGGER_CLASSES}><SelectValue placeholder={t('settings.select')} /></SelectTrigger>
+                <SelectContent>
+                  {MEMBER_FUNCTIONS.map((option) => (
+                    <SelectItem key={option} value={option}>{t(getMemberFunctionLabelKey(option))}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="new-team">{t('settings.team')}</Label>
+            <Select value={teamId} onValueChange={setTeamId}>
+              <SelectTrigger id="new-team" className={DROPDOWN_TRIGGER_CLASSES}><SelectValue placeholder={t('settings.select')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="owner">{t('settings.roleOwner')}</SelectItem>
-                <SelectItem value="board">{t('settings.roleBoard')}</SelectItem>
-                <SelectItem value="member">{t('settings.roleMember')}</SelectItem>
-                <SelectItem value="viewer">{t('settings.roleViewer')}</SelectItem>
+                {teams.length === 0 ? <SelectItem value="__empty" disabled>{t('settings.noTeams')}</SelectItem> : teams.map((team) => (
+                  <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -130,7 +151,7 @@ export function AddMemberModal({
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => setOpen(false)} disabled={submitting}>{t('common.cancel')}</Button>
-          <Button onClick={handleInvite} disabled={submitting || !email.trim()}>{t('settings.sendInvites')}</Button>
+          <Button onClick={handleInvite} disabled={submitting || !email.trim() || !role}>{t('settings.sendInvites')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

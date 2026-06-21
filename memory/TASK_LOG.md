@@ -33,10 +33,18 @@
 - CI E2E now runs in split Playwright processes for smoke/navigation, workspaces, and settings to isolate remote state between groups.
 - E2E suite was restructured into 10 Playwright projects by domain/menu: auth-public, auth-session, navigation, dashboard, flow, tasks, agents, analytics, workspaces, settings.
 - Local modular matrix passed with 39 tests across all 10 E2E modules.
-- `C:\Python314\python.exe -m graphify update . --force` produced a clean structural graph with 980 nodes, 1142 edges, and 139 communities in `graphify-out` after PRD part 1 local changes; semantic doc extraction remains pending without Gemini env keys.
+- `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, `corepack yarn build`, and `corepack yarn test:e2e` passed after moving all dedicated wizards to shared `WizardShell` and updating the slogan to `Add AI. Enhance Value.` / `Add AI. Agregue Valor.`.
+- `C:\Python314\python.exe -m graphify update . --force` produced a clean structural graph with 1011 nodes, 1195 edges, and 144 communities in `graphify-out` after shared WizardShell refactor; semantic doc extraction remains pending without Gemini env keys.
 
 ## Next Tasks
 
+- PRD parte 1 ajuste Team List/Role: Settings renomeia Function para Role/Cargo nos cadastros de membros; Team List mostra tabela por padrão, abre uma tela dedicada de wizard via New Team, e usa Function/Função livre por membro selecionado na etapa 2.
+- PRD parte 1 ajuste wizards: New Workspace, New Flow, New Task, New Agent, Integrations e New Team usam `WizardShell` como moldura compartilhada, mantendo individualidades de campos, validações e callbacks em seus próprios componentes.
+- PRD parte 1 ajuste slogan: texto mudou de `Adding AI. Enhance Value.` para `Add AI. Enhance Value.` em inglês e `Add AI. Agregue Valor.` em PT-BR.
+- PRD parte 1 ajuste Add Member: `AddMemberModal` removeu o campo Function separado, tornou Role/Cargo obrigatório usando a lista oficial de cargos e trocou Team para dropdown padrão carregado das equipes formais atuais.
+- PRD parte 1 ajuste obrigatório: criado `RequiredLabel` como componente padrão para campos obrigatórios e removidas marcações manuais de Sign Up, New Workspace, New Flow, New Task, Integrations, Add Member e Team List.
+- PRD parte 1 ajuste Team List: Team List agora usa `teams` e `team_assignments`, permite criar equipe vazia por wizard de 3 etapas, limita a 7 equipes, permite membro em múltiplas equipes e abre detalhe da equipe com Add Team Member.
+- PRD parte 1 continuação: Function oficial padronizada como Owner/Board/Staff/Member/Viewer; Members List virou leitura/convite sem edição; Team List foi adicionada para criar equipes e atribuir membros/funções; Personal Information agora mostra função e equipe atuais como campos não editáveis.
 - PRD parte 1 local: Sign Up agora marca todos os campos de registro como obrigatórios, username inicial usa nome completo via migration 020, favicon/título do navegador foram atualizados, Dashboard usa dados vivos de workspaces/flows/tasks/agents, migration 021 recalcula status/contagem do workspace por flows/tasks, Flow Pipeline lê `flow_cards` reais, Plans fica Under Construction em produção, e `docs/USE_CASES.md` registra 7 casos de uso.
 - **PRD3 (Update 3.0)**: Resolve Settings menu definitively. 4 phases: Critical Fixes, High-Priority Gaps, Quality/Polish, i18n Completion. See `updates/prd3.md`.
 - Keep docs and memory current/future only; do not re-add historical implementation archives as active guidance.

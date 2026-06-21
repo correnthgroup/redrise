@@ -210,7 +210,7 @@
 - Cada atalho muda o estado interno `active` em `SettingsPage`.
 - Quando `active` está preenchido, Settings mostra uma tela de detalhe com botão Back no topo.
 - O botão Back volta para a grade de atalhos.
-- Atualmente os submenus são Personal Information, Change Password, Active Sessions, API Keys, Integrations, Team Members e Audit Log.
+- Atualmente os submenus são Personal Information, Change Password, Active Sessions, API Keys, Integrations, Members List, Team List e Audit Log.
 - O submenu Plans aparece como `Under Construction` fora do ambiente de desenvolvimento e fica desabilitado em produção.
 
 ## Settings > Personal Information
@@ -273,27 +273,52 @@
 - A tela usa `TeamMembersView`, que junta `MemberListTable` e `AddMemberModal`.
 - `MemberListTable` carrega membros com `loadTeamMembers(user.id)`.
 - Isso significa que a lista visível é filtrada pelo dono da equipe ativa: `owner_user_id = user.id`.
-- A tabela mostra Name, Function, Status, Team, Joined e botão de edição.
+- A tabela mostra Name, Function, Status, Team e Joined.
 - Search filtra por nome, e-mail, função e time.
 - A paginação mostra 7 membros por página.
 - A tabela recarrega automaticamente a cada 30 segundos.
 - O botão `Add Member` abre `AddMemberModal`.
-- `AddMemberModal` pede e-mail e nível inicial com opções Staff, admin, member e viewer; na persistência atual, Staff usa o mesmo role backend de admin e também preenche `function = Staff`.
+- `AddMemberModal` pede e-mail, Role/Cargo obrigatório e equipe inicial opcional.
+- Em Settings, o campo antes chamado `Function` para membros agora aparece como `Role` / `Cargo`.
+- A lista oficial de cargos é `Owner`, `Board`, `Staff`, `Member` e `Viewer`.
+- Em PT-BR, os cargos aparecem como `Sócio`, `Diretor`, `Equipe`, `Membro` e `Visualizador`.
+- Os valores persistidos de cargo continuam em inglês para manter consistência técnica e tradução apenas na UI.
 - Ao enviar, `addTeamMember()` chama a Edge Function `invite-member`.
 - A Edge Function persiste a linha em `team_members` antes de tentar enviar e-mail.
+- Role/Cargo do convite usa a mesma lista oficial de cargos e persiste em `team_members.function`; a permissão técnica enviada para a Edge Function é derivada desse cargo.
+- O campo Function/Função por associação não aparece em `AddMemberModal`; ele deve ser preenchido em Settings > Team List dentro da equipe.
+- Team no `AddMemberModal` é um dropdown padrão do app carregado por `loadTeams(user.id)` com as equipes formais criadas atualmente; quando selecionado, salva o nome da equipe em `team_members.team` como referência inicial.
 - Se o Supabase limitar envio de e-mail, o convite ainda aparece na lista como `Invited`.
 - Quando um convidado cria conta com o mesmo e-mail, o trigger de signup conecta a linha convidada ao novo `member_user_id`.
 - Status `Invited` vem de `team_members.status = invited`.
 - Status `Online` é calculado se o perfil do membro teve `last_seen_at` nos últimos 2 minutos.
 - Status `Offline` aparece quando não está convidado e não está online.
-- O botão de lápis abre modal para editar Function e Team.
-- O campo Function do modal de edição agora é um dropdown fixo com Staff, Member e Viewer.
-- O tipo atual `updateTeamMember()` também aceita role, mas a UI atual não expõe edição de role nesse modal.
+- Members List não possui mais botão de edição; ela é apenas lista geral de membros e entrada para convite.
+- A edição de Team e Function de membros existentes foi movida para Settings > Team List.
 - Não duplicar lista de membros em outras telas; use `loadTeamMembers()` ou `useTeamMemberOptions()`.
+
+## Settings > Team List
+
+- A tela usa `TeamListTable`.
+- `TeamListTable` carrega membros com `loadTeamMembers(user.id)` e equipes formais com `loadTeams(user.id)`.
+- Ao abrir Team List, a tela mostra uma tabela de equipes semelhante à Members List.
+- O wizard de criação abre apenas pelo botão `New Team` / `Nova Equipe` e troca a área de Team List para uma tela dedicada, no mesmo padrão dos fluxos `New ...`.
+- Criar equipe é um wizard de 3 etapas: Nome da Equipe e Descrição, Selecionar Membros existentes com Function livre por membro, Revisão.
+- Nome da Equipe é obrigatório; Descrição é opcional.
+- Selecionar membros na criação é opcional, então é possível criar uma equipe vazia.
+- Na etapa 2, cada membro disponível aparece em linha com checkbox, identificação e campo `Function` / `Função`.
+- O campo `Function` na etapa 2 é texto livre, obrigatório apenas quando o respectivo membro está selecionado, e fica desabilitado quando o membro não está selecionado.
+- O limite atual é 7 equipes por owner, validado na UI e por trigger no Supabase.
+- O mesmo membro pode participar de várias equipes porque a associação fica em `team_assignments`, não no campo único `team_members.team`.
+- Clicar no nome/card da equipe abre o detalhe da equipe com lista de membros e funções daquela equipe.
+- O botão `Add Team Member` no detalhe abre uma tela/modal com membros cadastrados atualmente que ainda não fazem parte daquela equipe.
+- Ao adicionar membro à equipe, a UI cria ou atualiza registros em `team_assignments` com a função livre escolhida para aquela equipe.
+- A função de um membro dentro de uma equipe é texto livre e pode ser ajustada no detalhe da equipe sem alterar necessariamente a função dele em outras equipes.
 
 ## Como A Member List Alimenta Outros Menus
 
-- Settings > Team Members é a fonte principal da equipe.
+- Settings > Members List usa `team_members` como cadastro geral de membros.
+- Settings > Team List usa `teams` para equipes e `team_assignments` para membros/funções dentro de cada equipe.
 - Flow > New Flow > Team Members lê essa lista via `useTeamMemberOptions()`.
 - Flow > Flow List > dropdown de usuários lê essa lista via `useTeamMemberOptions()`.
 - Flow > Flow Builder lê essa lista via `useTeamMemberOptions()`.
@@ -316,6 +341,13 @@
 - Ao criar um novo dropdown, importar `DROPDOWN_TRIGGER_CLASSES` de `@/lib/styles` e aplicar no trigger.
 - Quando o trigger for um `Button`, usar `variant="outline"` junto com a constante para que o hover do CVA alinhe com `hover:bg-accent hover:text-accent-foreground`.
 - A constante garante: mesma cor de fundo, borda, padding, fonte, sombra, hover laranja com texto claro, focus ring, transição e estado disabled em todos os dropdowns.
+- `RequiredLabel` em `src/components/ui/required-label.tsx` é o componente padrão para rótulos de campos obrigatórios.
+- Todo campo obrigatório deve usar `RequiredLabel` em vez de criar asterisco/classe manual.
+- `RequiredLabel` usa o mesmo padrão visual dos wizards operacionais: texto e asterisco em `#A04D1F`.
+- Atualmente `RequiredLabel` é usado em Sign In, Sign Up, New Workspace, New Flow, New Task, Integrations, Add Member e Team List.
+- `WizardShell` em `src/components/blocks/shared/wizard-shell.tsx` é o shell compartilhado para wizards dedicados com título, progresso, card de etapa e rodapé de ações.
+- Todos os wizards dedicados atuais devem usar `WizardShell` em vez de recriar header, progress, card e footer localmente; os campos, validações e parâmetros de cada wizard continuam dentro de cada componente específico.
+- `WizardShell` é usado por New Workspace, New Flow, New Task, New Agent, Settings > Integrations e Settings > Team List > New Team.
 - `KpiCards` é usado em Dashboard e Analytics para métricas com sparkline.
 - Sparkline é um gráfico pequeno, usado para mostrar tendência rapidamente.
 - `ChartTabs` é usado em Dashboard e Analytics para alternar gráficos por tema.
@@ -368,6 +400,8 @@
 - `profiles.middle_name`: guarda o Middle Name opcional do cadastro e Settings.
 - `active_sessions`: guarda sessões autenticadas, metadados do device, flag `remembered`, `supabase_session_id`, última atividade e revogação.
 - `team_members`: guarda relação entre dono da equipe, usuário membro, e-mail convidado, papel, função, time e status.
+- `teams`: guarda equipes formais criadas em Settings > Team List, com nome, descrição e limite de 7 por owner.
+- `team_assignments`: guarda quais membros estão em quais equipes e qual função livre exercem naquela equipe; permite o mesmo membro em múltiplas equipes.
 - `workspaces`: guarda workspaces do usuário.
 - `workspaces.flows` e `workspaces.status` são recalculados pelos triggers da migration 021 quando flows/tasks mudam.
 - `flows`: guarda flows associados a workspace.
@@ -550,7 +584,7 @@
 - Artefatos consultáveis versionáveis: `graphify-out/GRAPH_REPORT.md`, `graphify-out/graph.json` e `graphify-out/graph.html`.
 - Caches, backups datados, manifestos internos e arquivos `.graphify_*` ficam locais e não devem ser tratados como documentação canônica.
 - A última atualização estrutural foi feita com `C:\Python314\python.exe -m graphify update . --force`.
-- Resultado da última atualização estrutural limpa: 980 nós, 1142 relações e 139 comunidades.
+- Resultado da última atualização estrutural limpa: 1011 nós, 1195 relações e 144 comunidades.
 - A atualização estrutural cobriu código; reextração semântica de docs/memória segue pendente até existir `GEMINI_API_KEY` ou `GOOGLE_API_KEY` no ambiente.
 - A extração semântica completa depende de chave LLM no ambiente; sem chave, o grafo estrutural AST continua válido para navegação técnica e relações de código.
 - A matriz em `D:\graphify\repos\redrise\` mantém apenas catálogo macro e deve apontar para este grafo local quando for necessário investigar detalhes.

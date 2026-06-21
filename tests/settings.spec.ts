@@ -68,6 +68,8 @@ test('team member invite creates invited member row', async ({ page }) => {
 
   await page.getByRole('button', { name: /Add Member|Adicionar Membro/ }).click()
   await page.locator('#new-email').fill(email)
+  await page.locator('#new-role').click()
+  await page.getByRole('option', { name: /Member|Membro/ }).click()
   await page.getByRole('button', { name: /Send invites|Enviar convites/ }).click()
 
   await expect(page.getByText(email).first()).toBeVisible({ timeout: 20000 })

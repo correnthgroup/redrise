@@ -1,9 +1,8 @@
 ﻿import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Progress } from '@/components/ui/progress'
+import { RequiredLabel } from '@/components/ui/required-label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -16,6 +15,7 @@ import { useI18n } from '@/hooks/use-i18n'
 import { useDropdownClose } from '@/hooks/use-dropdown-close'
 import { DROPDOWN_TRIGGER_CLASSES } from '@/lib/styles'
 import { MultiSelectDropdown } from '../shared/multi-select-dropdown'
+import { WizardShell } from '../shared/wizard-shell'
 
 const STEP_KEYS = ['tasks.briefing', 'tasks.teamAgent', 'workflow.review'] as const
 
@@ -169,19 +169,65 @@ export function CreateTaskPage({
   const selectedColumn = COLUMNS.find((c) => c.id === kanbanColumn)
   const selectedRecurrence = RECURRENCES.find((r) => r.value === recurrence)
   const hasDay31 = recurrenceMonthlyDays.includes(31)
+  const currentStepLabel = t(STEP_KEYS[step])
 
   return (
-    <div data-testid="create-task-page" className="h-full overflow-y-auto bg-muted/20">
-      <div className="mx-auto flex min-h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
-      <header>
-        <h1 className="text-lg font-semibold">{t('tasks.newTask')}</h1>
-        <p className="text-sm text-muted-foreground">{t('workflow.stepOf', { step: step + 1, total: STEP_KEYS.length, label: t(STEP_KEYS[step]) })}</p>
-      </header>
-      <Progress value={((step + 1) / STEP_KEYS.length) * 100} />
-
-      <Card className="flex-1 border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
-        <CardHeader><CardTitle className="text-sm font-semibold">{t(STEP_KEYS[step])}</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
+    <WizardShell
+      testId="create-task-page"
+      title={t('tasks.newTask')}
+      step={step + 1}
+      totalSteps={STEP_KEYS.length}
+      stepLabel={currentStepLabel}
+      progressLabel={t('workflow.stepOf', { step: step + 1, total: STEP_KEYS.length, label: currentStepLabel })}
+      className="overflow-y-auto"
+      footer={(
+        <>
+          <Button variant="ghost" onClick={step === 0 ? onBack : () => setStep((s) => s - 1)}>{t('common.back')}</Button>
+          <div className="ml-auto flex gap-2">
+            {error && <span className="self-center text-xs text-destructive">{error}</span>}
+            <Button
+              disabled={submitting || (step === 0 && (!objective || !prompt))}
+              onClick={async () => {
+                if (step === STEP_KEYS.length - 1) {
+                  setError(null)
+                  setSubmitting(true)
+                  try {
+                    const result = await onCreate?.({
+                      title: objective,
+                      brief: prompt,
+                      objective,
+                      prompt,
+                      documents,
+                      team_members: selectedMemberNames,
+                      agent_id: selectedAgentId,
+                      priority,
+                      status: kanbanColumn,
+                      schedule_start: scheduleStart || null,
+                      schedule_end: scheduleEnd || null,
+                      schedule_time: scheduleTime || null,
+                      recurrence,
+                      recurrence_days: recurrenceDays,
+                      recurrence_monthly_days: recurrenceMonthlyDays,
+                    })
+                    if (!result) {
+                      setError(t('tasks.createError'))
+                    }
+                  } catch {
+                    setError(t('tasks.createError'))
+                  } finally {
+                    setSubmitting(false)
+                  }
+                  return
+                }
+                setStep((s) => Math.min(STEP_KEYS.length - 1, s + 1))
+              }}
+            >
+              {step === STEP_KEYS.length - 1 ? (submitting ? t('workflow.creating') : t('workflow.done')) : t('workflow.next')}
+            </Button>
+          </div>
+        </>
+      )}
+    >
           {error && (
             <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
           )}
@@ -190,9 +236,7 @@ export function CreateTaskPage({
           {step === 0 && (
             <div className="space-y-4">
               <div className="space-y-1">
-                <Label htmlFor="t-objective" className="text-[#A04D1F]">
-                  {t('tasks.objective')}<span className="text-[#A04D1F]">*</span>
-                </Label>
+                <RequiredLabel htmlFor="t-objective">{t('tasks.objective')}</RequiredLabel>
                 <Input
                   id="t-objective"
                   value={objective}
@@ -202,9 +246,7 @@ export function CreateTaskPage({
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="t-prompt" className="text-[#A04D1F]">
-                  {t('tasks.prompt')}<span className="text-[#A04D1F]">*</span>
-                </Label>
+                <RequiredLabel htmlFor="t-prompt">{t('tasks.prompt')}</RequiredLabel>
                 <Textarea
                   id="t-prompt"
                   value={prompt}
@@ -424,9 +466,7 @@ export function CreateTaskPage({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label htmlFor="schedule-start" className="text-xs text-[#A04D1F]">
-                      {t('tasks.startDate')}<span className="text-[#A04D1F]">*</span>
-                    </Label>
+                    <RequiredLabel htmlFor="schedule-start" className="text-xs">{t('tasks.startDate')}</RequiredLabel>
                     <Input
                       id="schedule-start"
                       type="date"
@@ -441,9 +481,7 @@ export function CreateTaskPage({
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="schedule-end" className="text-xs text-[#A04D1F]">
-                      {t('tasks.endDate')}<span className="text-[#A04D1F]">*</span>
-                    </Label>
+                    <RequiredLabel htmlFor="schedule-end" className="text-xs">{t('tasks.endDate')}</RequiredLabel>
                     <Input
                       id="schedule-end"
                       type="date"
@@ -457,9 +495,7 @@ export function CreateTaskPage({
 
                 <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1">
-                    <Label htmlFor="schedule-time" className="text-xs text-[#A04D1F]">
-                      {t('tasks.time')}<span className="text-[#A04D1F]">*</span>
-                    </Label>
+                    <RequiredLabel htmlFor="schedule-time" className="text-xs">{t('tasks.time')}</RequiredLabel>
                     <div className="relative">
                       <Clock className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                       <Input
@@ -790,55 +826,6 @@ export function CreateTaskPage({
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <footer className="flex justify-between">
-        <Button variant="ghost" onClick={step === 0 ? onBack : () => setStep((s) => s - 1)}>{t('common.back')}</Button>
-        <div className="flex gap-2 ml-auto">
-          {error && <span className="self-center text-xs text-destructive">{error}</span>}
-          <Button
-            disabled={submitting || (step === 0 && (!objective || !prompt))}
-            onClick={async () => {
-              if (step === STEP_KEYS.length - 1) {
-                setError(null)
-                setSubmitting(true)
-                try {
-                  const result = await onCreate?.({
-                    title: objective,
-                    brief: prompt,
-                    objective,
-                    prompt,
-                    documents,
-                    team_members: selectedMemberNames,
-                    agent_id: selectedAgentId,
-                    priority,
-                    status: kanbanColumn,
-                    schedule_start: scheduleStart || null,
-                    schedule_end: scheduleEnd || null,
-                    schedule_time: scheduleTime || null,
-                    recurrence,
-                    recurrence_days: recurrenceDays,
-                    recurrence_monthly_days: recurrenceMonthlyDays,
-                  })
-                  if (!result) {
-                    setError(t('tasks.createError'))
-                  }
-                } catch {
-                  setError(t('tasks.createError'))
-                } finally {
-                  setSubmitting(false)
-                }
-                return
-              }
-              setStep((s) => Math.min(STEP_KEYS.length - 1, s + 1))
-            }}
-          >
-            {step === STEP_KEYS.length - 1 ? (submitting ? t('workflow.creating') : t('workflow.done')) : t('workflow.next')}
-          </Button>
-        </div>
-      </footer>
-      </div>
-    </div>
+    </WizardShell>
   )
 }

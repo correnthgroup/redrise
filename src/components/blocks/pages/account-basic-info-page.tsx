@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
-import { Camera, Globe, Info, Loader2, Mail, Phone, ShieldCheck, Trash2, Upload, User, ArrowLeft } from 'lucide-react'
+import { Camera, Globe, Info, Loader2, Mail, Phone, ShieldCheck, Trash2, Upload, User, ArrowLeft, UsersRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -9,7 +9,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useI18n } from '@/hooks/use-i18n'
 import { LOCALES, type Locale } from '@/lib/i18n'
 import { loadUserProfile, saveUserProfile, type UserProfile } from '@/lib/user-profile'
-import { loadCurrentAccessRole, type AccessRole } from '@/lib/team-members'
+import { loadCurrentAccessRole, loadCurrentTeamAssignment, type AccessRole } from '@/lib/team-members'
+import { loadCurrentTeamAssignments } from '@/lib/teams'
+import { getMemberFunctionLabelKey } from '@/lib/member-functions'
 
 type AccountUser = { id: string; name: string; email: string; avatarUrl?: string | null }
 
@@ -343,6 +345,7 @@ export function AccountBasicInfoPage({
   const [profileLoading, setProfileLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [accessRole, setAccessRole] = useState<AccessRole>('admin')
+  const [teamAssignment, setTeamAssignment] = useState<{ function: string; team: string } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const dirtyRef = useRef(false)
 
@@ -358,8 +361,11 @@ export function AccountBasicInfoPage({
 
   useEffect(() => {
     let cancelled = false
-    loadCurrentAccessRole(fallbackUser.id).then((role) => {
-      if (!cancelled) setAccessRole(role)
+    Promise.all([loadCurrentAccessRole(fallbackUser.id), loadCurrentTeamAssignments(fallbackUser.id), loadCurrentTeamAssignment(fallbackUser.id)]).then(([role, multiAssignment, fallbackAssignment]) => {
+      if (!cancelled) {
+        setAccessRole(role)
+        setTeamAssignment(multiAssignment ? { function: multiAssignment.function, team: multiAssignment.teams.join(', ') } : fallbackAssignment)
+      }
     })
     return () => { cancelled = true }
   }, [fallbackUser.id])
@@ -489,6 +495,19 @@ export function AccountBasicInfoPage({
                   <FieldLabel htmlFor="username" icon={<User className="h-4 w-4" />}>{t('account.username')}</FieldLabel>
                   <Input id="username" value={profile.username} disabled />
                   <p className="text-xs text-muted-foreground">{t('account.readOnlyField')}</p>
+                </Field>
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                <Field>
+                  <FieldLabel htmlFor="currentFunction" icon={<ShieldCheck className="h-4 w-4" />}>{t('account.currentFunction')}</FieldLabel>
+                  <Input id="currentFunction" value={teamAssignment?.function ? t(getMemberFunctionLabelKey(teamAssignment.function)) : t('account.notAssigned')} disabled />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="currentTeam" icon={<UsersRound className="h-4 w-4" />}>{t('account.currentTeam')}</FieldLabel>
+                  <Input id="currentTeam" value={teamAssignment?.team || t('account.notAssigned')} disabled />
                 </Field>
               </div>
             </section>
