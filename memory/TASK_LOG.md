@@ -29,7 +29,7 @@
 - `corepack yarn typecheck` passed.
 - `corepack yarn test` passed.
 - `corepack yarn build` passed.
-- `corepack yarn test:e2e tests/settings.spec.ts tests/workspaces.spec.ts --workers=1` passed with 8/8 tests after stabilizing Settings shortcuts with `data-testid`.
+- `corepack yarn test:e2e --workers=1` passed with 22/22 tests after adding stable `data-testid` selectors for sidebar navigation and Dashboard `New Workspace`.
 - `C:\Python314\python.exe -m graphify update .` produced 1193 nodes, 1270 edges, and 201 communities after Update 2.0 i18n changes.
 
 ## Next Tasks

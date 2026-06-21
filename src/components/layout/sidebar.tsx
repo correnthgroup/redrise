@@ -241,6 +241,7 @@ export function Sidebar({ active, onSelect, user, onSignOut, workspaces = [], fl
                 <li key={item.key}>
                   <button
                     type="button"
+                    data-testid={`sidebar-nav-${item.key}`}
                     onClick={() => onSelect(item.key)}
                     className={cn(
                       'grid h-9 w-full items-center rounded-md text-sm transition-colors',

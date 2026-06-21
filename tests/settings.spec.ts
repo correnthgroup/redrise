@@ -3,14 +3,9 @@ import { expect, test, type Page } from '@playwright/test'
 async function openSettings(page: Page) {
   await page.goto('/')
   await expect(page.getByRole('button', { name: /New Workspace|Novo Workspace/i })).toBeVisible({ timeout: 15000 })
-  const settingsButton = page.getByRole('button', { name: /Settings|Configura..es/, exact: true })
+  const settingsButton = page.getByTestId('sidebar-nav-settings')
   await settingsButton.click()
-  try {
-    await expect(page.getByRole('heading', { name: /Settings|Configura..es/ })).toBeVisible({ timeout: 5000 })
-  } catch {
-    await settingsButton.click()
-    await expect(page.getByRole('heading', { name: /Settings|Configura..es/ })).toBeVisible({ timeout: 10000 })
-  }
+  await expect(page.getByTestId('settings-shortcut-personal-info')).toBeVisible({ timeout: 30000 })
 }
 
 async function openShortcut(page: Page, key: string) {

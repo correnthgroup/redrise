@@ -27,7 +27,7 @@
 - `corepack yarn typecheck` passes.
 - `corepack yarn test` passes.
 - `corepack yarn build` passes.
-- `corepack yarn test:e2e tests/settings.spec.ts` passes after the PRD2 Personal Information/read-only/i18n adjustments.
+- `corepack yarn test:e2e --workers=1` passes with 22/22 tests after stabilizing sidebar/topbar selectors with `data-testid`.
 
 ## Open Work
 

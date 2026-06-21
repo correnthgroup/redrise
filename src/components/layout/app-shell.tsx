@@ -184,7 +184,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   }
 
   const topbarActions = active === 'dashboard' && dashboardView === 'board' ? (
-    <Button onClick={() => setDashboardView('create-workspace')}>
+    <Button data-testid="dashboard-new-workspace" onClick={() => setDashboardView('create-workspace')}>
       <Plus className="h-4 w-4" />
       {t('dashboard.newWorkspace')}
     </Button>
