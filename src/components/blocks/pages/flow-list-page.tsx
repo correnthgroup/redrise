@@ -92,7 +92,7 @@ export function FlowListPage({
   const selectedCards = selectedId ? (PLACEHOLDER_FLOW_CARDS[selectedId] ?? []) : undefined
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-1 gap-6 p-6 lg:grid-cols-[2fr_1fr]">
+    <div data-testid="flow-list-page" className="grid h-full min-h-0 grid-cols-1 gap-6 p-6 lg:grid-cols-[2fr_1fr]">
       <div className="flex h-full min-h-0 flex-col gap-4">
         <div className="flex items-center gap-2">
           <div className="relative max-w-sm flex-1">

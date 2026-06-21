@@ -34,7 +34,7 @@ export function CreateWorkspacePage({
   const teamMemberOptions = teamMembers.map((member) => ({ value: member.id, label: member.name }))
 
   return (
-    <div className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
+    <div data-testid="create-workspace-page" className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
       <header>
         <h1 className="text-lg font-semibold">{t('workspace.new')}</h1>
         <p className="text-sm text-muted-foreground">{t('workflow.stepOf', { step: step + 1, total: STEP_KEYS.length, label: t(STEP_KEYS[step]) })}</p>

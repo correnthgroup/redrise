@@ -53,8 +53,22 @@ jobs:
         run: corepack yarn test
 
   test-e2e:
-    name: E2E Tests
+    name: E2E ${{ matrix.module }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - auth-public
+          - auth-session
+          - navigation
+          - dashboard
+          - flow
+          - tasks
+          - agents
+          - analytics
+          - workspaces
+          - settings
     steps:
       - uses: actions/checkout@v4
 
@@ -89,10 +103,7 @@ jobs:
 
       - name: E2E Test
         if: env.E2E_SKIPPED != '1'
-        run: |
-          corepack yarn test:e2e tests/smoke-unauth.spec.ts tests/smoke-auth.spec.ts tests/navigation.spec.ts --workers=1
-          corepack yarn test:e2e tests/workspaces.spec.ts --workers=1
-          corepack yarn test:e2e tests/settings.spec.ts --workers=1
+        run: corepack yarn test:e2e --project=${{ matrix.module }} --workers=1
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}

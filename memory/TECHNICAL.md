@@ -524,6 +524,11 @@
 - Testes unitários usam Vitest.
 - Testes E2E usam Playwright.
 - O setup autenticado do Playwright cria uma conta nova via Sign Up e depois faz Sign In, evitando dependência de senha fixa para usuário compartilhado.
+- A suíte E2E agora é modular por projeto Playwright e por domínio/menu: `auth-public`, `auth-session`, `navigation`, `dashboard`, `flow`, `tasks`, `agents`, `analytics`, `workspaces` e `settings`.
+- `tests/support/app.ts` centraliza abertura autenticada, reset de estado visual da Sidebar e navegação modular.
+- Cada menu principal possui pelo menos um marcador estável de página via `data-testid`: `dashboard-page`, `flow-list-page`, `task-board-page`, `agent-list-page`, `analytics-page`, `settings-page`.
+- CTAs principais da Topbar também possuem `data-testid`: `dashboard-new-workspace`, `flow-new-flow`, `tasks-new-task`, `agents-new-agent`.
+- O CI roda E2E em matriz por módulo para reduzir interferência entre fluxos, facilitar diagnóstico e evitar que uma falha de menu esconda o estado dos demais menus.
 
 ## Convenções De IDs
 

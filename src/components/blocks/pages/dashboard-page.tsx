@@ -24,7 +24,7 @@ export function DashboardPage({
   const { t } = useI18n()
 
   return (
-    <div className="h-full overflow-y-auto p-6">
+    <div data-testid="dashboard-page" className="h-full overflow-y-auto p-6">
       <div className="flex flex-col gap-6">
         <div className="rounded-xl border bg-card px-5 py-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
           <h2 className="text-base font-semibold">{t('dashboard.userWelcome', { name: firstName || 'User' })}</h2>

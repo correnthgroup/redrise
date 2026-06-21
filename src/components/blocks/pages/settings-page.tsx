@@ -133,7 +133,7 @@ export function SettingsPage({ user }: { user: SettingsUser }) {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden animate-app-rise">
+    <div data-testid="settings-page" className="flex h-full flex-col overflow-hidden animate-app-rise">
       <div className="min-h-0 flex-1 overflow-auto bg-muted/20">
         <div className="flex min-h-full w-full items-center justify-center p-6">
           <Card className="w-full max-w-3xl gap-0 rounded-xl border-border/80 p-6 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">

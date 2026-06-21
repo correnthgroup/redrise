@@ -1,10 +1,8 @@
 import { expect, test, type Page } from '@playwright/test'
+import { openSidebarModule } from './support/app'
 
 async function openSettings(page: Page) {
-  await page.goto('/')
-  await expect(page.getByRole('button', { name: /New Workspace|Novo Workspace/i })).toBeVisible({ timeout: 15000 })
-  const settingsButton = page.getByTestId('sidebar-nav-settings')
-  await settingsButton.click()
+  await openSidebarModule(page, 'settings', 'settings-page')
   await expect(page.getByTestId('settings-shortcut-personal-info')).toBeVisible({ timeout: 30000 })
 }
 

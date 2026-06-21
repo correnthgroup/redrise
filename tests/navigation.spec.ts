@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
+import { openAuthenticatedApp } from './support/app'
 
 test.describe('Navigation', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await expect(page.getByRole('button', { name: /New Workspace|Novo Workspace/i })).toBeVisible({ timeout: 15000 })
+    await openAuthenticatedApp(page)
   })
 
   test('dashboard is the default page', async ({ page }) => {
@@ -33,7 +33,7 @@ test.describe('Navigation', () => {
 
   test('navigate to Settings page', async ({ page }) => {
     await page.getByTestId('sidebar-nav-settings').click()
-    await expect(page.getByRole('heading', { name: /Settings|Configura..es/ })).toBeVisible({ timeout: 10000 })
+    await expect(page.getByTestId('settings-page')).toBeVisible({ timeout: 10000 })
   })
 
   test('sidebar collapse toggle works', async ({ page }) => {

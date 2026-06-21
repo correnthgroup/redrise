@@ -171,7 +171,7 @@ export function CreateTaskPage({
   const hasDay31 = recurrenceMonthlyDays.includes(31)
 
   return (
-    <div className="h-full overflow-y-auto bg-muted/20">
+    <div data-testid="create-task-page" className="h-full overflow-y-auto bg-muted/20">
       <div className="mx-auto flex min-h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
       <header>
         <h1 className="text-lg font-semibold">{t('tasks.newTask')}</h1>

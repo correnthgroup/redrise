@@ -48,7 +48,7 @@ export function TaskBoardPage({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 p-6 animate-app-rise">
+    <div data-testid="task-board-page" className="flex h-full min-h-0 flex-col gap-4 p-6 animate-app-rise">
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {COLUMNS.map((col) => {
           const items = tasks.filter((t) => t.status === col.id)

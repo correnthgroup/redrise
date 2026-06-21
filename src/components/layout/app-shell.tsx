@@ -189,17 +189,17 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
       {t('dashboard.newWorkspace')}
     </Button>
   ) : active === 'flow' && flowView === 'list' ? (
-    <Button onClick={() => setFlowView('create')}>
+    <Button data-testid="flow-new-flow" onClick={() => setFlowView('create')}>
       <Plus className="h-4 w-4" />
       {t('flow.newFlow')}
     </Button>
   ) : active === 'tasks' && taskView === 'board' ? (
-    <Button onClick={() => setTaskView('create')}>
+    <Button data-testid="tasks-new-task" onClick={() => setTaskView('create')}>
       <Plus className="h-4 w-4" />
       {t('tasks.newTask')}
     </Button>
   ) : active === 'agents' && agentView === 'list' ? (
-    <Button onClick={() => setAgentView('create')}>
+    <Button data-testid="agents-new-agent" onClick={() => setAgentView('create')}>
       <Plus className="h-4 w-4" />
       {t('agents.newAgent')}
     </Button>

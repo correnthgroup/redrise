@@ -43,7 +43,7 @@ export function AgentCreatePage({
   }
 
   return (
-    <div className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
+    <div data-testid="agent-create-page" className="mx-auto flex h-full max-w-3xl flex-col gap-4 p-6 animate-app-rise">
       <header>
         <h1 className="text-lg font-semibold">{t('agentCreate.title')}</h1>
         <p className="text-sm text-muted-foreground">{t('agentCreate.stepOf', { step: step + 1, total: STEP_KEYS.length, label: t(STEP_KEYS[step]) })}</p>

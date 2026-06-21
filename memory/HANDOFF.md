@@ -27,7 +27,8 @@
 - `corepack yarn typecheck` passes.
 - `corepack yarn test` passes.
 - `corepack yarn build` passes.
-- E2E local passes both as full suite (`corepack yarn test:e2e --workers=1`, 22/22) and in the split CI format: smoke/navigation, workspaces, and settings groups.
+- E2E is modularized by Playwright project: `auth-public`, `auth-session`, `navigation`, `dashboard`, `flow`, `tasks`, `agents`, `analytics`, `workspaces`, and `settings`.
+- E2E local modular matrix passes with 39 tests across the 10 modules.
 
 ## Open Work
 
@@ -53,3 +54,4 @@
 - Use Render auto-deploy as primary deploy path.
 - Do not reintroduce `localStorage` persistence for domain data.
 - Do not reintroduce OAuth or e-mail confirmation UI without official credentials/configuration.
+- Keep E2E coverage modular by menu/domain instead of grouping all authenticated flows into one long runner process.

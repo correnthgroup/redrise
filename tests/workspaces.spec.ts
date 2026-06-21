@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { openSidebarModule, openTopbarAction } from './support/app'
 
 const TS = Date.now()
 const WS_NAME = `E2E ${TS}`
@@ -6,13 +7,8 @@ const WS_MISSION = `Mission ${TS}`
 
 test('workspace lifecycle: create → review → cancel → delete', async ({ page }) => {
   // ── Create ──
-  await page.goto('/')
-  await expect(page.getByRole('button', { name: /New Workspace|Novo Workspace/i })).toBeVisible({ timeout: 15000 })
-
-  const newWorkspaceButton = page.getByTestId('dashboard-new-workspace')
-  await expect(newWorkspaceButton).toBeEnabled({ timeout: 15000 })
-  await newWorkspaceButton.click()
-  await expect(page.getByRole('heading', { name: /New Workspace|Novo Workspace/ })).toBeVisible({ timeout: 30000 })
+  await openSidebarModule(page, 'dashboard', 'dashboard-page')
+  await openTopbarAction(page, 'dashboard-new-workspace', 'create-workspace-page')
 
   await page.getByLabel(/Name|Nome/).fill(WS_NAME)
   await page.getByLabel(/Mission|Miss.o/).fill(WS_MISSION)

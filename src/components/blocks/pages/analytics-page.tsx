@@ -33,7 +33,7 @@ export function AnalyticsPage() {
   const kpis = buildKpis(analytics)
 
   return (
-    <div className="h-full overflow-y-auto p-6">
+    <div data-testid="analytics-page" className="h-full overflow-y-auto p-6">
       <div className="flex flex-col gap-6">
         <KpiCards items={kpis} count={5} />
         <ChartTabs executionsByDay={analytics.executionsByDay} />
