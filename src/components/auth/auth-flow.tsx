@@ -62,7 +62,7 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
     [password],
   )
   const allRulesMet = passwordState.every((rule) => rule.met)
-  const signUpReady = firstName.trim().length >= 2 && isValidEmail(email) && allRulesMet && confirmPassword === password
+  const signUpReady = firstName.trim().length >= 2 && middleName.trim().length > 0 && lastName.trim().length > 0 && isValidEmail(email) && allRulesMet && confirmPassword === password
 
   function resetMessages() {
     setError(null)
@@ -94,6 +94,10 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
     resetMessages()
     if (firstName.trim().length < 2) {
       setError('First Name must have at least 2 characters.')
+      return
+    }
+    if (!middleName.trim() || !lastName.trim()) {
+      setError('Middle Name and Last Name are required.')
       return
     }
     if (!isValidEmail(email)) {
@@ -187,25 +191,25 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className={styles.fieldGroup}>
-                  <Label htmlFor="first-name">First Name</Label>
-                  <Input id="first-name" value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="First" autoComplete="given-name" />
+                  <Label htmlFor="first-name" className={styles.requiredLabel}>First Name</Label>
+                  <Input id="first-name" required value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="First" autoComplete="given-name" />
                 </div>
                 <div className={styles.fieldGroup}>
-                  <Label htmlFor="middle-name">Middle Name</Label>
-                  <Input id="middle-name" value={middleName} onChange={(event) => setMiddleName(event.target.value)} placeholder="Middle" autoComplete="additional-name" />
+                  <Label htmlFor="middle-name" className={styles.requiredLabel}>Middle Name</Label>
+                  <Input id="middle-name" required value={middleName} onChange={(event) => setMiddleName(event.target.value)} placeholder="Middle" autoComplete="additional-name" />
                 </div>
                 <div className={styles.fieldGroup}>
-                  <Label htmlFor="last-name">Last Name</Label>
-                  <Input id="last-name" value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Last" autoComplete="family-name" />
+                  <Label htmlFor="last-name" className={styles.requiredLabel}>Last Name</Label>
+                  <Input id="last-name" required value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Last" autoComplete="family-name" />
                 </div>
               </div>
               <div className={styles.fieldGroup}>
-                <Label htmlFor="email-su">Email</Label>
-                <Input id="email-su" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" autoComplete="email" />
+                <Label htmlFor="email-su" className={styles.requiredLabel}>Email</Label>
+                <Input id="email-su" required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" autoComplete="email" />
               </div>
               <div className={styles.fieldGroup}>
-                <Label htmlFor="password-su">Password</Label>
-                <PasswordInput id="password-su" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Choose a password" autoComplete="new-password" />
+                <Label htmlFor="password-su" className={styles.requiredLabel}>Password</Label>
+                <PasswordInput id="password-su" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Choose a password" autoComplete="new-password" />
               </div>
               {password ? (
                 <div className={styles.requirements}>
@@ -218,8 +222,8 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
                 </div>
               ) : null}
               <div className={styles.fieldGroup}>
-                <Label htmlFor="confirm-password">Confirm Password</Label>
-                <PasswordInput id="confirm-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Confirm password" autoComplete="new-password" />
+                <Label htmlFor="confirm-password" className={styles.requiredLabel}>Confirm Password</Label>
+                <PasswordInput id="confirm-password" required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Confirm password" autoComplete="new-password" />
                 {confirmPassword && confirmPassword !== password ? <p className={styles.errorText}>Passwords do not match.</p> : null}
               </div>
               {notice && <div className={styles.noticeText}>{notice}</div>}

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Search, ExternalLink, Pencil, Users, Check, X, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,37 +8,10 @@ import { WorkflowPipeline } from '../shared/workflow-pipeline'
 import { Badge } from '@/components/ui/badge'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { Flow } from '@/types/flow'
+import type { FlowCard } from '@/types/flow-card'
+import { loadFlowCards } from '@/lib/flow-cards'
 import { useI18n } from '@/hooks/use-i18n'
 import { useTeamMemberOptions } from '@/hooks/use-team-member-options'
-
-interface FlowCard {
-  name: string
-  members: string[]
-  agents: string[]
-}
-
-const PLACEHOLDER_FLOW_CARDS: Record<string, FlowCard[]> = {
-  f1: [
-    { name: 'Qualify Lead', members: ['Alice Silva'], agents: ['Agent 1'] },
-    { name: 'Score Deal', members: ['Bob Santos'], agents: ['Agent 2'] },
-    { name: 'Assign Rep', members: [], agents: [] },
-  ],
-  f2: [
-    { name: 'Send Welcome', members: ['Carol Oliveira'], agents: [] },
-    { name: 'Create Account', members: [], agents: ['Agent 3'] },
-    { name: 'Schedule Kickoff', members: ['David Costa', 'Eva Lima'], agents: [] },
-  ],
-  f3: [
-    { name: 'Detect Issue', members: [], agents: ['Agent 4'] },
-    { name: 'Route Team', members: ['Alice Silva'], agents: [] },
-    { name: 'Notify Client', members: [], agents: [] },
-  ],
-  f4: [
-    { name: 'Prepare Handoff', members: ['Bob Santos'], agents: ['Agent 5'] },
-    { name: 'Transfer Docs', members: [], agents: [] },
-    { name: 'Confirm Delivery', members: ['Eva Lima'], agents: [] },
-  ],
-}
 
 function badgeClassName(status: string) {
   switch (status) {
@@ -66,6 +39,8 @@ export function FlowListPage({
   const [editingName, setEditingName] = useState('')
   const [deleteTarget, setDeleteTarget] = useState<Flow | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [selectedCards, setSelectedCards] = useState<FlowCard[] | undefined>(undefined)
+  const [loadingCards, setLoadingCards] = useState(false)
   const { t } = useI18n()
   const { members: teamMembers, loading: loadingMembers } = useTeamMemberOptions()
 
@@ -86,10 +61,23 @@ export function FlowListPage({
   }
 
   function selectFlow(id: string) {
-    setSelectedId((prev) => (prev === id ? null : id))
+    const next = selectedId === id ? null : id
+    setSelectedId(next)
+    setLoadingCards(Boolean(next))
   }
 
-  const selectedCards = selectedId ? (PLACEHOLDER_FLOW_CARDS[selectedId] ?? []) : undefined
+  useEffect(() => {
+    let cancelled = false
+    if (!selectedId) return
+
+    loadFlowCards(selectedId).then((cards) => {
+      if (!cancelled) setSelectedCards(cards)
+    }).finally(() => {
+      if (!cancelled) setLoadingCards(false)
+    })
+
+    return () => { cancelled = true }
+  }, [selectedId])
 
   return (
     <div data-testid="flow-list-page" className="grid h-full min-h-0 grid-cols-1 gap-6 p-6 lg:grid-cols-[2fr_1fr]">
@@ -114,7 +102,7 @@ export function FlowListPage({
                       onClick={() => selectFlow(f.id)}
                       className={`flex w-full items-center justify-between rounded-md border bg-card p-3 text-left text-sm cursor-pointer transition-colors ${
                         selectedId === f.id
-                          ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/20'
+                          ? 'border-[#8F1D1D] bg-primary/5 ring-1 ring-[#8F1D1D]/35'
                           : 'hover:bg-accent/60'
                       }`}
                     >
@@ -198,7 +186,7 @@ export function FlowListPage({
         </Card>
       </div>
 
-      <WorkflowPipeline cards={selectedCards} />
+      <WorkflowPipeline cards={selectedId ? (selectedCards ?? []) : undefined} loading={loadingCards} />
 
       <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open) { setDeleteTarget(null); setDeleteConfirm('') } }}>
         <DialogContent>

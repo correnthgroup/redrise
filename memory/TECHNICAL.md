@@ -77,7 +77,7 @@
 - Sign in usa e-mail e senha via Supabase Auth.
 - Remember Me não é mais condição para registrar metadados de sessão; ele marca a sessão como lembrada/confiável via campo `remembered`.
 - Sign in registra metadados de sessão em `active_sessions`; o campo `remembered` indica se o usuário marcou Remember Me.
-- Sign up usa First Name obrigatório, Middle Name opcional, Last Name opcional, e-mail, senha e confirmação de senha.
+- Sign up usa First Name, Middle Name, Last Name, e-mail, senha e confirmação de senha como campos obrigatórios visualmente e via HTML `required`.
 - Após criar conta, o app faz logout imediato e volta ao Sign In com o aviso `Account created. Sign in with the credentials you just created.`
 - O cadastro não exige confirmação por e-mail no estado atual; `enable_confirmations=false` no Supabase Auth.
 - Login/cadastro OAuth com GitHub, Google e Microsoft está arquivado até existirem Client IDs/secrets válidos no Supabase e nos provedores.
@@ -100,6 +100,13 @@
 - `ReviewWorkspacePage` recebe o workspace selecionado e pode voltar para o Dashboard.
 - Deletar workspace chama `removeWorkspace()` vindo do hook de workspaces.
 - `KpiCards`, `ChartTabs`, `OperationsGrid` e `ActivityFeed` aparecem no Dashboard como blocos de leitura operacional.
+- `KpiCards` no Dashboard usa contagens vivas de workspaces, flows, tasks e agents carregadas pelo `AppShell`.
+- `ChartTabs` no Dashboard recebe série derivada das tasks carregadas e não usa mais gráfico estático sem entrada.
+- `OperationsGrid` no Dashboard calcula Staffing, Model Breakdown, Capacity Mix, Attention Queue, Alerts, Configuration Watch e Operational Indicators a partir de workspaces, flows, tasks e agents.
+- `ActivityFeed` no Dashboard calcula Activity Feed, Alerts, Notifications, Change Log e Audit Trail a partir de workspaces, flows, tasks e agents.
+- Os títulos dos blocos operacionais do Dashboard têm ícones à esquerda e usam chaves do provider de i18n.
+- A migration 021 adiciona triggers que recalculam `workspaces.flows` e `workspaces.status` quando flows ou tasks são criados, atualizados ou removidos.
+- A regra atual de status do workspace é: `maintenance` se houver flow/task com erro, `healthy` se houver flow/task sem erro, e `pending` se não houver trabalho ligado ao workspace.
 - Os workspaces exibidos no Dashboard mostram identificação, missão, data e contagem de flows quando disponível.
 - IDs visíveis ajudam suporte e auditoria a identificar registros rapidamente.
 
@@ -126,8 +133,11 @@
 - A alteração de membros no dropdown de FlowListPage ainda está marcada como TODO e não deve ser tratada como persistida.
 - O botão de lixeira abre confirmação de delete.
 - Delete Flow exige digitar `DELETE`; isso evita exclusão acidental.
-- `WorkflowPipeline` à direita mostra cards de pipeline de exemplo por flow selecionado; ainda há dados placeholder nessa parte.
-- `WorkflowPipeline` tem checkboxes quadrados, seleção geral e controles visuais de play, pause e reset.
+- `FlowPipeline` à direita mostra os cards reais salvos em `flow_cards` para o flow selecionado na lista.
+- Ao selecionar um flow em `FlowListPage`, a tela chama `loadFlowCards(flowId)` e exibe loading até os cards chegarem.
+- Se o flow selecionado não tiver cards salvos, o bloco mostra mensagem de vazio traduzida.
+- `FlowPipeline` tem checkboxes quadrados, seleção geral e controles visuais de play, pause e reset.
+- O flow selecionado na lista usa borda vermelha forte `#8F1D1D` com ring no mesmo tom.
 - `FlowBuilderPage` é a tela de edição visual do flow.
 - `FlowBuilderPage` também usa `useTeamMemberOptions()` para dropdowns de membros.
 - `FlowBuilderPage` passou a carregar agentes reais via `loadAgents()` para o editor de cards, substituindo a lista placeholder anterior.
@@ -201,7 +211,7 @@
 - Quando `active` está preenchido, Settings mostra uma tela de detalhe com botão Back no topo.
 - O botão Back volta para a grade de atalhos.
 - Atualmente os submenus são Personal Information, Change Password, Active Sessions, API Keys, Integrations, Team Members e Audit Log.
-- Atualmente também existe o submenu Plans.
+- O submenu Plans aparece como `Under Construction` fora do ambiente de desenvolvimento e fica desabilitado em produção.
 
 ## Settings > Personal Information
 
@@ -312,7 +322,7 @@
 - `OperationsGrid` é usado no Dashboard para detalhes operacionais.
 - `ActivityFeed` é usado no Dashboard para atividade recente.
 - `OnboardingEmpty` é usado no Dashboard para listar workspaces e guiar criação inicial.
-- `WorkflowPipeline` é usado na Flow List para pipeline visual.
+- `FlowPipeline` é usado na Flow List para listar os cards reais do flow selecionado.
 - `SessionsList` é usado em Settings e pode ser reutilizado em Agent Detail.
 - `ApiKeysManager` é usado em Settings e pode ser reutilizado em Agent Detail.
 - `ChangePassword` é usado em Settings e pode ser reutilizado em Agent Detail.
@@ -359,6 +369,7 @@
 - `active_sessions`: guarda sessões autenticadas, metadados do device, flag `remembered`, `supabase_session_id`, última atividade e revogação.
 - `team_members`: guarda relação entre dono da equipe, usuário membro, e-mail convidado, papel, função, time e status.
 - `workspaces`: guarda workspaces do usuário.
+- `workspaces.flows` e `workspaces.status` são recalculados pelos triggers da migration 021 quando flows/tasks mudam.
 - `flows`: guarda flows associados a workspace.
 - `tasks`: guarda tasks.
 - `agents`: guarda agents.
@@ -381,7 +392,10 @@
 
 ## Settings > Plans
 
-- O submenu `Plans` existe em Settings.
+- O submenu `Plans` existe em Settings, mas fica acionável apenas em ambiente de desenvolvimento local (`import.meta.env.DEV`).
+- Em produção, o atalho Plans aparece como `Under Construction` e o botão fica desabilitado.
+- O botão `Details` do aviso de acesso em Personal Information só abre Plans quando Plans está habilitado no ambiente.
+- Enquanto Plans estiver desabilitado, o usuário não acessa a página de planos em produção.
 - O submenu aparece na grade de atalhos de Settings.
 - O submenu tem três colunas: Free, Business e Corporate.
 - Cada coluna destaca vantagens, limites e recursos com placeholders.
@@ -536,7 +550,8 @@
 - Artefatos consultáveis versionáveis: `graphify-out/GRAPH_REPORT.md`, `graphify-out/graph.json` e `graphify-out/graph.html`.
 - Caches, backups datados, manifestos internos e arquivos `.graphify_*` ficam locais e não devem ser tratados como documentação canônica.
 - A última atualização estrutural foi feita com `C:\Python314\python.exe -m graphify update . --force`.
-- Resultado da última atualização estrutural limpa: 965 nós, 1126 relações e 137 comunidades.
+- Resultado da última atualização estrutural limpa: 980 nós, 1142 relações e 139 comunidades.
+- A atualização estrutural cobriu código; reextração semântica de docs/memória segue pendente até existir `GEMINI_API_KEY` ou `GOOGLE_API_KEY` no ambiente.
 - A extração semântica completa depende de chave LLM no ambiente; sem chave, o grafo estrutural AST continua válido para navegação técnica e relações de código.
 - A matriz em `D:\graphify\repos\redrise\` mantém apenas catálogo macro e deve apontar para este grafo local quando for necessário investigar detalhes.
 

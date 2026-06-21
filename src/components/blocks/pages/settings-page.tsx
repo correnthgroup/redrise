@@ -39,6 +39,7 @@ type SettingShortcut = {
   titleKey: string
   descKey: string
   icon: ReactNode
+  disabled?: boolean
 }
 
 function TeamMembersView({ user, onBack }: { user: SettingsUser; onBack: () => void }) {
@@ -56,6 +57,7 @@ function TeamMembersView({ user, onBack }: { user: SettingsUser; onBack: () => v
 export function SettingsPage({ user }: { user: SettingsUser }) {
   const [active, setActive] = useState<SettingKey | null>(null)
   const { t } = useI18n()
+  const plansEnabled = import.meta.env.DEV
 
   const SETTINGS_SHORTCUTS: SettingShortcut[] = [
     {
@@ -99,6 +101,7 @@ export function SettingsPage({ user }: { user: SettingsUser }) {
       titleKey: 'settings.plans',
       descKey: 'settings.plansDesc',
       icon: <CreditCard className="h-5 w-5" />,
+      disabled: !plansEnabled,
     },
     {
       key: 'audit-log',
@@ -111,7 +114,7 @@ export function SettingsPage({ user }: { user: SettingsUser }) {
   const goBack = () => setActive(null)
 
   let detail: ReactNode = null
-  if (active === 'personal-info') detail = <AccountBasicInfoPage user={user} onBack={goBack} onSave={goBack} onOpenPlans={() => setActive('plans')} />
+  if (active === 'personal-info') detail = <AccountBasicInfoPage user={user} onBack={goBack} onSave={goBack} onOpenPlans={() => { if (plansEnabled) setActive('plans') }} />
   else if (active === 'change-password') detail = <ChangePassword onBack={goBack} />
   else if (active === 'active-sessions') detail = <SessionsList userId={user.id} onBack={goBack} />
   else if (active === 'api-keys') detail = <ApiKeysManager onBack={goBack} />
@@ -148,15 +151,16 @@ export function SettingsPage({ user }: { user: SettingsUser }) {
                   key={shortcut.key}
                   type="button"
                   data-testid={`settings-shortcut-${shortcut.key}`}
-                  onClick={() => setActive(shortcut.key)}
-                  className="group flex items-start gap-3 rounded-lg border bg-background p-4 text-left transition-colors hover:border-[#2F5D5A]/45 hover:bg-[#2F5D5A]/4"
+                  disabled={shortcut.disabled}
+                  onClick={() => { if (!shortcut.disabled) setActive(shortcut.key) }}
+                  className="group flex items-start gap-3 rounded-lg border bg-background p-4 text-left transition-colors hover:border-[#2F5D5A]/45 hover:bg-[#2F5D5A]/4 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-border disabled:hover:bg-background"
                 >
                   <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground transition-colors group-hover:bg-[#2F5D5A] group-hover:text-white">
                     {shortcut.icon}
                   </span>
                   <div className="min-w-0 space-y-1">
                     <p className="text-sm font-semibold">{t(shortcut.titleKey)}</p>
-                    <p className="text-xs leading-snug text-muted-foreground">{t(shortcut.descKey)}</p>
+                    <p className="text-xs leading-snug text-muted-foreground">{shortcut.disabled ? t('settings.underConstruction') : t(shortcut.descKey)}</p>
                   </div>
                 </button>
               ))}

@@ -113,6 +113,9 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
             <DashboardPage
               firstName={user.firstName}
               workspaces={workspaces}
+              flows={flows}
+              tasks={tasks}
+              agents={agents}
               onOpenWorkspace={(id) => {
                 setSelectedWorkspaceId(id)
                 setDashboardView('review-workspace')

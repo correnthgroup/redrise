@@ -4,6 +4,9 @@ export default function Page() {
   return (
     <DashboardPage
       workspaces={[]}
+      flows={[]}
+      tasks={[]}
+      agents={[]}
     />
   )
 }

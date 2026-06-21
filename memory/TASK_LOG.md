@@ -33,10 +33,11 @@
 - CI E2E now runs in split Playwright processes for smoke/navigation, workspaces, and settings to isolate remote state between groups.
 - E2E suite was restructured into 10 Playwright projects by domain/menu: auth-public, auth-session, navigation, dashboard, flow, tasks, agents, analytics, workspaces, settings.
 - Local modular matrix passed with 39 tests across all 10 E2E modules.
-- `C:\Python314\python.exe -m graphify update . --force` produced a clean graph with 965 nodes, 1126 edges, and 137 communities in `graphify-out` after E2E modularization and Render stabilization.
+- `C:\Python314\python.exe -m graphify update . --force` produced a clean structural graph with 980 nodes, 1142 edges, and 139 communities in `graphify-out` after PRD part 1 local changes; semantic doc extraction remains pending without Gemini env keys.
 
 ## Next Tasks
 
+- PRD parte 1 local: Sign Up agora marca todos os campos de registro como obrigatórios, username inicial usa nome completo via migration 020, favicon/título do navegador foram atualizados, Dashboard usa dados vivos de workspaces/flows/tasks/agents, migration 021 recalcula status/contagem do workspace por flows/tasks, Flow Pipeline lê `flow_cards` reais, Plans fica Under Construction em produção, e `docs/USE_CASES.md` registra 7 casos de uso.
 - **PRD3 (Update 3.0)**: Resolve Settings menu definitively. 4 phases: Critical Fixes, High-Priority Gaps, Quality/Polish, i18n Completion. See `updates/prd3.md`.
 - Keep docs and memory current/future only; do not re-add historical implementation archives as active guidance.
 - Finish the remaining Update 2.0 deep-copy conversion outside the current PRD2 test-bundle scope before production deployment.

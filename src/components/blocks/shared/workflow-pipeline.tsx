@@ -1,19 +1,15 @@
 ﻿import { useState } from 'react'
 import { Pause, Play, RotateCcw } from 'lucide-react'
+import type { FlowCard } from '@/types/flow-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useI18n } from '@/hooks/use-i18n'
 
-interface FlowCard {
-  name: string
-  members: string[]
-  agents: string[]
-}
-
 interface WorkflowPipelineProps {
   cards?: FlowCard[]
+  loading?: boolean
 }
 
 interface PipelineNode {
@@ -38,10 +34,10 @@ const STATUS_STYLES: Record<PipelineNode['status'], string> = {
   error: 'bg-rose-500',
 }
 
-export function WorkflowPipeline({ cards }: WorkflowPipelineProps) {
+export function WorkflowPipeline({ cards, loading = false }: WorkflowPipelineProps) {
   const hasSelection = cards !== undefined
   const nodes = hasSelection && cards.length > 0
-    ? cards.map((c, i) => ({ id: `c${i}`, name: c.name, status: 'ok' as const, members: c.members, agents: c.agents }))
+    ? cards.map((c) => ({ id: c.id, name: c.label, status: 'ok' as const, members: c.members, agents: c.agents }))
     : hasSelection ? [] : PLACEHOLDER_NODES
 
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
@@ -80,7 +76,9 @@ export function WorkflowPipeline({ cards }: WorkflowPipelineProps) {
         </div>
       </CardHeader>
       <CardContent>
-        {!hasSelection ? (
+        {loading ? (
+          <p className="text-sm text-muted-foreground text-center py-8">{t('pipeline.loadingCards')}</p>
+        ) : !hasSelection ? (
           <p className="text-sm text-muted-foreground text-center py-8">{t('pipeline.selectFlow')}</p>
         ) : nodes.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">{t('pipeline.noCards')}</p>

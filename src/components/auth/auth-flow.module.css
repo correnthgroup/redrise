@@ -72,6 +72,12 @@
   gap: 0.4rem;
 }
 
+.requiredLabel::after {
+  content: ' *';
+  color: var(--destructive);
+  font-weight: 700;
+}
+
 .requirements {
   display: flex;
   flex-direction: column;

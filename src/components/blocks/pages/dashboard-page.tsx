@@ -1,4 +1,7 @@
 ﻿import type { Workspace } from '@/types/workspace'
+import type { Flow } from '@/types/flow'
+import type { Task } from '@/types/task'
+import type { Agent } from '@/types/agent'
 import { FolderOpen, Plus, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -14,14 +17,30 @@ export function DashboardPage({
   onOpenWorkspace,
   onCreateWorkspace,
   workspaces,
+  flows,
+  tasks,
+  agents,
 }: {
   firstName?: string
   onOpenWorkspace?: (id: string) => void
   onCreateWorkspace?: () => void
   workspaces: Workspace[]
+  flows: Flow[]
+  tasks: Task[]
+  agents: Agent[]
 }) {
   const hasWorkspaces = workspaces.length > 0
   const { t } = useI18n()
+  const runningFlows = flows.filter((flow) => flow.status === 'running').length
+  const erroredTasks = tasks.filter((task) => task.status === 'error').length
+  const activeAgents = agents.filter((agent) => agent.status === 'active').length
+  const kpis = [
+    { label: t('dashboard.workspacesKpi'), value: String(workspaces.length), delta: t('dashboard.liveFromSupabase'), trend: 'up' as const, series: workspaces.map((_, index) => index + 1) },
+    { label: t('dashboard.flowsKpi'), value: String(flows.length), delta: t('dashboard.runningCount', { count: runningFlows }), trend: runningFlows > 0 ? 'up' as const : 'flat' as const, series: flows.map((flow, index) => (flow.status === 'running' ? index + 2 : index + 1)) },
+    { label: t('dashboard.tasksKpi'), value: String(tasks.length), delta: t('dashboard.errorCount', { count: erroredTasks }), trend: erroredTasks > 0 ? 'down' as const : 'flat' as const, series: tasks.map((task, index) => (task.status === 'done' ? index + 2 : index + 1)) },
+    { label: t('dashboard.agentsKpi'), value: String(agents.length), delta: t('dashboard.activeCount', { count: activeAgents }), trend: activeAgents > 0 ? 'up' as const : 'flat' as const, series: agents.map((agent, index) => (agent.status === 'active' ? index + 2 : index + 1)) },
+  ]
+  const executionsByDay = tasks.slice(0, 14).map((task) => ({ date: task.updated_at || task.created_at, count: task.status === 'done' ? 3 : task.status === 'error' ? 1 : 2 }))
 
   return (
     <div data-testid="dashboard-page" className="h-full overflow-y-auto p-6">
@@ -60,10 +79,10 @@ export function DashboardPage({
 
         {hasWorkspaces && (
           <>
-            <KpiCards count={7} className="xl:grid-cols-7" />
-            <ChartTabs />
-            <OperationsGrid />
-            <ActivityFeed />
+            <KpiCards items={kpis} count={7} className="xl:grid-cols-4" />
+            <ChartTabs executionsByDay={executionsByDay} />
+            <OperationsGrid workspaces={workspaces} flows={flows} tasks={tasks} agents={agents} />
+            <ActivityFeed workspaces={workspaces} flows={flows} tasks={tasks} agents={agents} />
           </>
         )}
 

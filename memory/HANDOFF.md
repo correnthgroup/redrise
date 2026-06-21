@@ -4,6 +4,7 @@
 
 ## Current State
 
+- PRD parte 1 local foi aplicada no workspace: Dashboard operacional saiu de placeholders estáticos para dados derivados de Supabase já carregados pelo shell; Flow Pipeline lê cards reais de `flow_cards`; Plans fica desabilitado fora de dev.
 - App is a Vite/React/TypeScript/Tailwind SPA backed by Supabase.
 - Official production URL is `https://redrise.onrender.com`.
 - Current production deployment target is Render.
@@ -16,7 +17,7 @@
 - Team Members use Supabase `team_members`; Flow/Tasks member dropdowns must read that source.
 - Settings > Plans is not billing yet; it is a future-plan surface.
 - `redrise-ops` MCP exists for validation, build/status checks, Supabase function deploy, graph status, and memory notes.
-- Detailed local Graphify output is in `graphify-out/`; the latest clean structural update produced 965 nodes, 1126 edges, and 137 communities.
+- Detailed local Graphify output is in `graphify-out/`; the latest clean structural update produced 980 nodes, 1142 edges, and 139 communities.
 - Workspace root is now `D:\studio\redrise`; old briefing/framework/backlog folders are not active guidance.
 - Update 2.0 test bundle now covers Create Task, Flow Builder, Agent Detail, Create Workspace, Create Flow, Personal Information field locks/search, and auxiliary `team-members-card` copy.
 - Previous deployment targets are legacy and are no longer active targets for this project reset.
@@ -44,7 +45,7 @@
 - Keep Supabase Auth redirects and edge-function origins aligned with the final Render URL.
 - Re-enable OAuth after official provider credentials are configured and tested.
 - Re-enable e-mail confirmation after official SMTP/sender/template policy is configured.
-- After relevant code, architecture, or behavior changes, refresh the structural graph with `C:\Python314\python.exe -m graphify update .` and update memory if counts or architecture changed.
+- After relevant code, architecture, or behavior changes, refresh the structural graph with `C:\Python314\python.exe -m graphify update .` and update memory if counts or architecture changed; semantic doc extraction needs Gemini env keys.
 
 ## Operational Rules
 
