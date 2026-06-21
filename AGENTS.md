@@ -11,7 +11,7 @@
 - **Routing**: state machine in `src/components/layout/app-shell.tsx` via `SidebarKey` + thin route shims in `src/app/`
 - **State**: React hooks + Supabase-backed domain libraries; `localStorage` only for UI preferences such as sidebar collapse
 - **Backend**: Supabase Auth, PostgreSQL, RLS, migrations, and Edge Functions. The active project must be the new `integration@correnth.com` owned Redrise project.
-- **Hosting**: Vercel project connected to `https://github.com/correnthintegration/redrise.git` under `integration@correnth.com`.
+- **Hosting**: GitHub Pages at `https://redrise.github.io`, built from `https://github.com/correnthgroup/redrise.git` under `integration@correnth.com`.
 - **Package manager**: Yarn via Corepack. Do not add npm lockfiles.
 - **Operational MCP**: `redrise-ops` in `scripts/mcp/redrise-ops.mjs`
 
@@ -146,7 +146,7 @@ corepack yarn mcp:redrise-ops:self-test
 
 ## Deploy
 
-- Preferred frontend deploy: Vercel CI/CD from `https://github.com/correnthintegration/redrise.git`.
+- Preferred frontend deploy: GitHub Pages workflow to `https://redrise.github.io`, from `https://github.com/correnthgroup/redrise.git`.
 - Vercel settings must use `corepack yarn install --frozen-lockfile`, `corepack yarn build`, and output directory `dist`.
 - The `redrise-ops` MCP exposes fallback prebuilt deployment through `build_frontend`, `prepare_vercel_prebuilt`, and `deploy_frontend_prebuilt`.
 - Supabase Edge Functions are deployed with Supabase CLI after linking the new `integration@correnth.com` owned Supabase project.

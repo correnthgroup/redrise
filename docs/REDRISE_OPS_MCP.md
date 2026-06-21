@@ -43,7 +43,9 @@ The current operating target is a fresh GitHub/Vercel/Supabase setup owned throu
 Normal Vercel deploys should use the repository connection once the new Vercel project is linked to:
 
 ```text
-https://github.com/correnthintegration/redrise.git
+https://github.com/correnthgroup/redrise.git
+
+Production URL: https://redrise.github.io
 ```
 
 If remote project settings ever diverge from this repository, verify they match:

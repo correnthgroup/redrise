@@ -5,9 +5,9 @@
 ## Current State
 
 - App is a Vite/React/TypeScript/Tailwind SPA backed by Supabase.
-- Official production URL is `[PENDENTE: dominio]`.
-- Current production deployment is `[PENDENTE: novo deploy Vercel]`.
-- GitHub repository is `https://github.com/correnthintegration/redrise.git`.
+- Official production URL is `https://redrise.github.io`.
+- Current production deployment target is GitHub Pages.
+- GitHub repository is `https://github.com/correnthgroup/redrise.git`.
 - GitHub, Vercel, and Supabase should use the base operational account `integration@correnth.com`.
 - Auth flow is simplified: e-mail/password Sign In, account creation through Sign Up, no OAuth buttons, no e-mail confirmation UI.
 - Sign Up returns to Sign In and must not flash Dashboard.
@@ -36,10 +36,10 @@
 - Add Stripe checkout Edge Function and webhook.
 - Persist real plan state and enforce permissions in backend/RLS.
 - Decide whether existing-account team member additions require explicit acceptance before becoming active.
-- Confirm GitHub push access for `integration@correnth.com` and push the current repository to `correnthintegration/redrise`.
-- Create/link the new Vercel project from GitHub and configure CI/CD.
-- Create/link the new Supabase project, apply migrations, and configure environment variables.
-- Integrate custom domain after domain decision.
+- Keep GitHub push access working for `integration@correnth.com` on `correnthgroup/redrise`.
+- Keep GitHub Pages deployment publishing to `https://redrise.github.io`.
+- Keep Supabase project `vsaropewydcjsvplpugx` migrations, Auth redirects, and secrets aligned with production.
+- `redrise.github.io` cannot be configured as a CNAME on `correnthgroup/redrise`; GitHub requires a controlled `redrise/redrise.github.io` user/org Pages repository.
 - Re-enable OAuth after official provider credentials are configured and tested.
 - Re-enable e-mail confirmation after official SMTP/sender/template policy is configured.
 - Rebuild/update `graphify-out` after the latest PRD2 code changes; the local session confirmed `graphify-out/graph.json` exists, but `graphify` CLI was unavailable in PATH during this update.
@@ -49,6 +49,6 @@
 - Use Yarn/Corepack only.
 - Do not add npm lockfiles.
 - Do not deploy to or document previous Vercel aliases as the official URL.
-- Use Vercel GitHub CI/CD as primary deploy path once the new project is linked.
+- Use GitHub Pages workflow as primary deploy path.
 - Do not reintroduce `localStorage` persistence for domain data.
 - Do not reintroduce OAuth or e-mail confirmation UI without official credentials/configuration.

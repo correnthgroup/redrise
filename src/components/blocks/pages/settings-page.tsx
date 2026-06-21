@@ -147,6 +147,7 @@ export function SettingsPage({ user }: { user: SettingsUser }) {
                 <button
                   key={shortcut.key}
                   type="button"
+                  data-testid={`settings-shortcut-${shortcut.key}`}
                   onClick={() => setActive(shortcut.key)}
                   className="group flex items-start gap-3 rounded-lg border bg-background p-4 text-left transition-colors hover:border-[#2F5D5A]/45 hover:bg-[#2F5D5A]/4"
                 >

@@ -4,12 +4,12 @@
 
 - Name: `Redrise`.
 - Purpose: workspace-first SaaS for flows, tasks, agents, analytics, settings, team members, plans, and operational control.
-- Owner: `Correnth Integration`.
+- Owner: `Correnth Group`.
 - Base operational account: `integration@correnth.com`.
-- GitHub repository: `https://github.com/correnthintegration/redrise.git`.
-- Official production URL: `[PENDENTE: dominio]`.
-- Supabase project ref: `[PENDENTE: novo projeto]`.
-- Vercel project: `[PENDENTE: novo projeto]`.
+- GitHub repository: `https://github.com/correnthgroup/redrise.git`.
+- Official production URL: `https://redrise.github.io`.
+- Supabase project ref: `vsaropewydcjsvplpugx`.
+- Vercel project: not active; GitHub Pages is the current deploy target.
 
 ## Current Product Rules
 
@@ -28,5 +28,5 @@
 - Use Yarn through Corepack.
 - Do not add `package-lock.json`.
 - Run lint, typecheck, tests, build, and E2E for auth, settings, navigation, deploy, or cross-screen changes.
-- Keep production deploys on the new Vercel project connected to `https://github.com/correnthintegration/redrise.git`.
-- Use Vercel GitHub CI/CD as the primary deploy path after the new project is linked.
+- Keep production deploys on GitHub Pages at `https://redrise.github.io`.
+- Use the GitHub Pages workflow as the primary deploy path.

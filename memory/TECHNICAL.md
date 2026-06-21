@@ -24,8 +24,8 @@
 - `IA` significa Inteligência Artificial.
 - `HITL` significa Human-in-the-loop: humanos revisam, aprovam ou bloqueiam ações importantes antes da execução final.
 - O app usa Supabase para autenticação, banco de dados e funções de backend.
-- O app usa Vercel como hospedagem pública.
-- A URL oficial atual é `[PENDENTE: dominio]`.
+- O app usa GitHub Pages como hospedagem pública atual.
+- A URL oficial atual é `https://redrise.github.io`.
 - A navegação principal fica na Sidebar à esquerda.
 - O título da tela atual fica na Topbar no topo.
 - O conteúdo principal fica no centro, dentro do `main` do AppShell.
@@ -513,12 +513,12 @@
 
 ## Infraestrutura, Deploy E Qualidade
 
-- Produção oficial atual: `[PENDENTE: dominio]`.
+- Produção oficial atual: `https://redrise.github.io`.
 - O frontend é uma SPA estática.
 - SPA significa Single Page Application: o navegador carrega um app único e o React troca as telas internamente.
-- Deploy frontend normal deve usar Vercel GitHub CI/CD conectado a `https://github.com/correnthintegration/redrise.git`.
-- Deploy prebuilt via MCP fica como fallback operacional, não como caminho principal.
-- Supabase project ref atual: `[PENDENTE: novo projeto]`.
+- Deploy frontend normal deve usar GitHub Pages workflow conectado a `https://github.com/correnthgroup/redrise.git`.
+- Deploy prebuilt/Vercel via MCP fica como fallback operacional, não como caminho principal.
+- Supabase project ref atual: `vsaropewydcjsvplpugx`.
 - Validação mínima para mudança relevante: `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, `corepack yarn build`.
 - Validação para mudança de fluxo visual: também rodar `corepack yarn test:e2e`.
 - Testes unitários usam Vitest.
