@@ -7,7 +7,6 @@ projects:
           - type: web
             name: redrise
             runtime: static
-            plan: free
             repo: https://github.com/correnthgroup/redrise.git
             branch: main
             buildCommand: corepack enable && corepack yarn install --frozen-lockfile && corepack yarn build
