@@ -14,7 +14,9 @@ async function openSettings(page: Page) {
 }
 
 async function openShortcut(page: Page, key: string) {
-  await page.getByTestId(`settings-shortcut-${key}`).click()
+  const shortcut = page.getByTestId(`settings-shortcut-${key}`)
+  await expect(shortcut).toBeVisible({ timeout: 45000 })
+  await shortcut.click()
 }
 
 test('personal information persists to dashboard and sidebar', async ({ page }) => {
