@@ -128,9 +128,8 @@
 - `FlowListPage` lista flows e permite busca por nome.
 - `FlowListPage` mostra o nome do flow, membros associados e ID.
 - O botão de abrir flow com ícone externo chama `onOpen(id)` e leva para `FlowBuilderPage`.
-- O botão de lápis em FlowListPage permite renomear visualmente, mas a persistência ainda está marcada como TODO.
-- O dropdown com ícone de usuários em FlowListPage também usa `useTeamMemberOptions()` e deve continuar usando Settings > Team Members como fonte.
-- A alteração de membros no dropdown de FlowListPage ainda está marcada como TODO e não deve ser tratada como persistida.
+- O botão de lápis em FlowListPage persiste renomeação via `updateFlow()` em `src/lib/flows.ts`.
+- O dropdown com ícone de usuários em FlowListPage usa `useTeamMemberOptions()` e persiste responsáveis do flow via `updateFlow()`.
 - O botão de lixeira abre confirmação de delete.
 - Delete Flow exige digitar `DELETE`; isso evita exclusão acidental.
 - `FlowPipeline` à direita mostra os cards reais salvos em `flow_cards` para o flow selecionado na lista.
@@ -139,8 +138,8 @@
 - `FlowPipeline` tem checkboxes quadrados, seleção geral e controles visuais de play, pause e reset.
 - O flow selecionado na lista usa borda vermelha forte `#8F1D1D` com ring no mesmo tom.
 - `FlowBuilderPage` é a tela de edição visual do flow.
-- `FlowBuilderPage` também usa `useTeamMemberOptions()` para dropdowns de membros.
 - `FlowBuilderPage` passou a carregar agentes reais via `loadAgents()` para o editor de cards, substituindo a lista placeholder anterior.
+- O editor de cards do Flow Builder não permite mais selecionar membros por card; responsáveis ficam no Flow List/board no nível do flow.
 - O botão voltar em `FlowBuilderPage` retorna para a lista.
 - O botão salvar em `FlowBuilderPage` retorna para a lista conforme callback do `AppShell`.
 - `FlowBuilderPage` usa `@xyflow/react`, também conhecido como React Flow, para canvas visual.
@@ -157,6 +156,9 @@
 - Na etapa Briefing, Objective e Prompt são obrigatórios visualmente.
 - A área Documents aceita arrastar arquivos ou escolher arquivos; atualmente guarda nomes de arquivos no estado da tela.
 - Remover documento tira o nome da lista local antes da criação.
+- Na etapa Team & Agent, Workspace é obrigatório e Flow é opcional.
+- Workspace em New Task usa `useWorkspaces()` e persiste em `tasks.workspace_id`.
+- Flow em New Task usa `useFlows()` filtrado pelo workspace selecionado e persiste em `tasks.flow_id` quando informado.
 - Na etapa Team & Agent, o dropdown de membros usa `useTeamMemberOptions()`.
 - Portanto, membros atribuíveis a tasks vêm de Settings > Team Members.
 - O dropdown de Agents carrega agents por `loadAgents()`.
@@ -405,10 +407,12 @@
 - `teams`: guarda equipes formais criadas em Settings > Team List, com nome, descrição e limite de 7 por owner.
 - `team_assignments`: guarda quais membros estão em quais equipes e qual função livre exercem naquela equipe; permite o mesmo membro em múltiplas equipes.
 - As migrations `020`, `021` e `022` foram aplicadas no Supabase remoto `vsaropewydcjsvplpugx` via `supabase db push` após confirmação por `supabase migration list`.
+- A migration `023` também foi aplicada no Supabase remoto `vsaropewydcjsvplpugx` via `supabase db push` e adiciona `tasks.flow_id`.
 - `workspaces`: guarda workspaces do usuário.
 - `workspaces.flows` e `workspaces.status` são recalculados pelos triggers da migration 021 quando flows/tasks mudam.
 - `flows`: guarda flows associados a workspace.
 - `tasks`: guarda tasks.
+- `tasks.flow_id`: vincula uma task opcionalmente a um flow; foi adicionado pela migration 023.
 - `agents`: guarda agents.
 - Triggers de criação de usuário criam perfil, linha de owner em team_members e Default Agent.
 - As migrations 017 e 018 endurecem triggers com `public.` e `search_path` para evitar falha no Auth API.
@@ -587,7 +591,7 @@
 - Artefatos consultáveis versionáveis: `graphify-out/GRAPH_REPORT.md`, `graphify-out/graph.json` e `graphify-out/graph.html`.
 - Caches, backups datados, manifestos internos e arquivos `.graphify_*` ficam locais e não devem ser tratados como documentação canônica.
 - A última atualização estrutural foi feita com `C:\Python314\python.exe -m graphify update . --force`.
-- Resultado da última atualização estrutural limpa: 1011 nós, 1195 relações e 144 comunidades.
+- Resultado da última atualização estrutural limpa: 1012 nós, 1199 relações e 142 comunidades.
 - A atualização estrutural cobriu código; reextração semântica de docs/memória segue pendente até existir `GEMINI_API_KEY` ou `GOOGLE_API_KEY` no ambiente.
 - A extração semântica completa depende de chave LLM no ambiente; sem chave, o grafo estrutural AST continua válido para navegação técnica e relações de código.
 - A matriz em `D:\graphify\repos\redrise\` mantém apenas catálogo macro e deve apontar para este grafo local quando for necessário investigar detalhes.

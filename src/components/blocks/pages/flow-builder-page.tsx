@@ -25,7 +25,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { Pencil, Check, X, Keyboard, CheckCircle2 } from 'lucide-react'
 import { useFlowCards } from '@/hooks/use-flow-cards'
-import { useTeamMemberOptions } from '@/hooks/use-team-member-options'
 import { useI18n } from '@/hooks/use-i18n'
 import { MultiSelectDropdown } from '../shared/multi-select-dropdown'
 import { loadAgents } from '@/lib/agents'
@@ -38,7 +37,6 @@ let nodeIdCounter = 5
 function FlowCardWithEdit({ data, selected, id }: NodeProps<FlowNode>) {
   const { t } = useI18n()
   const openCardEditor = (window as unknown as Record<string, (id: string) => void>).__flowCardEdit
-  const members = data.members ?? []
   const agents = data.agents ?? []
 
   return (
@@ -63,13 +61,10 @@ function FlowCardWithEdit({ data, selected, id }: NodeProps<FlowNode>) {
           <CheckCircle2 className="h-3.5 w-3.5" />
         </Button>
       </div>
-      {members.length > 0 && (
-        <div className="text-xs text-muted-foreground truncate">{t('flowBuilder.members', { members: members.join(', ') })}</div>
-      )}
       {agents.length > 0 && (
         <div className="text-xs text-muted-foreground truncate">{t('flowBuilder.agents', { agents: agents.join(', ') })}</div>
       )}
-      {members.length === 0 && agents.length === 0 && (
+      {agents.length === 0 && (
         <div className="text-xs text-muted-foreground">{t('flowBuilder.undefined')}</div>
       )}
       <div className="text-[10px] text-muted-foreground/60 font-mono mt-0.5">ID: {id}</div>
@@ -92,12 +87,10 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
   const [editingCardId, setEditingCardId] = useState<string | null>(null)
   const [cardTitle, setCardTitle] = useState('')
   const [cardInstructions, setCardInstructions] = useState('')
-  const [cardMembers, setCardMembers] = useState<string[]>([])
   const [cardAgents, setCardAgents] = useState<string[]>([])
   const [agents, setAgents] = useState<Agent[]>([])
   const [loadingAgents, setLoadingAgents] = useState(true)
   const [saving, setSaving] = useState(false)
-  const { members: teamMembers, loading: loadingMembers } = useTeamMemberOptions()
   const { screenToFlowPosition, getNodes, setNodes: setReactFlowNodes, setEdges: setReactFlowEdges } = useReactFlow()
   const containerRef = useRef<HTMLDivElement>(null)
   const loadedRef = useRef(false)
@@ -111,7 +104,6 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
     { key: 'Ctrl/⌘ + Shift + Z', action: t('flowBuilder.redo') },
     { key: 'Mouse scroll', action: t('flowBuilder.zoom') },
   ]
-  const teamMemberOptions = teamMembers.map((member) => ({ value: member.name, label: member.name }))
   const agentOptions = agents.map((agent) => ({
     value: agent.name,
     label: agent.name === 'Default Agent' ? t('agents.defaultAgent') : agent.name,
@@ -173,7 +165,6 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
     setEditingCardId(nodeId)
     setCardTitle(node.data.label)
     setCardInstructions(node.data.instructions ?? '')
-    setCardMembers(node.data.members ?? [])
     setCardAgents(node.data.agents ?? [])
   }, [nodes])
 
@@ -328,7 +319,7 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
     if (!editingCardId) return
     setNodes((nds) => nds.map((n) =>
       n.id === editingCardId
-        ? { ...n, data: { ...n.data, label: cardTitle, instructions: cardInstructions, members: cardMembers, agents: cardAgents } }
+        ? { ...n, data: { ...n.data, label: cardTitle, instructions: cardInstructions, members: [], agents: cardAgents } }
         : n
     ))
     setEditingCardId(null)
@@ -345,7 +336,7 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
       node_id: n.id,
       label: n.data.label,
       instructions: n.data.instructions,
-      members: n.data.members,
+      members: [],
       agents: n.data.agents,
       position_x: n.position.x,
       position_y: n.position.y,
@@ -463,23 +454,7 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
                   rows={3}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('flowBuilder.membersLabel')}</label>
-                  <MultiSelectDropdown
-                    options={teamMemberOptions}
-                    selectedValues={cardMembers}
-                    onChange={setCardMembers}
-                    placeholder={t('flowBuilder.selectMembers')}
-                    selectedLabel={(count) => t('common.selectedCount', { count })}
-                    selectAllLabel={t('common.selectAll')}
-                    loading={loadingMembers}
-                    loadingLabel={t('flow.loadingMembers')}
-                    emptyLabel={t('flow.noMembersAvailable')}
-                    contentClassName="min-w-[var(--radix-dropdown-menu-trigger-width)]"
-                  />
-                </div>
-                <div className="space-y-2">
+              <div className="space-y-2">
                   <label className="text-sm font-medium">{t('flowBuilder.agentsLabel')}</label>
                   <MultiSelectDropdown
                     options={agentOptions}
@@ -493,7 +468,6 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
                     emptyLabel={t('flowBuilder.noAgentsAvailable')}
                     contentClassName="min-w-[var(--radix-dropdown-menu-trigger-width)]"
                   />
-                </div>
               </div>
               <div className="text-[10px] text-muted-foreground/60 font-mono">ID: {editingCardId}</div>
             </div>

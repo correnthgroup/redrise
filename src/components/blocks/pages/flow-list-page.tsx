@@ -26,10 +26,12 @@ function badgeClassName(status: string) {
 
 export function FlowListPage({
   flows,
+  onUpdate,
   onDelete,
   onOpen,
 }: {
   flows: Flow[]
+  onUpdate?: (id: string, updates: Partial<Pick<Flow, 'name' | 'members'>>) => Promise<Flow | null>
   onDelete?: (id: string, workspaceId: string) => Promise<boolean>
   onOpen?: (id: string) => void
 }) {
@@ -51,9 +53,18 @@ export function FlowListPage({
     setEditingName(flow.name)
   }
 
-  function confirmRename() {
-    // TODO: persist rename in Sprint 7
+  async function confirmRename() {
+    if (!editingId || !editingName.trim()) return
+    await onUpdate?.(editingId, { name: editingName.trim() })
     setEditingId(null)
+  }
+
+  async function toggleMember(flow: Flow, memberName: string) {
+    const current = flow.members ?? []
+    const next = current.includes(memberName)
+      ? current.filter((name) => name !== memberName)
+      : [...current, memberName]
+    await onUpdate?.(flow.id, { members: next })
   }
 
   function cancelRename() {
@@ -160,7 +171,7 @@ export function FlowListPage({
                                 key={member.id}
                                 checked={f.members?.includes(member.name) ?? false}
                                 onCheckedChange={() => {
-                                  // TODO: persist member change in Sprint 7
+                                  void toggleMember(f, member.name)
                                 }}
                               >
                                 {member.name}

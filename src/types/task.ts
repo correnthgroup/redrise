@@ -8,6 +8,7 @@ export type Task = {
   id: string
   user_id: string
   workspace_id: string | null
+  flow_id: string | null
   title: string
   brief: string
   objective: string
@@ -44,6 +45,7 @@ export type CreateTaskInput = {
   recurrence_days: number[]
   recurrence_monthly_days: number[]
   workspace_id?: string
+  flow_id?: string | null
 }
 
 export type TaskFlow = {

@@ -121,6 +121,31 @@ export async function createFlow(input: CreateFlowInput): Promise<Flow | null> {
   return data as Flow
 }
 
+export async function updateFlow(id: string, updates: Partial<Pick<Flow, 'name' | 'members'>>): Promise<Flow | null> {
+  const { data, error } = await supabase
+    .from('flows')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('[updateFlow] Error:', error.message, error.details, error.hint)
+    return null
+  }
+
+  await logAuditEvent({
+    action: 'update',
+    entityType: 'flow',
+    entityId: id,
+    entityName: data.name,
+    workspaceId: data.workspace_id,
+    details: { fields: Object.keys(updates) },
+  })
+
+  return data as Flow
+}
+
 export async function deleteFlow(id: string, workspaceId: string): Promise<boolean> {
   const { error } = await supabase
     .from('flows')

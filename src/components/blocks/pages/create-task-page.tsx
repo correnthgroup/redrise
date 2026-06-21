@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RequiredLabel } from '@/components/ui/required-label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -10,6 +11,8 @@ import { Upload, X, FileText, ChevronDown, Check, ArrowDown, ArrowUp, Minus, Lay
 import { loadAgents } from '@/lib/agents'
 import type { Agent } from '@/types/agent'
 import type { TaskPriority, TaskStatus, RecurrenceType } from '@/types/task'
+import { useWorkspaces } from '@/hooks/use-workspaces'
+import { useFlows } from '@/hooks/use-flows'
 import { useTeamMemberOptions } from '@/hooks/use-team-member-options'
 import { useI18n } from '@/hooks/use-i18n'
 import { useDropdownClose } from '@/hooks/use-dropdown-close'
@@ -72,15 +75,21 @@ export function CreateTaskPage({
     recurrence: RecurrenceType
     recurrence_days: number[]
     recurrence_monthly_days: number[]
+    workspace_id: string
+    flow_id: string | null
   }) => Promise<unknown>
 }) {
   const { t } = useI18n()
+  const { workspaces, loading: loadingWorkspaces } = useWorkspaces()
+  const { flows, loading: loadingFlows } = useFlows()
   const [step, setStep] = useState(0)
   const [objective, setObjective] = useState('')
   const [prompt, setPrompt] = useState('')
   const [documents, setDocuments] = useState<string[]>([])
   const [selectedMembers, setSelectedMembers] = useState<string[]>([])
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState('')
+  const [selectedFlowId, setSelectedFlowId] = useState('')
   const [priority, setPriority] = useState<TaskPriority>('medium')
   const [kanbanColumn, setKanbanColumn] = useState<TaskStatus>('backlog')
   const [scheduleStart, setScheduleStart] = useState('')
@@ -159,6 +168,9 @@ export function CreateTaskPage({
     .filter((m) => selectedMembers.includes(m.id))
     .map((m) => m.name)
   const teamMemberOptions = teamMembers.map((member) => ({ value: member.id, label: member.name }))
+  const workspaceFlows = flows.filter((flow) => flow.workspace_id === selectedWorkspaceId)
+  const selectedWorkspace = workspaces.find((workspace) => workspace.id === selectedWorkspaceId)
+  const selectedFlow = flows.find((flow) => flow.id === selectedFlowId)
 
   function truncateText(text: string, maxLength: number) {
     if (text.length <= maxLength) return text
@@ -186,7 +198,7 @@ export function CreateTaskPage({
           <div className="ml-auto flex gap-2">
             {error && <span className="self-center text-xs text-destructive">{error}</span>}
             <Button
-              disabled={submitting || (step === 0 && (!objective || !prompt))}
+              disabled={submitting || (step === 0 && (!objective || !prompt)) || (step === 1 && !selectedWorkspaceId)}
               onClick={async () => {
                 if (step === STEP_KEYS.length - 1) {
                   setError(null)
@@ -208,6 +220,8 @@ export function CreateTaskPage({
                       recurrence,
                       recurrence_days: recurrenceDays,
                       recurrence_monthly_days: recurrenceMonthlyDays,
+                      workspace_id: selectedWorkspaceId,
+                      flow_id: selectedFlowId || null,
                     })
                     if (!result) {
                       setError(t('tasks.createError'))
@@ -304,6 +318,35 @@ export function CreateTaskPage({
           {/* Step 2: Team, Agent, Priority, Column & Schedule */}
           {step === 1 && (
             <div className="space-y-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <RequiredLabel>{t('tasks.workspace')}</RequiredLabel>
+                  <Select value={selectedWorkspaceId} onValueChange={(value) => { setSelectedWorkspaceId(value); setSelectedFlowId('') }} disabled={loadingWorkspaces}>
+                    <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES}>
+                      <SelectValue placeholder={loadingWorkspaces ? t('common.loading') : t('flow.selectWorkspace')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {workspaces.map((workspace) => (
+                        <SelectItem key={workspace.id} value={workspace.id}>{workspace.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('tasks.flow')}</Label>
+                  <Select value={selectedFlowId} onValueChange={setSelectedFlowId} disabled={!selectedWorkspaceId || loadingFlows || workspaceFlows.length === 0}>
+                    <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES}>
+                      <SelectValue placeholder={!selectedWorkspaceId ? t('tasks.selectWorkspaceFirst') : loadingFlows ? t('common.loading') : t('tasks.selectFlowOptional')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {workspaceFlows.map((flow) => (
+                        <SelectItem key={flow.id} value={flow.id}>{flow.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               {/* Priority + Kanban Column */}
               <div className="grid grid-cols-2 gap-4">
                 {/* Priority */}
@@ -715,6 +758,16 @@ export function CreateTaskPage({
               </div>
 
               <div className="rounded-lg border bg-muted/35 p-4 space-y-3">
+                <div>
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t('tasks.workspace')}</div>
+                  <div className="text-sm">{selectedWorkspace?.name || t('tasks.notSpecified')}</div>
+                </div>
+
+                <div>
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t('tasks.flow')}</div>
+                  <div className="text-sm">{selectedFlow?.name || t('workflow.none')}</div>
+                </div>
+
                 <div>
                   <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t('tasks.priority')}</div>
                   {selectedPriority && (

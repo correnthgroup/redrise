@@ -3,6 +3,7 @@ import type { Flow, CreateFlowInput } from '@/types/flow'
 import {
   loadFlows,
   createFlow as persistCreate,
+  updateFlow as persistUpdate,
   deleteFlow as persistDelete,
 } from '@/lib/flows'
 
@@ -41,6 +42,14 @@ export function useFlows() {
     return removed
   }, [])
 
+  const updateFlow = useCallback(async (id: string, updates: Partial<Pick<Flow, 'name' | 'members'>>): Promise<Flow | null> => {
+    const updated = await persistUpdate(id, updates)
+    if (updated && mountedRef.current) {
+      setFlows((prev) => prev.map((flow) => (flow.id === id ? updated : flow)))
+    }
+    return updated
+  }, [])
+
   const refresh = useCallback(async () => {
     setLoading(true)
     const data = await loadFlows()
@@ -54,6 +63,7 @@ export function useFlows() {
     flows,
     loading,
     addFlow,
+    updateFlow,
     removeFlow,
     refresh,
   }

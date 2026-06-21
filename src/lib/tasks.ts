@@ -68,6 +68,7 @@ export async function createTask(input: CreateTaskInput): Promise<Task | null> {
       id,
       user_id: user.id,
       workspace_id: input.workspace_id ?? null,
+      flow_id: input.flow_id ?? null,
       title: input.title || 'New Task',
       brief: input.brief || '',
       objective: input.objective || '',
@@ -102,7 +103,7 @@ export async function createTask(input: CreateTaskInput): Promise<Task | null> {
     entityId: id,
     entityName: input.title,
     workspaceId: input.workspace_id,
-    details: { priority: input.priority, agent_id: input.agent_id },
+    details: { priority: input.priority, agent_id: input.agent_id, flow_id: input.flow_id ?? null },
   })
 
   return data as Task

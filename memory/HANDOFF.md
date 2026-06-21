@@ -12,6 +12,9 @@
 - Add Member usa dropdown padrão para Team, alimentado por `loadTeams(user.id)`.
 - Remote Supabase migrations 020, 021, and 022 are applied on `vsaropewydcjsvplpugx`; New Team now depends on remote `teams` and `team_assignments` existing.
 - New Team wizard step labels are translated and successful creation returns to Team List after refreshing teams.
+- Flow List rename and responsible member changes persist via `updateFlow()`.
+- Flow Builder card editor no longer assigns members per card; flow-level responsible members stay on Flow List.
+- New Task requires Workspace and optionally links to Flow; migration 023 adds `tasks.flow_id` and is applied remotely.
 - Team List foi ajustado para equipes formais: migration 022 cria `teams` e `team_assignments`; criação abre uma tela dedicada com wizard de 3 etapas, aceita equipe vazia, limita a 7 equipes e permite mesmo membro em várias equipes.
 - PRD parte 1 continuação aplicada localmente: Settings tem Members List para visualizar/convidar, Team List para criar equipe e atribuir membros/funções, e Personal Information mostra função/equipe atuais como leitura.
 - PRD parte 1 local foi aplicada no workspace: Dashboard operacional saiu de placeholders estáticos para dados derivados de Supabase já carregados pelo shell; Flow Pipeline lê cards reais de `flow_cards`; Plans fica desabilitado fora de dev.
@@ -27,7 +30,7 @@
 - Team Members use Supabase `team_members`; Flow/Tasks member dropdowns must read that source.
 - Settings > Plans is not billing yet; it is a future-plan surface.
 - `redrise-ops` MCP exists for validation, build/status checks, Supabase function deploy, graph status, and memory notes.
-- Detailed local Graphify output is in `graphify-out/`; the latest clean structural update produced 1011 nodes, 1195 edges, and 144 communities.
+- Detailed local Graphify output is in `graphify-out/`; the latest clean structural update produced 1012 nodes, 1199 edges, and 142 communities.
 - Workspace root is now `D:\studio\redrise`; old briefing/framework/backlog folders are not active guidance.
 - Update 2.0 test bundle now covers Create Task, Flow Builder, Agent Detail, Create Workspace, Create Flow, Personal Information field locks/search, and auxiliary `team-members-card` copy.
 - Previous deployment targets are legacy and are no longer active targets for this project reset.
