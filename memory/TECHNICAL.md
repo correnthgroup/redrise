@@ -24,8 +24,8 @@
 - `IA` significa Inteligência Artificial.
 - `HITL` significa Human-in-the-loop: humanos revisam, aprovam ou bloqueiam ações importantes antes da execução final.
 - O app usa Supabase para autenticação, banco de dados e funções de backend.
-- O app usa GitHub Pages como hospedagem pública atual.
-- A URL oficial atual é `https://redrise.github.io`.
+- O app usa Render como hospedagem pública atual.
+- A URL oficial esperada é `https://redrise.onrender.com` depois que a Render confirmar o subdomínio do serviço.
 - A navegação principal fica na Sidebar à esquerda.
 - O título da tela atual fica na Topbar no topo.
 - O conteúdo principal fica no centro, dentro do `main` do AppShell.
@@ -506,18 +506,17 @@
 - O servidor fica em `scripts/mcp/redrise-ops.mjs`.
 - A documentação fica em `docs/REDRISE_OPS_MCP.md`.
 - O comando para iniciar é `corepack yarn mcp:redrise-ops`.
-- O MCP encapsula operações seguras para validação, build, deploy prebuilt, status Vercel, deploy de Edge Function Supabase, status Supabase, status graphify e notas de memória.
-- O MCP não substitui Vercel CLI nem Supabase CLI; ele chama essas CLIs com caminhos allowlistados.
+- O MCP encapsula operações seguras para validação, build, deploy de Edge Function Supabase, status Supabase, status graphify e notas de memória.
+- O MCP não substitui Supabase CLI; ele chama a CLI com caminhos allowlistados.
 - O MCP não executa comandos shell arbitrários.
-- Para deploy frontend enquanto a Vercel remota estiver configurada com npm, usar o fluxo MCP `build_frontend`, `prepare_vercel_prebuilt`, `deploy_frontend_prebuilt`.
+- O deploy frontend é feito pela Render a partir do GitHub usando `render.yaml`.
 
 ## Infraestrutura, Deploy E Qualidade
 
-- Produção oficial atual: `https://redrise.github.io`.
+- Produção oficial esperada: `https://redrise.onrender.com` depois da criação do serviço na Render.
 - O frontend é uma SPA estática.
 - SPA significa Single Page Application: o navegador carrega um app único e o React troca as telas internamente.
-- Deploy frontend normal deve usar GitHub Pages workflow conectado a `https://github.com/correnthgroup/redrise.git`.
-- Deploy prebuilt/Vercel via MCP fica como fallback operacional, não como caminho principal.
+- Deploy frontend normal deve usar Render conectado a `https://github.com/correnthgroup/redrise.git`.
 - Supabase project ref atual: `vsaropewydcjsvplpugx`.
 - Validação mínima para mudança relevante: `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, `corepack yarn build`.
 - Validação para mudança de fluxo visual: também rodar `corepack yarn test:e2e`.
@@ -544,8 +543,8 @@
 ## Organização De Arquivos Na Raiz
 
 - Arquivos essenciais de ferramenta devem ficar soltos na raiz quando a ferramenta espera esse local.
-- Exemplos essenciais: `package.json`, `yarn.lock`, `index.html`, `vite.config.ts`, `vitest.config.ts`, `playwright.config.ts`, `eslint.config.js`, `tsconfig*.json`, `components.json`, `vercel.json`, `.env`, `.env.example`, `.gitignore`, `README.md`, `AGENTS.md`.
+- Exemplos essenciais: `package.json`, `yarn.lock`, `index.html`, `vite.config.ts`, `vitest.config.ts`, `playwright.config.ts`, `eslint.config.js`, `tsconfig*.json`, `components.json`, `render.yaml`, `.env`, `.env.example`, `.gitignore`, `README.md`, `AGENTS.md`.
 - Documentos operacionais atuais devem ficar em `docs/` ou `memory/`.
 - Atualizações de produto atuais ou futuras devem ficar em `updates/`.
 - Scripts utilitários devem ficar em `scripts/`.
-- Não mover `src`, `public`, `supabase`, `tests`, `memory`, `docs`, `scripts`, `updates`, `.github`, `.vercel` sem revisar deploy, testes e CLIs.
+- Não mover `src`, `public`, `supabase`, `tests`, `memory`, `docs`, `scripts`, `updates`, `.github` ou `render.yaml` sem revisar deploy, testes e CLIs.

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process'
-import { existsSync, mkdirSync, readdirSync, rmSync, statSync, copyFileSync, writeFileSync, readFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { existsSync, writeFileSync, readFileSync } from 'node:fs'
 import { basename, dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -10,7 +9,6 @@ const projectRoot = join(__dirname, '..', '..')
 const serverName = 'redrise-ops'
 const serverVersion = '0.1.0'
 const maxOutput = 24_000
-const productionUrl = process.env.APP_BASE_URL || 'http://localhost:5173'
 
 const text = (value) => ({ content: [{ type: 'text', text: String(value) }] })
 
@@ -50,59 +48,6 @@ function shell(command, { timeoutMs = 600_000, cwd = projectRoot } = {}) {
   })
 }
 
-function copyDirectory(source, destination) {
-  mkdirSync(destination, { recursive: true })
-  for (const entry of readdirSync(source, { withFileTypes: true })) {
-    const sourcePath = join(source, entry.name)
-    const destinationPath = join(destination, entry.name)
-    if (entry.isDirectory()) copyDirectory(sourcePath, destinationPath)
-    else copyFileSync(sourcePath, destinationPath)
-  }
-}
-
-function prepareVercelOutput() {
-  const distDir = join(projectRoot, 'dist')
-  if (!existsSync(distDir)) throw new Error('dist/ does not exist. Run build_frontend first.')
-  const outputDir = join(projectRoot, '.vercel', 'output')
-  const staticDir = join(outputDir, 'static')
-  if (existsSync(outputDir)) rmSync(outputDir, { recursive: true, force: true })
-  mkdirSync(staticDir, { recursive: true })
-  copyDirectory(distDir, staticDir)
-  writeFileSync(join(outputDir, 'config.json'), JSON.stringify({
-    version: 3,
-    routes: [
-      { src: '/assets/(.*)', headers: { 'cache-control': 'public, max-age=31536000, immutable' }, continue: true },
-      { handle: 'filesystem' },
-      { src: '/(.*)', dest: '/index.html' },
-    ],
-  }, null, 2))
-  const files = []
-  function collect(dir) {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const fullPath = join(dir, entry.name)
-      if (entry.isDirectory()) collect(fullPath)
-      else files.push(fullPath)
-    }
-  }
-  collect(staticDir)
-  const bytes = files.reduce((sum, file) => sum + statSync(file).size, 0)
-  return { files: files.length, bytes, outputDir: relative(projectRoot, outputDir) }
-}
-
-function prepareNonGitVercelDeployDir() {
-  const sourceOutput = join(projectRoot, '.vercel', 'output')
-  const sourceProject = join(projectRoot, '.vercel', 'project.json')
-  if (!existsSync(join(sourceOutput, 'config.json'))) prepareVercelOutput()
-  if (!existsSync(sourceProject)) throw new Error('.vercel/project.json does not exist. Run vercel link first.')
-
-  const deployRoot = join(tmpdir(), 'opencode', 'redrise-vercel-prebuilt')
-  if (existsSync(deployRoot)) rmSync(deployRoot, { recursive: true, force: true })
-  mkdirSync(join(deployRoot, '.vercel'), { recursive: true })
-  copyFileSync(sourceProject, join(deployRoot, '.vercel', 'project.json'))
-  copyDirectory(sourceOutput, join(deployRoot, '.vercel', 'output'))
-  return deployRoot
-}
-
 function appendMemory(fileName, heading, lines) {
   const allowed = new Set(['TASK_LOG.md', 'HANDOFF.md', 'DECISIONS.md', 'CONTEXT.md', 'TECHNICAL.md'])
   if (!allowed.has(fileName)) throw new Error(`Unsupported memory file: ${fileName}`)
@@ -137,28 +82,6 @@ const tools = {
     description: 'Run the production frontend build with Yarn/Corepack.',
     inputSchema: { type: 'object', properties: {} },
     run: async () => text(JSON.stringify(await shell('corepack yarn build', { timeoutMs: 300_000 }), null, 2)),
-  },
-  prepare_vercel_prebuilt: {
-    description: 'Create .vercel/output from dist/ for Vercel Build Output API deployment.',
-    inputSchema: { type: 'object', properties: {} },
-    run: async () => text(JSON.stringify(prepareVercelOutput(), null, 2)),
-  },
-  deploy_frontend_prebuilt: {
-    description: 'Deploy already built .vercel/output to Vercel production without remote npm install.',
-    inputSchema: {
-      type: 'object',
-      properties: { force: { type: 'boolean', default: true } },
-    },
-    run: async ({ force = true } = {}) => {
-      const deployRoot = prepareNonGitVercelDeployDir()
-      const forceFlag = force ? ' --force' : ''
-      return text(JSON.stringify(await shell(`vercel deploy --prebuilt --prod --yes${forceFlag}`, { timeoutMs: 900_000, cwd: deployRoot }), null, 2))
-    },
-  },
-  check_vercel_status: {
-    description: 'Inspect the configured production alias on Vercel.',
-    inputSchema: { type: 'object', properties: {} },
-    run: async () => text(JSON.stringify(await shell(`vercel inspect ${productionUrl}`, { timeoutMs: 180_000 }), null, 2)),
   },
   deploy_supabase_function: {
     description: 'Deploy one allowlisted Supabase Edge Function.',

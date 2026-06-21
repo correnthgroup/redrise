@@ -5,10 +5,10 @@
 ## Current State
 
 - App is a Vite/React/TypeScript/Tailwind SPA backed by Supabase.
-- Official production URL is `https://redrise.github.io`.
-- Current production deployment target is GitHub Pages.
+- Official production URL is expected to be `https://redrise.onrender.com` after Render confirms the service subdomain.
+- Current production deployment target is Render.
 - GitHub repository is `https://github.com/correnthgroup/redrise.git`.
-- GitHub, Vercel, and Supabase should use the base operational account `integration@correnth.com`.
+- GitHub, Render, and Supabase should use the base operational account `integration@correnth.com`.
 - Auth flow is simplified: e-mail/password Sign In, account creation through Sign Up, no OAuth buttons, no e-mail confirmation UI.
 - Sign Up returns to Sign In and must not flash Dashboard.
 - Active Sessions use Supabase `active_sessions` with current-session detection through `supabase_session_id`.
@@ -18,7 +18,7 @@
 - Graphify code graph exists and should be updated after relevant code/architecture/product behavior changes; latest code update produced 1193 nodes, 1270 edges, and 201 communities.
 - Workspace root is now `D:\studio\redrise`; old briefing/framework/backlog folders are not active guidance.
 - Update 2.0 test bundle now covers Create Task, Flow Builder, Agent Detail, Create Workspace, Create Flow, Personal Information field locks/search, and auxiliary `team-members-card` copy.
-- Previous Vercel/Supabase deployments are legacy and are no longer active targets for this project reset.
+- Previous deployment targets are legacy and are no longer active targets for this project reset.
 
 ## Current Validation Baseline
 
@@ -37,9 +37,9 @@
 - Persist real plan state and enforce permissions in backend/RLS.
 - Decide whether existing-account team member additions require explicit acceptance before becoming active.
 - Keep GitHub push access working for `integration@correnth.com` on `correnthgroup/redrise`.
-- Keep GitHub Pages deployment publishing to `https://redrise.github.io`.
+- Keep Render deployment connected to the `Redrise` project/workspace; add payment information in Render billing before creating the static site.
 - Keep Supabase project `vsaropewydcjsvplpugx` migrations, Auth redirects, and secrets aligned with production.
-- `redrise.github.io` cannot be configured as a CNAME on `correnthgroup/redrise`; GitHub requires a controlled `redrise/redrise.github.io` user/org Pages repository.
+- Keep Supabase Auth redirects and edge-function origins aligned with the final Render URL.
 - Re-enable OAuth after official provider credentials are configured and tested.
 - Re-enable e-mail confirmation after official SMTP/sender/template policy is configured.
 - Rebuild/update `graphify-out` after the latest PRD2 code changes; the local session confirmed `graphify-out/graph.json` exists, but `graphify` CLI was unavailable in PATH during this update.
@@ -48,7 +48,7 @@
 
 - Use Yarn/Corepack only.
 - Do not add npm lockfiles.
-- Do not deploy to or document previous Vercel aliases as the official URL.
-- Use GitHub Pages workflow as primary deploy path.
+- Do not deploy to or document previous deployment aliases as the official URL.
+- Use Render auto-deploy as primary deploy path.
 - Do not reintroduce `localStorage` persistence for domain data.
 - Do not reintroduce OAuth or e-mail confirmation UI without official credentials/configuration.

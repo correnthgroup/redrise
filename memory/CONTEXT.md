@@ -7,9 +7,9 @@
 - Owner: `Correnth Group`.
 - Base operational account: `integration@correnth.com`.
 - GitHub repository: `https://github.com/correnthgroup/redrise.git`.
-- Official production URL: `https://redrise.github.io`.
+- Official production URL: `https://redrise.onrender.com` after Render confirms the service subdomain.
 - Supabase project ref: `vsaropewydcjsvplpugx`.
-- Vercel project: not active; GitHub Pages is the current deploy target.
+- Render project/workspace: `Redrise`.
 
 ## Current Product Rules
 
@@ -28,5 +28,5 @@
 - Use Yarn through Corepack.
 - Do not add `package-lock.json`.
 - Run lint, typecheck, tests, build, and E2E for auth, settings, navigation, deploy, or cross-screen changes.
-- Keep production deploys on GitHub Pages at `https://redrise.github.io`.
-- Use the GitHub Pages workflow as the primary deploy path.
+- Keep production deploys on Render.
+- Use Render auto-deploy from GitHub as the primary deploy path.

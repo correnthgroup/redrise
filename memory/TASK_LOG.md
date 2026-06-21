@@ -4,13 +4,13 @@
 
 ## Current Production Snapshot
 
-- Official URL: `https://redrise.github.io`.
-- Current production deployment: GitHub Pages.
-- Production status: deployment enabled at the GitHub Pages technical URL; `redrise.github.io` requires a controlled GitHub account/org named `redrise` and repo `redrise.github.io`.
+- Official URL: expected `https://redrise.onrender.com` after Render confirms the service subdomain.
+- Current production deployment: Render.
+- Production status: Render deployment blocked by workspace billing requirement (`402 Payment information is required`).
 - Backend: Supabase project `vsaropewydcjsvplpugx`.
 - GitHub repository: `https://github.com/correnthgroup/redrise.git`.
 - Package manager: Yarn through Corepack.
-- Deploy path: GitHub Pages workflow.
+- Deploy path: Render auto-deploy from GitHub using `render.yaml`.
 - Workspace root is now `D:\studio\redrise`; legacy briefing/framework/backlog folders are not active guidance.
 
 ## Current App Snapshot
@@ -42,4 +42,4 @@
 - Implement real Stripe billing only after plan matrix, checkout, webhook, and permission matrix are approved.
 - Re-enable OAuth only after official provider credentials exist.
 - Re-enable e-mail confirmation only after official transactional e-mail setup exists.
-- Keep GitHub Pages, Supabase Auth redirects, and app allowed origins aligned with `https://redrise.github.io`.
+- Keep Render, Supabase Auth redirects, and app allowed origins aligned with the final Render URL.

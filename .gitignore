@@ -22,7 +22,6 @@ graphify-out
 .env
 .env.local
 .env.*.local
-.vercel
 
 # Supabase local state
 supabase/.temp
@@ -40,4 +39,3 @@ supabase/*.sql
 *.sln
 *.sw?
 
-.vercel

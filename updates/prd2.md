@@ -127,7 +127,7 @@
 - Implemented in the test bundle: profile-language source of truth, Dashboard copy, Dashboard shared operational cards, AppShell loading/subtitles, Settings shortcuts, Personal Information access notice, Active Sessions, Team Members list/add/edit, API Keys, Audit Log, Change Password, Plans, Flow list, Agent list, Analytics, Create Flow, Create Workspace, and Review Workspace.
 - Added E2E coverage: `profile language controls dashboard and settings copy`.
 - Updated existing E2E smoke/navigation/workspace selectors to tolerate English or Portuguese while language changes are tested.
-- Previous preview deployment details were retired during the `integration@correnth.com` GitHub/Vercel/Supabase reset.
+- Previous preview deployment details were retired during the `integration@correnth.com` GitHub/hosting/Supabase reset.
 
 ## Remaining Before Production
 

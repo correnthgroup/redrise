@@ -27,8 +27,8 @@ file_size_limit = "50MiB"
 
 [auth]
 enabled = true
-site_url = "https://redrise.github.io"
-additional_redirect_urls = ["https://redrise.github.io", "https://redrise.github.io/auth/callback", "https://correnthgroup.github.io/redrise", "https://correnthgroup.github.io/redrise/auth/callback", "http://localhost:5173", "http://localhost:5173/auth/callback", "http://127.0.0.1:5173", "http://127.0.0.1:5173/auth/callback"]
+site_url = "https://redrise.onrender.com"
+additional_redirect_urls = ["https://redrise.onrender.com", "https://redrise.onrender.com/auth/callback", "http://localhost:5173", "http://localhost:5173/auth/callback", "http://127.0.0.1:5173", "http://127.0.0.1:5173/auth/callback"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10

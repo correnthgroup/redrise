@@ -8,7 +8,7 @@ Workspace-first SaaS for flows, tasks, agents, analytics, settings, team operati
 - Tailwind CSS v4 through `@tailwindcss/vite`.
 - Radix/shadcn-style UI primitives under `src/components/ui/`.
 - Supabase Auth, PostgreSQL, RLS, migrations, and Edge Functions.
-- GitHub Pages static SPA deployment at `https://redrise.github.io`.
+- Render static SPA deployment from `https://github.com/correnthgroup/redrise.git`.
 - Yarn via Corepack. Do not add npm lockfiles.
 
 ## Current Architecture
@@ -52,12 +52,13 @@ corepack yarn test:e2e
 ## Deploy
 
 - Target GitHub repository: `https://github.com/correnthgroup/redrise.git`.
-- Production URL: `https://redrise.github.io`.
-- Base operational account for GitHub/Vercel/Supabase: `integration@correnth.com`.
-- Preferred frontend deploy path is GitHub Pages workflow connected to the GitHub repository.
+- Production URL: `https://redrise.onrender.com` after Render confirms the service subdomain.
+- Base operational account for GitHub/Render/Supabase: `integration@correnth.com`.
+- Preferred frontend deploy path is Render auto-deploy from the GitHub repository.
 - Build command: `corepack yarn build`.
 - Install command: `corepack yarn install --frozen-lockfile`.
 - Output directory: `dist`.
+- Render blueprint: `render.yaml`.
 - Use the operational MCP when possible: `corepack yarn mcp:redrise-ops`.
 
 ## Current References

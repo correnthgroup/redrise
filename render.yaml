@@ -1,0 +1,33 @@
+# Render Blueprint for Redrise.
+projects:
+  - name: Redrise
+    environments:
+      - name: production
+        services:
+          - type: web
+            name: redrise
+            runtime: static
+            plan: free
+            repo: https://github.com/correnthgroup/redrise.git
+            branch: main
+            buildCommand: corepack enable && corepack yarn install --frozen-lockfile && corepack yarn build
+            staticPublishPath: ./dist
+            autoDeployTrigger: commit
+            envVars:
+              - key: NODE_VERSION
+                value: 22
+              - key: VITE_SUPABASE_URL
+                sync: false
+              - key: VITE_SUPABASE_ANON_KEY
+                sync: false
+            headers:
+              - path: /*
+                name: X-Frame-Options
+                value: SAMEORIGIN
+              - path: /*
+                name: X-Content-Type-Options
+                value: nosniff
+            routes:
+              - type: rewrite
+                source: /*
+                destination: /index.html

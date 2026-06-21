@@ -30,7 +30,7 @@
 
 ## Current Product Decisions
 
-- The official production URL is `https://redrise.github.io`; organization-owned URLs are not the public product reference.
+- The official production host is Render for now; expected service URL is `https://redrise.onrender.com` if Render confirms the subdomain.
 - Settings > Plans remains a placeholder-like planning surface only; it must not unlock paid features from frontend state.
 - Real billing requires Stripe checkout, webhook, persisted plan state, and permission matrix.
 - Admin/Member/Viewer labels remain informational until backend/RLS enforcement is approved.
@@ -41,5 +41,5 @@
 
 - Re-enable OAuth only after GitHub, Google, and Microsoft/Azure credentials are configured in Supabase and provider dashboards.
 - Re-enable e-mail confirmation only after official transactional e-mail setup exists.
-- Prefer GitHub Pages workflow from `https://github.com/correnthgroup/redrise.git`; keep Vercel/prebuilt deploy only as fallback.
+- Prefer Render auto-deploy from `https://github.com/correnthgroup/redrise.git` using `render.yaml`.
 - Keep `memory/TECHNICAL.md` as PT-BR operational documentation for humans and deterministic agents.
