@@ -506,7 +506,7 @@ export function AccountBasicInfoPage({
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="currentTeam" icon={<UsersRound className="h-4 w-4" />}>{t('account.currentTeam')}</FieldLabel>
-                  <Input id="currentTeam" value={teamAssignment?.team || t('account.notAssigned')} disabled />
+                  <Input id="currentTeam" value={teamAssignment?.team || t('account.noTeam')} disabled />
                 </Field>
               </div>
             </section>

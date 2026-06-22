@@ -63,6 +63,11 @@ function displayName(profile?: ProfileRow) {
   return profile.username || fullName || profile.email
 }
 
+function normalizeTeamName(team: string | null | undefined) {
+  const value = (team ?? '').trim()
+  return value.toLowerCase() === 'core' ? '' : value
+}
+
 export async function loadTeamMembers(ownerUserId: string): Promise<TeamMember[]> {
   const { data: members, error } = await supabase
     .from('team_members')
@@ -103,7 +108,7 @@ export async function loadTeamMembers(ownerUserId: string): Promise<TeamMember[]
       avatarUrl: profile?.avatar_url ?? null,
       role: member.role,
       function: member.function,
-      team: teamsByMemberId.get(member.id)?.join(', ') || member.team,
+      team: teamsByMemberId.get(member.id)?.join(', ') || normalizeTeamName(member.team),
       status: member.status === 'invited' ? 'Invited' : isOnline(profile?.last_seen_at ?? null) ? 'Online' : 'Offline',
       joined: new Intl.DateTimeFormat().format(new Date(member.joined_at)),
     }
@@ -133,12 +138,14 @@ export async function addTeamMember(
 export async function loadCurrentAccessRole(userId: string): Promise<AccessRole> {
   const { data } = await supabase
     .from('team_members')
-    .select('role, owner_user_id, member_user_id')
+    .select('role, owner_user_id, member_user_id, status')
     .or(`owner_user_id.eq.${userId},member_user_id.eq.${userId}`)
+    .eq('status', 'active')
     .order('joined_at', { ascending: true })
 
-  const ownerRow = data?.find((member) => member.owner_user_id === userId)
-  const role = ownerRow?.role ?? data?.[0]?.role
+  const externalRow = data?.find((member) => member.member_user_id === userId && member.owner_user_id !== userId)
+  const ownerRow = data?.find((member) => member.owner_user_id === userId && member.member_user_id === userId)
+  const role = externalRow?.role ?? ownerRow?.role ?? data?.[0]?.role
 
   if (role === 'viewer') return 'viewer'
   if (role === 'member') return 'member'
@@ -154,8 +161,10 @@ export async function loadSettingsAdminContext(userId: string): Promise<Settings
     .order('joined_at', { ascending: true })
 
   const rows = data ?? []
-  const adminRow = rows.find((row) => row.member_user_id === userId && row.function === 'Admin')
-  const managerRow = adminRow ?? rows.find((row) => row.member_user_id === userId && ['Owner', 'Board'].includes(row.function))
+  const externalRows = rows.filter((row) => row.member_user_id === userId && row.owner_user_id !== userId)
+  const candidateRows = externalRows.length > 0 ? externalRows : rows
+  const adminRow = candidateRows.find((row) => row.member_user_id === userId && row.function === 'Admin')
+  const managerRow = adminRow ?? candidateRows.find((row) => row.member_user_id === userId && ['Owner', 'Board'].includes(row.function))
   return {
     isAdmin: !!adminRow,
     isTeamManager: !!managerRow,
@@ -167,14 +176,16 @@ export async function loadSettingsAdminContext(userId: string): Promise<Settings
 export async function loadCurrentTeamAssignment(userId: string): Promise<{ function: string; team: string } | null> {
   const { data } = await supabase
     .from('team_members')
-    .select('function, team, owner_user_id, member_user_id')
+    .select('function, team, owner_user_id, member_user_id, status')
     .or(`owner_user_id.eq.${userId},member_user_id.eq.${userId}`)
+    .eq('status', 'active')
     .order('joined_at', { ascending: true })
 
-  const ownerRow = data?.find((member) => member.owner_user_id === userId)
-  const row = ownerRow ?? data?.[0]
+  const externalRow = data?.find((member) => member.member_user_id === userId && member.owner_user_id !== userId)
+  const ownerRow = data?.find((member) => member.owner_user_id === userId && member.member_user_id === userId)
+  const row = externalRow ?? ownerRow ?? data?.[0]
   if (!row) return null
-  return { function: row.function ?? '', team: row.team ?? '' }
+  return { function: row.function ?? '', team: normalizeTeamName(row.team) }
 }
 
 export async function updateTeamMember(member: Pick<TeamMember, 'id' | 'function' | 'team' | 'role'>) {
@@ -182,6 +193,15 @@ export async function updateTeamMember(member: Pick<TeamMember, 'id' | 'function
     .from('team_members')
     .update({ function: member.function, team: member.team, role: member.role })
     .eq('id', member.id)
+
+  return !error
+}
+
+export async function removeTeamMember(memberId: string) {
+  const { error } = await supabase
+    .from('team_members')
+    .delete()
+    .eq('id', memberId)
 
   return !error
 }

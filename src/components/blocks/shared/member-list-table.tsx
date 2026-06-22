@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Loader2, Search, UserPlus } from 'lucide-react'
+import { ArrowLeft, Loader2, Search, Trash2, UserPlus } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { PaginationFooter } from './pagination-footer'
-import { loadTeamMembers, updateTeamMember, type TeamMember, type TeamMemberRole } from '@/lib/team-members'
+import { loadTeamMembers, removeTeamMember, updateTeamMember, type TeamMember, type TeamMemberRole } from '@/lib/team-members'
 import { MEMBER_FUNCTIONS, getMemberFunctionLabelKey, normalizeMemberFunction, type MemberFunction } from '@/lib/member-functions'
 import { useI18n } from '@/hooks/use-i18n'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -36,6 +36,7 @@ export function MemberListTable({ user, onAddMember, onBack, canAddMember = true
   const [members, setMembers] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
   const [savingMemberId, setSavingMemberId] = useState<string | null>(null)
+  const [removingMemberId, setRemovingMemberId] = useState<string | null>(null)
 
   const refreshMembers = useCallback(async () => {
     setLoading(true)
@@ -70,6 +71,16 @@ export function MemberListTable({ user, onAddMember, onBack, canAddMember = true
     setSavingMemberId(null)
   }
 
+  async function handleRemoveInvite(member: TeamMember) {
+    if (member.status !== 'Invited') return
+    setRemovingMemberId(member.id)
+    const removed = await removeTeamMember(member.id)
+    if (removed) {
+      setMembers((current) => current.filter((item) => item.id !== member.id))
+    }
+    setRemovingMemberId(null)
+  }
+
   function statusLabel(status: TeamMember['status']) {
     if (status === 'Online') return t('settings.statusOnline')
     if (status === 'Offline') return t('settings.statusOffline')
@@ -101,13 +112,14 @@ export function MemberListTable({ user, onAddMember, onBack, canAddMember = true
               <th className="px-3 py-2 font-medium">{t('settings.status')}</th>
               <th className="px-3 py-2 font-medium">{t('settings.team')}</th>
               <th className="px-3 py-2 font-medium">{t('settings.joined')}</th>
+              {canAddMember ? <th className="px-3 py-2 text-right font-medium">{t('common.actions')}</th> : null}
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} className="px-3 py-8 text-center text-muted-foreground"><Loader2 className="mx-auto mb-2 h-4 w-4 animate-spin" />{t('settings.loadingMembers')}</td></tr>
+              <tr><td colSpan={canAddMember ? 6 : 5} className="px-3 py-8 text-center text-muted-foreground"><Loader2 className="mx-auto mb-2 h-4 w-4 animate-spin" />{t('settings.loadingMembers')}</td></tr>
             ) : rows.length === 0 ? (
-              <tr><td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">{t('settings.noMembersFound')}</td></tr>
+              <tr><td colSpan={canAddMember ? 6 : 5} className="px-3 py-8 text-center text-muted-foreground">{t('settings.noMembersFound')}</td></tr>
             ) : rows.map((member) => (
               <tr key={member.id} className="border-b last:border-b-0">
                 <td className="px-3 py-3">
@@ -141,6 +153,15 @@ export function MemberListTable({ user, onAddMember, onBack, canAddMember = true
                 </td>
                 <td className="px-3 py-3 text-muted-foreground">{member.team || '-'}</td>
                 <td className="px-3 py-3 text-muted-foreground">{member.joined}</td>
+                {canAddMember ? (
+                  <td className="px-3 py-3 text-right">
+                    {member.status === 'Invited' ? (
+                      <Button type="button" variant="ghost" size="icon" onClick={() => { void handleRemoveInvite(member) }} disabled={removingMemberId === member.id} aria-label={t('settings.removeInvite')}>
+                        {removingMemberId === member.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                      </Button>
+                    ) : null}
+                  </td>
+                ) : null}
               </tr>
             ))}
           </tbody>

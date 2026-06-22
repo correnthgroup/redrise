@@ -52,7 +52,7 @@
 - Sessões autenticadas e flag Remember Me: tabela Supabase `active_sessions`.
 - Lista global de membros da equipe: tabela Supabase `team_members`.
 - Convites in-app para usuários já cadastrados: tabela Supabase `team_invite_notifications`.
-- Convites por e-mail para usuários ainda não cadastrados: Supabase Auth gera o link de convite e a Edge Function `invite-member` envia o e-mail pela Resend.
+- Convites por e-mail para usuários ainda não cadastrados: tabela Supabase `external_member_invites` guarda token de pré-cadastro e a Edge Function `invite-member` envia o template Resend `invite` com link para Sign Up.
 - Workspaces: Supabase via `src/lib/workspaces.ts`.
 - Flows: Supabase via `src/lib/flows.ts`.
 - Tasks: Supabase via `src/lib/tasks.ts`.
@@ -296,6 +296,9 @@
 - Ao enviar, `addTeamMember()` chama a Edge Function `invite-member`.
 - A Edge Function faz a checagem exata de e-mail cadastrado com service role; o frontend não consulta `profiles` diretamente para descobrir e-mails arbitrários porque RLS bloqueia essa leitura.
 - A Edge Function persiste a linha em `team_members`, salva Role/Cargo, cria `team_assignments` quando uma equipe foi selecionada, cria notificação in-app para usuário existente e envia e-mail via Resend para usuário ainda não cadastrado.
+- Para usuário ainda não cadastrado, a Edge Function gera token aleatório, salva apenas o SHA-256 em `external_member_invites`, monta link `https://www.redrise.app?invited=1&email=...&invite_token=...`, e envia esse link pelo template Resend `invite`.
+- O clique em `Join Us` no e-mail externo abre Sign Up com o e-mail preenchido; ele não autentica automaticamente e não cria sessão por magic link.
+- O template Resend `invite` deve usar `href="{{{CTA_LINK}}}"` no botão `Join Us`; a Edge Function envia `CTA_LINK`, `CTA_TEXT`, `INVITE_LINK`, `JOIN_URL`, `SIGNUP_URL` e `INVITED_EMAIL`.
 - O remetente parametrizado para convites por e-mail é `hi.from@redrise.app`, via secrets `RESEND_API_KEY` e `RESEND_FROM_EMAIL` na Supabase Edge Function.
 - `APP_BASE_URL` da Edge Function está parametrizado como `https://www.redrise.app`, então links de convite gerados apontam para o domínio oficial novo.
 - Role/Cargo do convite usa a mesma lista oficial de cargos e persiste em `team_members.function`; a permissão técnica enviada para a Edge Function é derivada desse cargo.
@@ -307,17 +310,22 @@
 - Usuário já cadastrado convidado por e-mail fica com `team_members.status = invited`, recebe uma linha em `team_invite_notifications`, e vê um diálogo global ao entrar para aceitar ou recusar.
 - `team_invite_notifications` está na publicação `supabase_realtime`; o diálogo global assina mudanças Realtime por `recipient_user_id` e mantém polling de 30 segundos como fallback.
 - Se o disparo de notificação in-app ou envio de e-mail falhar, `AddMemberModal` não fecha silenciosamente e mostra erro traduzido para facilitar teste e diagnóstico.
-- Se a Resend não conseguir entregar o e-mail, a Edge Function ainda retorna o link oficial gerado pelo Supabase e o modal mostra esse link como fallback operacional de teste.
+- Se a Resend não conseguir entregar o e-mail, a Edge Function ainda retorna o link oficial de Sign Up com `invite_token` e o modal mostra esse link como fallback operacional de teste.
 - Migrations 026, 027 e 028 adicionam RLS para B2B: `Admin` gerencia Members List, Team List e API Keys; `Owner` e `Board` podem visualizar Members List sem Add Member/edição de cargos e podem gerenciar Team List.
 - Contas principais/self-owner são migradas de `Owner` para `Admin`; novos signups criam a linha própria como `Admin`.
+- Novos signups não gravam equipe padrão para a linha própria; se o usuário ainda não estiver em nenhuma equipe formal, Personal Information mostra `No team` / `Sem equipe`.
+- O valor legado `Core` em `team_members.team` é tratado como placeholder antigo e não deve aparecer como equipe real quando não houver `team_assignments`.
 - `ensureCurrentUserTeamMember()` em `src/lib/user-profile.ts` também preserva a linha própria como `Admin`; não voltar para `Owner`, pois isso remove acesso administrativo após login.
 - Admin, Owner e Board convidados operam a organização pelo `owner_user_id` da linha em `team_members`, não pela própria conta individual.
 - RLS permite que Admin/Owner/Board visualizem membros e perfis vinculados à organização; escrita de `team_members` e `api_keys` fica restrita a Admin, enquanto `teams` e `team_assignments` podem ser gerenciados por Admin/Owner/Board.
 - Aceitar convite chama a função SQL `respond_to_team_invite()`, marca a notificação como accepted e ativa a linha em `team_members`.
 - Recusar convite chama a mesma função SQL, marca a notificação como declined e remove a linha pendente em `team_members`.
-- Usuário ainda não cadastrado recebe convite por e-mail via `inviteUserByEmail()` com redirect para Sign Up contendo o e-mail preenchido.
+- Usuário ainda não cadastrado recebe convite por e-mail via Resend template `invite`, com redirect para Sign Up contendo e-mail preenchido e `invite_token`.
 - Se o Supabase limitar envio de e-mail, o convite ainda aparece na lista como `Invited`.
-- Quando um convidado cria conta com o mesmo e-mail, o trigger de signup conecta a linha convidada ao novo `member_user_id`.
+- Quando um convidado cria conta com o mesmo e-mail e `invite_token`, o trigger de signup valida token, e-mail, status e expiração em `external_member_invites`, conecta a linha convidada ao novo `member_user_id`, ativa `team_members.status`, e marca o token como aceito.
+- O trigger de signup também executa reparo por e-mail para convites externos pendentes e não expirados, então múltiplos disparos para o mesmo e-mail não devem impedir ativação da linha convidada.
+- Se o usuário tem associação externa ativa, Settings e Personal Information preferem essa associação para exibir Role/Cargo e contexto organizacional; o valor exibido continua sendo o Role/Cargo escolhido no convite, não um valor fixo.
+- Members List permite remover linhas pendentes de convite usando o ícone de lixeira; a remoção apaga a linha em `team_members` e as relações dependentes por cascade.
 - Status `Invited` vem de `team_members.status = invited`.
 - Status `Online` é calculado se o perfil do membro teve `last_seen_at` nos últimos 2 minutos.
 - Status `Offline` aparece quando não está convidado e não está online.
@@ -430,6 +438,8 @@
 - `profiles.middle_name`: guarda o Middle Name opcional do cadastro e Settings.
 - `active_sessions`: guarda sessões autenticadas, metadados do device, flag `remembered`, `supabase_session_id`, última atividade e revogação.
 - `team_members`: guarda relação entre dono da equipe, usuário membro, e-mail convidado, papel, função, time e status.
+- `team_members.team`: é fallback legado para equipe; novas contas próprias devem gravar vazio e equipes reais devem vir de `team_assignments`.
+- `external_member_invites`: guarda convites externos pendentes para pessoas sem conta, com hash do token, e-mail, dono da organização, `team_member_id`, status, expiração e usuário aceito quando a conta for criada.
 - `teams`: guarda equipes formais criadas em Settings > Team List, com nome, descrição e limite de 7 por owner.
 - `team_assignments`: guarda quais membros estão em quais equipes e qual função livre exercem naquela equipe; permite o mesmo membro em múltiplas equipes.
 - As migrations `020`, `021` e `022` foram aplicadas no Supabase remoto `vsaropewydcjsvplpugx` via `supabase db push` após confirmação por `supabase migration list`.
@@ -448,14 +458,15 @@
 
 ## Edge Function invite-member
 
-- Recebe e-mail e role.
+- Recebe e-mail, role, Role/Cargo exibido e equipe inicial opcional.
 - Verifica o usuário logado pelo token enviado pelo frontend.
 - Persiste ou atualiza a linha em `team_members`.
-- Tenta enviar convite via Supabase Auth.
+- Para usuário existente, cria convite in-app em `team_invite_notifications` e mantém o membro como `invited` até aceite.
+- Para usuário ainda não cadastrado, cria linha em `external_member_invites`, envia template Resend `invite`, e retorna link fallback com `invite_token`.
+- Convites externos repetidos para o mesmo membro expiram tokens pendentes anteriores antes de criar novo token; o aceite por signup aceita o convite pendente válido mais recente e repara convites pendentes por e-mail quando necessário.
 - Retorna `ok: true` quando a linha foi persistida.
-- Retorna `emailSent: false` e `emailError` quando o e-mail não saiu, por exemplo por rate limit.
-- A UI atual fecha o modal se `ok: true`, mesmo que `emailSent` seja falso.
-- Se for importante avisar o usuário sobre e-mail não enviado, criar aviso futuro sem impedir a criação da linha.
+- Retorna `emailSent: false` e `emailError` quando o e-mail não saiu, por exemplo por template ausente, rate limit ou erro da Resend.
+- A UI mantém feedback operacional e pode exibir o link fallback se o envio falhar.
 
 ## Settings > Plans
 

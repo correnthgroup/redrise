@@ -21,6 +21,7 @@ async function sendInviteWithResend(input: {
   fromEmail: string
   toEmail: string
   inviteLink: string
+  templateId: string
 }) {
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -32,16 +33,17 @@ async function sendInviteWithResend(input: {
       from: `Redrise <${input.fromEmail}>`,
       to: [input.toEmail],
       subject: 'You were invited to Redrise',
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #1f2937;">
-          <h1 style="font-size: 20px; margin-bottom: 12px;">You were invited to Redrise</h1>
-          <p>Use the secure link below to create your account and join the workspace.</p>
-          <p><a href="${input.inviteLink}" style="display: inline-block; padding: 10px 14px; background: #8F1D1D; color: #ffffff; text-decoration: none; border-radius: 8px;">Accept invite</a></p>
-          <p style="font-size: 12px; color: #6b7280;">If the button does not work, copy and paste this link into your browser:</p>
-          <p style="font-size: 12px; color: #6b7280; word-break: break-all;">${input.inviteLink}</p>
-        </div>
-      `,
-      text: `You were invited to Redrise. Create your account with this link: ${input.inviteLink}`,
+      template: {
+        id: input.templateId,
+        variables: {
+          INVITE_LINK: input.inviteLink,
+          JOIN_URL: input.inviteLink,
+          SIGNUP_URL: input.inviteLink,
+          CTA_LINK: input.inviteLink,
+          CTA_TEXT: 'Join Us',
+          INVITED_EMAIL: input.toEmail,
+        },
+      },
     }),
   })
 
@@ -50,6 +52,18 @@ async function sendInviteWithResend(input: {
     ok: response.ok,
     error: response.ok ? null : body?.message ?? body?.error ?? `Resend returned ${response.status}`,
   }
+}
+
+function generateInviteToken() {
+  const bytes = new Uint8Array(32)
+  crypto.getRandomValues(bytes)
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
+}
+
+async function sha256(value: string) {
+  const bytes = new TextEncoder().encode(value)
+  const hash = await crypto.subtle.digest('SHA-256', bytes)
+  return Array.from(new Uint8Array(hash)).map((byte) => byte.toString(16).padStart(2, '0')).join('')
 }
 
 function generateShortId(prefix: string) {
@@ -76,6 +90,7 @@ Deno.serve(async (req) => {
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   const resendApiKey = Deno.env.get('RESEND_API_KEY')
   const resendFromEmail = Deno.env.get('RESEND_FROM_EMAIL') ?? 'hi.from@redrise.app'
+  const resendInviteTemplateId = Deno.env.get('RESEND_INVITE_TEMPLATE_ID') ?? 'Invite'
 
   if (!supabaseUrl || !anonKey || !serviceRoleKey) {
     return new Response(JSON.stringify({ error: 'Missing Supabase function environment' }), {
@@ -227,25 +242,39 @@ Deno.serve(async (req) => {
   }
 
   const appBaseUrl = Deno.env.get('APP_BASE_URL') ?? req.headers.get('Origin') ?? 'http://localhost:5173'
-  const redirectTo = `${appBaseUrl}?invited=1&email=${encodeURIComponent(email)}`
-  const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-    type: 'invite',
-    email,
-    options: {
-      redirectTo,
-      data: { invited_by: ownerUserId },
-    },
-  })
-  const inviteLink = linkData?.properties?.action_link ?? null
+  const inviteToken = generateInviteToken()
+  const inviteTokenHash = await sha256(inviteToken)
+  const inviteLink = `${appBaseUrl}?invited=1&email=${encodeURIComponent(email)}&invite_token=${encodeURIComponent(inviteToken)}`
+
+  let tokenError: { message: string } | null
+  if (teamMemberId) {
+    const { error: expireError } = await adminClient
+      .from('external_member_invites')
+      .update({ status: 'expired', updated_at: new Date().toISOString() })
+      .eq('team_member_id', teamMemberId)
+      .eq('status', 'pending')
+
+    if (expireError) {
+      tokenError = expireError
+    } else {
+      const { error: insertInviteError } = await adminClient
+        .from('external_member_invites')
+        .insert({ owner_user_id: ownerUserId, team_member_id: teamMemberId, invite_email: email, token_hash: inviteTokenHash })
+      tokenError = insertInviteError
+    }
+  } else {
+    tokenError = { message: 'Missing team member id' }
+  }
 
   let emailSent = false
-  let emailError = linkError?.message ?? null
-  if (inviteLink && resendApiKey) {
+  let emailError = tokenError?.message ?? null
+  if (!tokenError && inviteLink && resendApiKey) {
     const resend = await sendInviteWithResend({
       apiKey: resendApiKey,
       fromEmail: resendFromEmail,
       toEmail: email,
       inviteLink,
+      templateId: resendInviteTemplateId,
     })
     emailSent = resend.ok
     emailError = resend.error

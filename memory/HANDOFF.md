@@ -19,8 +19,12 @@
 - Sign Up now treats Middle Name as optional and keeps First Name, Last Name, e-mail, password and confirmation required.
 - Members List now edits Role/Cargo, includes Admin before Owner, lists all formal teams through `team_assignments`, and avoids duplicated role display.
 - Existing-account invites create pending in-app notifications through `team_invite_notifications`; accepting/declining uses SQL function `respond_to_team_invite()`.
-- Invite dispatch is centralized in `invite-member`: exact e-mail checking, `team_members` persistence, optional `team_assignments`, existing-user notification, and new-user Supabase invite e-mail all happen server-side with service role.
-- Invite e-mail dispatch now uses Resend directly from `invite-member`; sender is `hi.from@redrise.app`, with link generation still handled by Supabase Auth Admin.
+- Invite dispatch is centralized in `invite-member`: exact e-mail checking, `team_members` persistence, optional `team_assignments`, existing-user notification, and new-user Resend template e-mail all happen server-side with service role.
+- Invite e-mail dispatch uses Resend directly from `invite-member`; sender is `hi.from@redrise.app`, template secret is `RESEND_INVITE_TEMPLATE_ID=invite`, and external links are Sign Up URLs with `invite_token`, not Supabase Auth magic invite links.
+- Remote migration 029 is applied on `vsaropewydcjsvplpugx`; it creates `external_member_invites` and updates the Auth signup trigger so external invite membership activates only after Create Account validates the token and e-mail.
+- Remote migration 031 is applied on `vsaropewydcjsvplpugx`; it adds `accept_pending_external_invites_for_user()` so signup can repair pending external invites by e-mail when repeated invite sends or missing metadata would otherwise leave a member as `Invited`.
+- Members List Admin view includes a trash action for pending invite rows; use it to remove stale test invites.
+- When a user has active external membership, Settings context prefers that membership over the self Admin row, but it displays the exact Role/Cargo selected in Add Member.
 - `APP_BASE_URL` for Edge Functions is `https://www.redrise.app`; `APP_ALLOWED_ORIGINS` includes `https://www.redrise.app`, `https://redrise.onrender.com`, and `http://localhost:5173`.
 - Migrations 026, 027, and 028 enforce B2B settings access: `Admin` can manage Members List, Team List, and API Keys; `Owner` and `Board` can view Members List without Add Member/role edits and can manage Team List.
 - Admin/Owner/Board users operate the organization owner context from `team_members.owner_user_id`; non-manager members cannot open Members List, Team List, or API Keys from Settings.
@@ -44,7 +48,7 @@
 - Team Members use Supabase `team_members`; Flow/Tasks member dropdowns must read that source.
 - Settings > Plans is not billing yet; it is a future-plan surface.
 - `redrise-ops` MCP exists for validation, build/status checks, Supabase function deploy, graph status, and memory notes.
-- Detailed local Graphify output is in `graphify-out/`; the latest clean structural update produced 1029 nodes, 1223 edges, and 137 communities.
+- Detailed local Graphify output is in `graphify-out/`; the latest clean structural update produced 1031 nodes, 1225 edges, and 138 communities after the external invite token/template changes.
 - Workspace root is now `D:\studio\redrise`; old briefing/framework/backlog folders are not active guidance.
 - Update 2.0 test bundle now covers Create Task, Flow Builder, Agent Detail, Create Workspace, Create Flow, Personal Information field locks/search, and auxiliary `team-members-card` copy.
 - Previous deployment targets are legacy and are no longer active targets for this project reset.
@@ -56,6 +60,8 @@
 - `corepack yarn test` passes.
 - `corepack yarn build` passes.
 - `corepack yarn test:e2e` passed with 27/27 tests after the shared WizardShell refactor and slogan update; it has not been rerun for the current PRD by instruction.
+- External invite smoke test through deployed `invite-member` passed with `delivered@resend.dev`: Resend accepted template alias `invite`, returned `emailSent: true`, and the returned link included `invite_token`; temporary rows were cleaned.
+- Final PRD validation passed with `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, `corepack yarn build`, and `corepack yarn test:e2e` 27/27.
 - E2E is modularized by Playwright project: `auth-public`, `auth-session`, `navigation`, `dashboard`, `flow`, `tasks`, `agents`, `analytics`, `workspaces`, and `settings`.
 - E2E local modular matrix passes with 39 tests across the 10 modules.
 

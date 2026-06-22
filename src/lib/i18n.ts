@@ -498,6 +498,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'settings.statusOnline': 'Online',
     'settings.statusOffline': 'Offline',
     'settings.statusInvited': 'Invited',
+    'settings.removeInvite': 'Remove invite',
 
     // Invites
     'invites.teamInviteTitle': 'Team invite',
@@ -535,6 +536,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'account.currentFunction': 'Current Role',
     'account.currentTeam': 'Current Team',
     'account.notAssigned': 'Not assigned',
+    'account.noTeam': 'No team',
     'account.location': 'Location',
     'account.countryPlaceholder': 'Select country',
     'account.searchCountry': 'Search country...',
@@ -625,6 +627,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'common.save': 'Save',
     'common.cancel': 'Cancel',
     'common.delete': 'Delete',
+    'common.actions': 'Actions',
     'common.edit': 'Edit',
     'common.create': 'Create',
     'common.search': 'Search',
@@ -1308,6 +1311,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'settings.statusOnline': 'Online',
     'settings.statusOffline': 'Offline',
     'settings.statusInvited': 'Convidado',
+    'settings.removeInvite': 'Remover convite',
 
     // Invites
     'invites.teamInviteTitle': 'Convite de equipe',
@@ -1344,6 +1348,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'account.phone': 'Telefone',
     'account.currentFunction': 'Cargo Atual',
     'account.currentTeam': 'Equipe Atual',
+    'account.noTeam': 'Sem equipe',
     'account.notAssigned': 'N\u00e3o atribu\u00eddo',
     'account.location': 'Localiza\u00e7\u00e3o',
     'account.countryPlaceholder': 'Selecionar pais',
@@ -1435,6 +1440,7 @@ const translations: Record<Locale, Record<string, string>> = {
     'common.save': 'Salvar',
     'common.cancel': 'Cancelar',
     'common.delete': 'Excluir',
+    'common.actions': 'Ações',
     'common.edit': 'Editar',
     'common.create': 'Criar',
     'common.search': 'Buscar',

@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import { Bot, Check, Loader2, X } from 'lucide-react'
+import { Check, Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -42,6 +42,7 @@ function mapAuthError(message: string) {
 export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: () => void }) {
   const inviteParams = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search)
   const invitedEmail = inviteParams?.get('email') ?? ''
+  const inviteToken = inviteParams?.get('invite_token') ?? ''
   const initialSignupNotice = typeof window === 'undefined' ? null : window.sessionStorage.getItem(SIGNUP_NOTICE_KEY)
   if (typeof window !== 'undefined' && initialSignupNotice) window.sessionStorage.removeItem(SIGNUP_NOTICE_KEY)
   const [mode, setMode] = useState<AuthMode>(inviteParams?.get('invited') ? 'sign-up' : 'sign-in')
@@ -126,6 +127,7 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
           middle_name: middleName.trim(),
           last_name: lastName.trim(),
           full_name: [firstName, middleName, lastName].map((value) => value.trim()).filter(Boolean).join(' '),
+          invite_token: inviteToken,
         },
       },
     })
@@ -152,7 +154,7 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
       <section className={styles.formPanel}>
         <form className={styles.formInner} onSubmit={mode === 'sign-in' ? handleSignIn : handleSignUp}>
           <div className={styles.brandRow}>
-            <div className={styles.brandMark}><Bot className="h-4 w-4" /></div>
+            <div className={styles.brandMark}><img src="/logo-32.png" alt="Redrise" /></div>
             <div>
               <div className={styles.brandName}>Redrise</div>
               <div className={styles.brandTag}>Add AI. Enhance Value.</div>

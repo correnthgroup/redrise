@@ -1,16 +1,16 @@
 # Graph Report - redrise  (2026-06-22)
 
 ## Corpus Check
-- 202 files · ~93,618 words
+- 204 files · ~95,832 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1029 nodes · 1223 edges · 137 communities (119 shown, 18 thin omitted)
+- 1034 nodes · 1230 edges · 140 communities (118 shown, 22 thin omitted)
 - Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 116 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d386a745`
+- Built from commit: `f6761a6e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -102,9 +102,11 @@
 - [[_COMMUNITY_Community 84|Community 84]]
 - [[_COMMUNITY_Community 85|Community 85]]
 - [[_COMMUNITY_Community 86|Community 86]]
+- [[_COMMUNITY_Community 87|Community 87]]
 - [[_COMMUNITY_Community 88|Community 88]]
 - [[_COMMUNITY_Community 89|Community 89]]
 - [[_COMMUNITY_Community 90|Community 90]]
+- [[_COMMUNITY_Community 91|Community 91]]
 - [[_COMMUNITY_Community 92|Community 92]]
 - [[_COMMUNITY_Community 93|Community 93]]
 - [[_COMMUNITY_Community 94|Community 94]]
@@ -113,6 +115,7 @@
 - [[_COMMUNITY_Community 97|Community 97]]
 - [[_COMMUNITY_Community 98|Community 98]]
 - [[_COMMUNITY_Community 99|Community 99]]
+- [[_COMMUNITY_Community 100|Community 100]]
 - [[_COMMUNITY_Community 102|Community 102]]
 - [[_COMMUNITY_Community 103|Community 103]]
 - [[_COMMUNITY_Community 104|Community 104]]
@@ -143,6 +146,8 @@
 10. `Scope For This Update` - 12 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `CreateTaskPage()` --calls--> `useDropdownClose()`  [INFERRED]
+  src/components/blocks/pages/create-task-page.tsx → src/hooks/use-dropdown-close.ts
 - `formatLastActive()` --calls--> `t()`  [INFERRED]
   src/components/blocks/shared/sessions-list.tsx → src/lib/i18n.ts
 - `AppShell()` --calls--> `useAgents()`  [INFERRED]
@@ -151,15 +156,13 @@
   src/components/blocks/shared/team-list-table.tsx → src/hooks/use-i18n.ts
 - `AnalyticsPage()` --calls--> `useI18n()`  [INFERRED]
   src/components/blocks/pages/analytics-page.tsx → src/hooks/use-i18n.ts
-- `AnalyticsPage()` --calls--> `buildKpis()`  [INFERRED]
-  src/components/blocks/pages/analytics-page.tsx → src/lib/analytics.ts
 
 ## Import Cycles
 - 1-file cycle: `src/app/analytics/page.tsx -> src/app/analytics/page.tsx`
 - 1-file cycle: `src/app/dashboard/page.tsx -> src/app/dashboard/page.tsx`
 - 1-file cycle: `src/app/settings/page.tsx -> src/app/settings/page.tsx`
 
-## Communities (137 total, 18 thin omitted)
+## Communities (140 total, 22 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.05
@@ -174,20 +177,20 @@ Cohesion: 0.06
 Nodes (35): devDependencies, eslint, @eslint/js, eslint-plugin-react-hooks, eslint-plugin-react-refresh, globals, jsdom, @playwright/test (+27 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.10
-Nodes (25): useFlowCards(), useI18n(), useTeamMemberOptions(), t(), getMemberFunctionLabelKey(), AccountBasicInfoPage(), AgentCreatePage(), AgentDetailPage() (+17 more)
+Cohesion: 0.11
+Nodes (29): useFlowCards(), useI18n(), useTeamMemberOptions(), t(), getMemberFunctionLabelKey(), AccountBasicInfoPage(), AgentCreatePage(), AgentDetailPage() (+21 more)
 
 ### Community 4 - "Community 4"
 Cohesion: 0.07
 Nodes (30): dependencies, class-variance-authority, clsx, date-fns, lucide-react, @radix-ui/react-alert-dialog, @radix-ui/react-avatar, @radix-ui/react-checkbox (+22 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.16
-Nodes (13): STATUS_BADGE, DashboardPage(), areaPath(), ChartTabs(), ChartTabsProps, SimpleAreaChart(), Kpi, KpiCard() (+5 more)
+Cohesion: 0.18
+Nodes (12): STATUS_BADGE, areaPath(), ChartTabs(), ChartTabsProps, SimpleAreaChart(), Kpi, KpiCard(), KpiCards() (+4 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.09
-Nodes (18): Plan, PLANS, PlansPage(), ADMIN_ONLY_SETTINGS, SettingKey, SettingShortcut, SettingsPage(), SettingsUser (+10 more)
+Nodes (18): Plan, PLANS, PlansPage(), ADMIN_ONLY_SETTINGS, SettingKey, SettingShortcut, SettingsUser, AddMemberModal() (+10 more)
 
 ### Community 7 - "Community 7"
 Cohesion: 0.08
@@ -221,13 +224,9 @@ Nodes (6): openAuthenticatedApp(), openSidebarModule(), openTopbarAction(), Side
 Cohesion: 0.12
 Nodes (15): aliases, components, hooks, lib, ui, utils, rsc, $schema (+7 more)
 
-### Community 15 - "Community 15"
-Cohesion: 0.12
-Nodes (12): AnalyticsData, useAnalytics(), useDropdownClose(), useFlows(), useTasks(), useWorkspaces(), AppShell(), AnalyticsForKpi (+4 more)
-
 ### Community 16 - "Community 16"
-Cohesion: 0.11
-Nodes (14): ApiKeysManager(), SCOPE_OPTIONS, AvatarUpload(), AvatarUploadProps, initials(), CommandPalette(), CommandPaletteProps, PaletteItem (+6 more)
+Cohesion: 0.15
+Nodes (9): AvatarUpload(), AvatarUploadProps, initials(), CommandPaletteProps, PaletteItem, PRIORITIES, PRIORITY_KEYS, MEMBERS (+1 more)
 
 ### Community 17 - "Community 17"
 Cohesion: 0.18
@@ -270,8 +269,8 @@ Cohesion: 0.28
 Nodes (7): ApiKey, createApiKey(), CreateApiKeyInput, deleteApiKey(), generateApiKeySecret(), generateShortId(), revokeApiKey()
 
 ### Community 27 - "Community 27"
-Cohesion: 0.22
-Nodes (8): ActivityFeed(), ActivityFeedProps, latest(), PLACEHOLDER_ALERTS, PLACEHOLDER_AUDIT, PLACEHOLDER_CHANGE_LOG, PLACEHOLDER_EVENTS, PLACEHOLDER_NOTIFICATIONS
+Cohesion: 0.14
+Nodes (8): ChatCompletionResponse, ChatMessage, supabase, supabaseAnonKey, supabaseUrl, InviteRow, ProfileRow, TeamInviteNotification
 
 ### Community 28 - "Community 28"
 Cohesion: 0.22
@@ -290,8 +289,8 @@ Cohesion: 0.22
 Nodes (8): Current State, Demais fases, Members List Features (CONCLUIDO), Problem, Scope, UI - Settings Navigation (CONCLUIDO), Update 3.0 - Settings Menu: Definitive Resolution, Validation Required Before Production
 
 ### Community 32 - "Community 32"
-Cohesion: 0.14
-Nodes (8): ChatCompletionResponse, ChatMessage, supabase, supabaseAnonKey, supabaseUrl, InviteRow, ProfileRow, TeamInviteNotification
+Cohesion: 0.22
+Nodes (8): ActivityFeed(), ActivityFeedProps, latest(), PLACEHOLDER_ALERTS, PLACEHOLDER_AUDIT, PLACEHOLDER_CHANGE_LOG, PLACEHOLDER_EVENTS, PLACEHOLDER_NOTIFICATIONS
 
 ### Community 33 - "Community 33"
 Cohesion: 0.25
@@ -300,10 +299,6 @@ Nodes (3): ErrorBoundary, Props, State
 ### Community 34 - "Community 34"
 Cohesion: 0.25
 Nodes (6): createIntegration(), CreateIntegrationInput, deleteIntegration(), generateShortId(), Integration, IntegrationStatus
-
-### Community 35 - "Community 35"
-Cohesion: 0.29
-Nodes (4): ReviewWorkspacePage(), statusBadgeClass(), COLUMNS, STATUS_TONE
 
 ### Community 37 - "Community 37"
 Cohesion: 0.25
@@ -315,7 +310,7 @@ Nodes (5): ART_QUOTES, AuthFlow(), AuthMode, isValidEmail(), PASSWORD_RULES
 
 ### Community 39 - "Community 39"
 Cohesion: 0.29
-Nodes (6): admin, en-US, pt-BR, analytics, en-US, pt-BR
+Nodes (6): admin, en-US, pt-BR, API keys, en-US, pt-BR
 
 ### Community 40 - "Community 40"
 Cohesion: 0.25
@@ -366,8 +361,8 @@ Cohesion: 0.33
 Nodes (5): Current App Snapshot, Current Production Snapshot, Last Verified Baseline, Next Tasks, TASK_LOG
 
 ### Community 52 - "Community 52"
-Cohesion: 0.33
-Nodes (5): AgentFlow, FLOW_STATUS_BADGE, PLACEHOLDER_AGENT_FLOWS, STATUS_BADGE, STATUS_COLOR
+Cohesion: 0.18
+Nodes (7): AgentFlow, FLOW_STATUS_BADGE, PLACEHOLDER_AGENT_FLOWS, STATUS_BADGE, STATUS_COLOR, COLUMNS, STATUS_TONE
 
 ### Community 53 - "Community 53"
 Cohesion: 0.33
@@ -435,23 +430,23 @@ Nodes (3): DEFAULT_ALLOWED_ORIGINS, getAllowedOrigins(), getCorsHeaders()
 
 ### Community 71 - "Community 71"
 Cohesion: 0.07
-Nodes (18): MEMBER_FUNCTIONS, MemberFunction, AccessRole, addTeamMember(), ProfileRow, SettingsAdminContext, TeamAssignmentTeamRow, TeamMember (+10 more)
+Nodes (22): MEMBER_FUNCTIONS, MemberFunction, AccessRole, addTeamMember(), loadCurrentTeamAssignment(), normalizeTeamName(), ProfileRow, SettingsAdminContext (+14 more)
 
 ### Community 72 - "Community 72"
 Cohesion: 0.67
-Nodes (3): API keys, en-US, pt-BR
+Nodes (3): select all, en-US, pt-BR
 
 ### Community 73 - "Community 73"
 Cohesion: 0.67
-Nodes (3): agent, en-US, pt-BR
+Nodes (3): analytics, en-US, pt-BR
 
 ### Community 74 - "Community 74"
 Cohesion: 0.67
 Nodes (3): phone, en-US, pt-BR
 
 ### Community 75 - "Community 75"
-Cohesion: 0.67
-Nodes (3): biological gender, en-US, pt-BR
+Cohesion: 0.13
+Nodes (10): AnalyticsData, useAnalytics(), useFlows(), useTasks(), useWorkspaces(), AppShell(), AnalyticsForKpi, buildKpis() (+2 more)
 
 ### Community 76 - "Community 76"
 Cohesion: 0.67
@@ -503,11 +498,15 @@ Nodes (3): plan, en-US, pt-BR
 
 ### Community 89 - "Community 89"
 Cohesion: 0.67
-Nodes (3): select all, en-US, pt-BR
+Nodes (3): biological gender, en-US, pt-BR
 
 ### Community 90 - "Community 90"
 Cohesion: 0.67
 Nodes (3): session, en-US, pt-BR
+
+### Community 91 - "Community 91"
+Cohesion: 0.67
+Nodes (3): agent, en-US, pt-BR
 
 ### Community 92 - "Community 92"
 Cohesion: 0.67
@@ -548,17 +547,17 @@ Nodes (3): audit log, en-US, pt-BR
 ## Knowledge Gaps
 - **541 isolated node(s):** `$schema`, `style`, `rsc`, `tsx`, `css` (+536 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **18 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **22 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `getMemberFunctionLabelKey()` connect `Community 3` to `Community 71`?**
-  _High betweenness centrality (0.104) - this node is a cross-community bridge._
-- **Why does `t()` connect `Community 3` to `Community 35`, `Community 5`, `Community 6`, `Community 27`, `Community 9`, `Community 15`, `Community 16`, `Community 17`, `Community 59`, `Community 62`?**
+  _High betweenness centrality (0.110) - this node is a cross-community bridge._
+- **Why does `t()` connect `Community 3` to `Community 32`, `Community 35`, `Community 5`, `Community 6`, `Community 9`, `Community 75`, `Community 16`, `Community 17`, `Community 59`, `Community 62`?**
+  _High betweenness centrality (0.062) - this node is a cross-community bridge._
+- **Why does `useI18n()` connect `Community 3` to `Community 32`, `Community 35`, `Community 5`, `Community 6`, `Community 9`, `Community 75`, `Community 140`, `Community 16`, `Community 17`, `Community 62`?**
   _High betweenness centrality (0.060) - this node is a cross-community bridge._
-- **Why does `useI18n()` connect `Community 3` to `Community 35`, `Community 5`, `Community 6`, `Community 9`, `Community 140`, `Community 15`, `Community 16`, `Community 17`, `Community 27`, `Community 62`?**
-  _High betweenness centrality (0.058) - this node is a cross-community bridge._
 - **Are the 41 inferred relationships involving `useI18n()` (e.g. with `AppShell()` and `Sidebar()`) actually correct?**
   _`useI18n()` has 41 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 41 inferred relationships involving `t()` (e.g. with `AppShell()` and `Sidebar()`) actually correct?**

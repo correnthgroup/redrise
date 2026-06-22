@@ -43,6 +43,11 @@ function generateShortId(prefix: string) {
   return id
 }
 
+function normalizeFallbackTeam(team: string | null | undefined) {
+  const value = (team ?? '').trim()
+  return value.toLowerCase() === 'core' ? '' : value
+}
+
 function mapTeam(row: TeamRow, assignments: AssignmentRow[]): Team {
   return {
     id: row.id,
@@ -152,10 +157,14 @@ export async function updateTeamAssignmentFunction(assignmentId: string, memberF
 export async function loadCurrentTeamAssignments(userId: string): Promise<{ function: string; teams: string[] } | null> {
   const { data: teamMembers } = await supabase
     .from('team_members')
-    .select('id, function, team, owner_user_id, member_user_id')
+    .select('id, function, team, owner_user_id, member_user_id, status')
     .or(`owner_user_id.eq.${userId},member_user_id.eq.${userId}`)
+    .eq('status', 'active')
 
-  const memberIds = (teamMembers ?? []).map((member) => member.id)
+  const rows = teamMembers ?? []
+  const externalRows = rows.filter((member) => member.member_user_id === userId && member.owner_user_id !== userId)
+  const effectiveRows = externalRows.length > 0 ? externalRows : rows
+  const memberIds = effectiveRows.map((member) => member.id)
   if (memberIds.length === 0) return null
 
   const { data: assignments } = await supabase
@@ -165,8 +174,9 @@ export async function loadCurrentTeamAssignments(userId: string): Promise<{ func
 
   const assignmentRows = (assignments ?? []) as unknown as { function: string; teams: { name: string }[] | { name: string } | null }[]
   if (assignmentRows.length === 0) {
-    const fallback = teamMembers?.[0]
-    return fallback ? { function: fallback.function ?? '', teams: fallback.team ? [fallback.team] : [] } : null
+    const fallback = effectiveRows[0]
+    const fallbackTeam = normalizeFallbackTeam(fallback?.team)
+    return fallback ? { function: fallback.function ?? '', teams: fallbackTeam ? [fallbackTeam] : [] } : null
   }
 
   return {

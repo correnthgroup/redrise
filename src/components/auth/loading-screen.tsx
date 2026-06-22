@@ -1,4 +1,4 @@
-import { Bot, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 type LoadingScreenProps = {
@@ -15,8 +15,8 @@ export function LoadingScreen({ message, state = 'loading', onRetry, onGoToSignI
     <div className="flex h-full min-h-screen w-full items-center justify-center bg-background px-6 text-foreground">
       <div className="flex max-w-md flex-col items-center text-center">
         <div className="mb-4 flex items-center gap-3">
-          <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
-            <Bot className="h-5 w-5" />
+          <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-card shadow-lg shadow-primary/20 ring-1 ring-border">
+            <img src="/logo-32.png" alt="Redrise" className="h-8 w-8 rounded-full object-cover" />
           </span>
           {!isError ? <Loader2 className="h-5 w-5 animate-spin text-secondary" /> : null}
         </div>
