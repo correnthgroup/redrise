@@ -239,8 +239,8 @@ async function ensureCurrentUserTeamMember(profile: UserProfile) {
     owner_user_id: profile.userId,
     member_user_id: profile.userId,
     invite_email: profile.email,
-    role: 'owner',
-    function: 'Owner',
+    role: 'admin',
+    function: 'Admin',
     team: 'Core',
     status: 'active',
   }

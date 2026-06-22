@@ -4,7 +4,7 @@
 
 ## Current Production Snapshot
 
-- Official URL: `https://redrise.onrender.com`.
+- Official URL: `https://www.redrise.app`.
 - Current production deployment: Render.
 - Production status: Render static site `redrise` is live.
 - Backend: Supabase project `vsaropewydcjsvplpugx`.
@@ -39,10 +39,25 @@
 - `corepack yarn test`, `corepack yarn build`, and `corepack yarn test:e2e` passed after applying remote migrations and fixing New Team wizard labels/error handling.
 - `supabase db push` applied remote migration 023 to add `tasks.flow_id`.
 - `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, `corepack yarn build`, and `corepack yarn test:e2e` passed after persisting Flow List rename/member updates, removing card-level member selection in Flow Builder, and adding Workspace/Flow context to New Task.
+- `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, and `corepack yarn build` passed for the current PRD implementation pass covering optional Middle Name, Members List role/team/status fixes, in-app invite notifications, Personal Information role display, and Task board filters.
+- `corepack yarn test:e2e` was intentionally not run in this pass; this PRD must not be considered concluded until the user/team validation confirms it.
+- `supabase db push` applied remote migration 024 to `vsaropewydcjsvplpugx`; `supabase functions deploy invite-member` redeployed the invite Edge Function.
+- `C:\Python314\python.exe -m graphify update . --force` refreshed the structural graph to 1024 nodes, 1218 edges, and 141 communities; semantic extraction remains pending without `GEMINI_API_KEY` or `GOOGLE_API_KEY`.
+- Invite dispatch hardening: `invite-member` now handles exact e-mail checking, member row updates, selected team assignment, existing-user in-app notification creation, and unregistered-user e-mail sending in one service-role Edge Function call; Add Member surfaces notification/e-mail dispatch failures instead of closing silently.
+- `supabase db push` applied remote migration 025 to enable Realtime delivery for `team_invite_notifications` on `vsaropewydcjsvplpugx`.
+- `C:\Python314\python.exe -m graphify update . --force` refreshed the structural graph to 1025 nodes, 1219 edges, and 140 communities after invite dispatch hardening.
+- Current PRD continuation: Resend-backed invite e-mails were wired through `invite-member` using `hi.from@redrise.app`, Supabase secrets were set for `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `APP_BASE_URL=https://www.redrise.app`, and `APP_ALLOWED_ORIGINS` includes the new domain.
+- Remote migrations 026 and 027 are applied on `vsaropewydcjsvplpugx`; they add Admin-only Settings RLS and Admin visibility for organization members/profiles.
+- Current PRD permission adjustment: migration 028 allows Owner and Board to view Members List in read-only mode and manage Team List/team assignments, while API Keys and Add Member/role edits remain Admin-only.
+- `C:\Python314\python.exe -m graphify update . --force` refreshed the structural graph to 1029 nodes, 1223 edges, and 137 communities after Resend/domain/Admin permissions changes.
+- Final PRD validation pass: fixed Sign Up label alignment by standardizing `Label` line-height to `leading-5`, pushed Supabase Auth config for `https://www.redrise.app`, fixed self-account persistence to remain `Admin`, and `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, `corepack yarn build`, and `corepack yarn test:e2e` all passed.
+- `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, and `corepack yarn build` passed after Resend invite flow, Admin-only Settings UI, domain documentation updates, and RLS migrations.
+- E2E remains intentionally not run until user/team validation requests the final PRD pass.
 
 ## Next Tasks
 
 - PRD parte 1 ajuste Team List/Role: Settings renomeia Function para Role/Cargo nos cadastros de membros; Team List mostra tabela por padrão, abre uma tela dedicada de wizard via New Team, e usa Function/Função livre por membro selecionado na etapa 2.
+- PRD atual em validação: Sign Up tornou Middle Name opcional; Members List edita Role/Cargo com Admin antes de Owner, lista equipes formais via `team_assignments`, remove duplicação visual de role e mantém status Online/Offline/Invited; usuários existentes recebem convite in-app com aceitar/recusar; usuários novos recebem convite por e-mail com Sign Up preenchido; Personal Information reflete o Role/Cargo atual; Task Board ganhou filtros por Workspace, Flow e Agent.
 - PRD parte 1 ajuste wizards: New Workspace, New Flow, New Task, New Agent, Integrations e New Team usam `WizardShell` como moldura compartilhada, mantendo individualidades de campos, validações e callbacks em seus próprios componentes.
 - PRD parte 1 ajuste slogan: texto mudou de `Adding AI. Enhance Value.` para `Add AI. Enhance Value.` em inglês e `Add AI. Agregue Valor.` em PT-BR.
 - PRD parte 1 ajuste Add Member: `AddMemberModal` removeu o campo Function separado, tornou Role/Cargo obrigatório usando a lista oficial de cargos e trocou Team para dropdown padrão carregado das equipes formais atuais.

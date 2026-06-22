@@ -364,7 +364,7 @@ export function AccountBasicInfoPage({
     Promise.all([loadCurrentAccessRole(fallbackUser.id), loadCurrentTeamAssignments(fallbackUser.id), loadCurrentTeamAssignment(fallbackUser.id)]).then(([role, multiAssignment, fallbackAssignment]) => {
       if (!cancelled) {
         setAccessRole(role)
-        setTeamAssignment(multiAssignment ? { function: multiAssignment.function, team: multiAssignment.teams.join(', ') } : fallbackAssignment)
+        setTeamAssignment(fallbackAssignment ? { function: fallbackAssignment.function, team: multiAssignment?.teams.join(', ') || fallbackAssignment.team } : null)
       }
     })
     return () => { cancelled = true }
@@ -494,7 +494,6 @@ export function AccountBasicInfoPage({
                 <Field>
                   <FieldLabel htmlFor="username" icon={<User className="h-4 w-4" />}>{t('account.username')}</FieldLabel>
                   <Input id="username" value={profile.username} disabled />
-                  <p className="text-xs text-muted-foreground">{t('account.readOnlyField')}</p>
                 </Field>
               </div>
             </section>

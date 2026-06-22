@@ -5,8 +5,12 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { Task, TaskStatus } from '@/types/task'
 import type { Agent } from '@/types/agent'
+import type { Workspace } from '@/types/workspace'
+import type { Flow } from '@/types/flow'
 import { TaskRunDialog } from '@/components/blocks/shared/task-run-dialog'
 import { useI18n } from '@/hooks/use-i18n'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DROPDOWN_TRIGGER_CLASSES } from '@/lib/styles'
 
 const COLUMNS: { id: TaskStatus; titleKey: string }[] = [
   { id: 'backlog', titleKey: 'tasks.backlog' },
@@ -28,17 +32,31 @@ const STATUS_TONE: Record<TaskStatus, string> = {
 export function TaskBoardPage({
   tasks,
   agents,
+  workspaces,
+  flows,
   onMoveTask,
   onDeleteTask,
 }: {
   tasks: Task[]
   agents: Agent[]
+  workspaces: Workspace[]
+  flows: Flow[]
   onMoveTask?: (id: string, status: TaskStatus) => Promise<boolean>
   onDeleteTask?: (id: string) => Promise<boolean>
 }) {
   const [dragging, setDragging] = useState<string | null>(null)
   const [runTaskId, setRunTaskId] = useState<string | null>(null)
+  const [workspaceFilter, setWorkspaceFilter] = useState('all')
+  const [flowFilter, setFlowFilter] = useState('all')
+  const [agentFilter, setAgentFilter] = useState('all')
   const { t } = useI18n()
+
+  const filteredTasks = tasks.filter((task) => {
+    if (workspaceFilter !== 'all' && task.workspace_id !== workspaceFilter) return false
+    if (flowFilter !== 'all' && task.flow_id !== flowFilter) return false
+    if (agentFilter !== 'all' && task.agent_id !== agentFilter) return false
+    return true
+  })
 
   const runTask = runTaskId ? tasks.find((t) => t.id === runTaskId) : null
   const runAgent = runTask?.agent_id ? agents.find((a) => a.id === runTask.agent_id) ?? null : null
@@ -49,9 +67,32 @@ export function TaskBoardPage({
 
   return (
     <div data-testid="task-board-page" className="flex h-full min-h-0 flex-col gap-4 p-6 animate-app-rise">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <Select value={workspaceFilter} onValueChange={(value) => { setWorkspaceFilter(value); setFlowFilter('all') }}>
+          <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES} aria-label={t('tasks.workspaceFilter')}><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('tasks.allWorkspaces')}</SelectItem>
+            {workspaces.map((workspace) => <SelectItem key={workspace.id} value={workspace.id}>{workspace.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={flowFilter} onValueChange={setFlowFilter}>
+          <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES} aria-label={t('tasks.flowFilter')}><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('tasks.allFlows')}</SelectItem>
+            {flows.filter((flow) => workspaceFilter === 'all' || flow.workspace_id === workspaceFilter).map((flow) => <SelectItem key={flow.id} value={flow.id}>{flow.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={agentFilter} onValueChange={setAgentFilter}>
+          <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES} aria-label={t('tasks.agentFilter')}><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('tasks.allAgents')}</SelectItem>
+            {agents.map((agent) => <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {COLUMNS.map((col) => {
-          const items = tasks.filter((t) => t.status === col.id)
+          const items = filteredTasks.filter((t) => t.status === col.id)
           return (
             <Card
               key={col.id}

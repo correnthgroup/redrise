@@ -1,4 +1,4 @@
-﻿import { useState, type ReactNode } from 'react'
+﻿import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   KeyRound,
   CreditCard,
@@ -23,6 +23,7 @@ import { AddMemberModal } from '../shared/add-member-modal'
 import { AuditLogCard } from '../shared/audit-log-card'
 import { PlansPage } from './plans-page'
 import { useI18n } from '@/hooks/use-i18n'
+import { loadSettingsAdminContext, type SettingsAdminContext } from '@/lib/team-members'
 
 type SettingsUser = { id: string; name: string; firstName: string; email: string; avatarUrl?: string | null }
 
@@ -45,22 +46,38 @@ type SettingShortcut = {
   disabled?: boolean
 }
 
-function TeamMembersView({ user, onBack }: { user: SettingsUser; onBack: () => void }) {
+const ADMIN_ONLY_SETTINGS = new Set<SettingKey>(['api-keys', 'team-members', 'team-list'])
+
+function TeamMembersView({ user, ownerUserId, canManageMembers, onBack }: { user: SettingsUser; ownerUserId: string; canManageMembers: boolean; onBack: () => void }) {
   const [open, setOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const ownerUser = useMemo(() => ({ ...user, id: ownerUserId }), [ownerUserId, user])
 
   return (
     <>
-      <MemberListTable key={refreshKey} user={user} onAddMember={() => setOpen(true)} onBack={onBack} />
-      <AddMemberModal ownerUserId={user.id} open={open} onOpenChange={setOpen} onMemberAdded={() => setRefreshKey((value) => value + 1)} />
+      <MemberListTable key={refreshKey} user={ownerUser} onAddMember={() => setOpen(true)} onBack={onBack} canAddMember={canManageMembers} canEditRoles={canManageMembers} />
+      {canManageMembers ? <AddMemberModal ownerUserId={ownerUserId} open={open} onOpenChange={setOpen} onMemberAdded={() => setRefreshKey((value) => value + 1)} /> : null}
     </>
   )
 }
 
 export function SettingsPage({ user }: { user: SettingsUser }) {
   const [active, setActive] = useState<SettingKey | null>(null)
+  const [adminContext, setAdminContext] = useState<SettingsAdminContext | null>(null)
   const { t } = useI18n()
   const plansEnabled = import.meta.env.DEV
+
+  useEffect(() => {
+    let cancelled = false
+    void loadSettingsAdminContext(user.id).then((context) => {
+      if (!cancelled) setAdminContext(context)
+    })
+    return () => { cancelled = true }
+  }, [user.id])
+
+  const canOpenAdminSettings = !!adminContext?.isAdmin
+  const canOpenTeamManagerSettings = !!adminContext?.isTeamManager
+  const settingsOwnerId = adminContext?.ownerUserId ?? user.id
 
   const SETTINGS_SHORTCUTS: SettingShortcut[] = [
     {
@@ -86,6 +103,7 @@ export function SettingsPage({ user }: { user: SettingsUser }) {
       titleKey: 'settings.apiKeys',
       descKey: 'settings.apiKeysDesc',
       icon: <KeyRound className="h-5 w-5" />,
+      disabled: !canOpenAdminSettings,
     },
     {
       key: 'integrations',
@@ -98,12 +116,14 @@ export function SettingsPage({ user }: { user: SettingsUser }) {
       titleKey: 'settings.teamMembers',
       descKey: 'settings.teamMembersDesc',
       icon: <UserPlus className="h-5 w-5" />,
+      disabled: !canOpenTeamManagerSettings,
     },
     {
       key: 'team-list',
       titleKey: 'settings.teamList',
       descKey: 'settings.teamListDesc',
       icon: <UsersRound className="h-5 w-5" />,
+      disabled: !canOpenTeamManagerSettings,
     },
     {
       key: 'plans',
@@ -122,18 +142,20 @@ export function SettingsPage({ user }: { user: SettingsUser }) {
 
   const goBack = () => setActive(null)
 
-  let detail: ReactNode = null
-  if (active === 'personal-info') detail = <AccountBasicInfoPage user={user} onBack={goBack} onSave={goBack} onOpenPlans={() => { if (plansEnabled) setActive('plans') }} />
-  else if (active === 'change-password') detail = <ChangePassword onBack={goBack} />
-  else if (active === 'active-sessions') detail = <SessionsList userId={user.id} onBack={goBack} />
-  else if (active === 'api-keys') detail = <ApiKeysManager onBack={goBack} />
-  else if (active === 'integrations') detail = <IntegrationSetupWizard onBack={goBack} />
-  else if (active === 'team-members') detail = <TeamMembersView user={user} onBack={goBack} />
-  else if (active === 'team-list') detail = <TeamListTable user={user} onBack={goBack} />
-  else if (active === 'plans') detail = <PlansPage onBack={goBack} />
-  else if (active === 'audit-log') detail = <AuditLogCard onBack={goBack} />
+  const safeActive = active && (active === 'api-keys' ? canOpenAdminSettings : !ADMIN_ONLY_SETTINGS.has(active) || canOpenTeamManagerSettings) ? active : null
 
-  if (active) {
+  let detail: ReactNode = null
+  if (safeActive === 'personal-info') detail = <AccountBasicInfoPage user={user} onBack={goBack} onSave={goBack} onOpenPlans={() => { if (plansEnabled) setActive('plans') }} />
+  else if (safeActive === 'change-password') detail = <ChangePassword onBack={goBack} />
+  else if (safeActive === 'active-sessions') detail = <SessionsList userId={user.id} onBack={goBack} />
+  else if (safeActive === 'api-keys') detail = <ApiKeysManager onBack={goBack} ownerUserId={settingsOwnerId} />
+  else if (safeActive === 'integrations') detail = <IntegrationSetupWizard onBack={goBack} />
+  else if (safeActive === 'team-members') detail = <TeamMembersView user={user} ownerUserId={settingsOwnerId} canManageMembers={canOpenAdminSettings} onBack={goBack} />
+  else if (safeActive === 'team-list') detail = <TeamListTable user={{ ...user, id: settingsOwnerId }} onBack={goBack} />
+  else if (safeActive === 'plans') detail = <PlansPage onBack={goBack} />
+  else if (safeActive === 'audit-log') detail = <AuditLogCard onBack={goBack} />
+
+  if (safeActive) {
     return (
       <div className="flex h-full flex-col overflow-hidden animate-app-rise">
         <div className="min-h-0 flex-1 overflow-auto bg-muted/20">
@@ -170,7 +192,7 @@ export function SettingsPage({ user }: { user: SettingsUser }) {
                   </span>
                   <div className="min-w-0 space-y-1">
                     <p className="text-sm font-semibold">{t(shortcut.titleKey)}</p>
-                    <p className="text-xs leading-snug text-muted-foreground">{shortcut.disabled ? t('settings.underConstruction') : t(shortcut.descKey)}</p>
+                    <p className="text-xs leading-snug text-muted-foreground">{shortcut.disabled ? (ADMIN_ONLY_SETTINGS.has(shortcut.key) ? t('settings.adminOnly') : t('settings.underConstruction')) : t(shortcut.descKey)}</p>
                   </div>
                 </button>
               ))}

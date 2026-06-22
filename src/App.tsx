@@ -16,6 +16,7 @@ import { CreateTaskPage } from '@/components/blocks/pages/create-task-page'
 import { CreateWorkspacePage } from '@/components/blocks/pages/create-workspace-page'
 import { ReviewTaskPage } from '@/components/blocks/pages/review-task-page'
 import { ReviewWorkspacePage } from '@/components/blocks/pages/review-workspace-page'
+import { TeamInviteDialog } from '@/components/blocks/shared/team-invite-dialog'
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null)
@@ -160,6 +161,7 @@ export default function App() {
               await supabase.auth.signOut()
             }}
           />
+          <TeamInviteDialog userId={user.id} />
         </I18nProvider>
       </AppFrame>
     </ErrorBoundary>

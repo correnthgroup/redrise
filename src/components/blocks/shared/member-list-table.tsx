@@ -6,24 +6,36 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { PaginationFooter } from './pagination-footer'
-import { loadTeamMembers, type TeamMember } from '@/lib/team-members'
-import { getMemberFunctionLabelKey } from '@/lib/member-functions'
+import { loadTeamMembers, updateTeamMember, type TeamMember, type TeamMemberRole } from '@/lib/team-members'
+import { MEMBER_FUNCTIONS, getMemberFunctionLabelKey, normalizeMemberFunction, type MemberFunction } from '@/lib/member-functions'
 import { useI18n } from '@/hooks/use-i18n'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DROPDOWN_TRIGGER_CLASSES } from '@/lib/styles'
 
 type CurrentUser = { id: string; name: string; email: string; avatarUrl?: string | null }
 
 const PAGE_SIZE = 7
 
+const ROLE_MAP: Record<MemberFunction, TeamMemberRole> = {
+  Admin: 'admin',
+  Owner: 'owner',
+  Board: 'admin',
+  Staff: 'admin',
+  Member: 'member',
+  Viewer: 'viewer',
+}
+
 function initials(name: string) {
   return name.replace(/[[\]]/g, '').split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase()
 }
 
-export function MemberListTable({ user, onAddMember, onBack }: { user: CurrentUser; onAddMember?: () => void; onBack?: () => void }) {
+export function MemberListTable({ user, onAddMember, onBack, canAddMember = true, canEditRoles = true }: { user: CurrentUser; onAddMember?: () => void; onBack?: () => void; canAddMember?: boolean; canEditRoles?: boolean }) {
   const { t } = useI18n()
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
   const [members, setMembers] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
+  const [savingMemberId, setSavingMemberId] = useState<string | null>(null)
 
   const refreshMembers = useCallback(async () => {
     setLoading(true)
@@ -47,11 +59,15 @@ export function MemberListTable({ user, onAddMember, onBack }: { user: CurrentUs
   const safePage = Math.min(page, totalPages)
   const start = (safePage - 1) * PAGE_SIZE
   const rows = filtered.slice(start, start + PAGE_SIZE)
-  function roleLabel(role: TeamMember['role']) {
-    if (role === 'admin') return t('settings.roleAdmin')
-    if (role === 'member') return t('settings.roleMember')
-    if (role === 'viewer') return t('settings.roleViewer')
-    return role
+  async function handleFunctionChange(member: TeamMember, value: string) {
+    const nextFunction = normalizeMemberFunction(value)
+    setSavingMemberId(member.id)
+    const nextMember = { ...member, function: nextFunction, role: ROLE_MAP[nextFunction] }
+    const saved = await updateTeamMember(nextMember)
+    if (saved) {
+      setMembers((current) => current.map((item) => item.id === member.id ? nextMember : item))
+    }
+    setSavingMemberId(null)
   }
 
   function statusLabel(status: TeamMember['status']) {
@@ -107,10 +123,16 @@ export function MemberListTable({ user, onAddMember, onBack }: { user: CurrentUs
                   </div>
                 </td>
                 <td className="px-3 py-3">
-                  <div className="space-y-0.5">
-                    <p className="text-sm">{member.function ? t(getMemberFunctionLabelKey(member.function)) : '-'}</p>
-                    <p className="text-xs text-muted-foreground">{roleLabel(member.role)}</p>
-                  </div>
+                  <Select value={member.function || 'Member'} onValueChange={(value) => { void handleFunctionChange(member, value) }} disabled={!canEditRoles || savingMemberId === member.id}>
+                    <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES} aria-label={t('settings.function')}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MEMBER_FUNCTIONS.map((option) => (
+                        <SelectItem key={option} value={option}>{t(getMemberFunctionLabelKey(option))}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </td>
                 <td className="px-3 py-3">
                   <Badge variant="outline" className={member.status === 'Online' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : member.status === 'Invited' ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-slate-200 bg-slate-50 text-slate-600'}>
@@ -134,10 +156,12 @@ export function MemberListTable({ user, onAddMember, onBack }: { user: CurrentUs
           <ArrowLeft className="h-4 w-4" />
           {t('common.back')}
         </Button>
-        <Button type="button" size="sm" onClick={onAddMember}>
-          <UserPlus className="h-4 w-4" />
-          {t('settings.addMember')}
-        </Button>
+        {canAddMember ? (
+          <Button type="button" size="sm" onClick={onAddMember}>
+            <UserPlus className="h-4 w-4" />
+            {t('settings.addMember')}
+          </Button>
+        ) : null}
       </div>
     </Card>
   )

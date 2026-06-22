@@ -2,6 +2,7 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { Bot, Check, Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { RequiredLabel } from '@/components/ui/required-label'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
@@ -62,7 +63,7 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
     [password],
   )
   const allRulesMet = passwordState.every((rule) => rule.met)
-  const signUpReady = firstName.trim().length >= 2 && middleName.trim().length > 0 && lastName.trim().length > 0 && isValidEmail(email) && allRulesMet && confirmPassword === password
+  const signUpReady = firstName.trim().length >= 2 && lastName.trim().length > 0 && isValidEmail(email) && allRulesMet && confirmPassword === password
 
   function resetMessages() {
     setError(null)
@@ -96,8 +97,8 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
       setError('First Name must have at least 2 characters.')
       return
     }
-    if (!middleName.trim() || !lastName.trim()) {
-      setError('Middle Name and Last Name are required.')
+    if (!lastName.trim()) {
+      setError('Last Name is required.')
       return
     }
     if (!isValidEmail(email)) {
@@ -195,8 +196,8 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
                   <Input id="first-name" required value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="First" autoComplete="given-name" />
                 </div>
                 <div className={styles.fieldGroup}>
-                  <RequiredLabel htmlFor="middle-name">Middle Name</RequiredLabel>
-                  <Input id="middle-name" required value={middleName} onChange={(event) => setMiddleName(event.target.value)} placeholder="Middle" autoComplete="additional-name" />
+                  <Label htmlFor="middle-name">Middle Name</Label>
+                  <Input id="middle-name" value={middleName} onChange={(event) => setMiddleName(event.target.value)} placeholder="Middle" autoComplete="additional-name" />
                 </div>
                 <div className={styles.fieldGroup}>
                   <RequiredLabel htmlFor="last-name">Last Name</RequiredLabel>

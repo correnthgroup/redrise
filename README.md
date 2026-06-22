@@ -52,7 +52,7 @@ corepack yarn test:e2e
 ## Deploy
 
 - Target GitHub repository: `https://github.com/correnthgroup/redrise.git`.
-- Production URL: `https://redrise.onrender.com`.
+- Production URL: `https://www.redrise.app`.
 - Base operational account for GitHub/Render/Supabase: `integration@correnth.com`.
 - Preferred frontend deploy path is Render auto-deploy from the GitHub repository.
 - Build command: `corepack yarn build`.

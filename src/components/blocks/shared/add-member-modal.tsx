@@ -26,6 +26,7 @@ import { DROPDOWN_TRIGGER_CLASSES } from '@/lib/styles'
 import { useI18n } from '@/hooks/use-i18n'
 
 const ROLE_MAP: Record<MemberFunction, TeamMemberRole> = {
+  Admin: 'admin',
   Owner: 'owner',
   Board: 'admin',
   Staff: 'admin',
@@ -54,6 +55,7 @@ export function AddMemberModal({
   const [email, setEmail] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [inviteLink, setInviteLink] = useState<string | null>(null)
   const [emailStatus, setEmailStatus] = useState<'idle' | 'checking' | 'registered' | 'not_registered'>('idle')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const open = controlledOpen ?? uncontrolledOpen
@@ -82,6 +84,7 @@ export function AddMemberModal({
 
   async function handleInvite() {
     setError(null)
+    setInviteLink(null)
     setSubmitting(true)
     if (!role) {
       setSubmitting(false)
@@ -89,10 +92,23 @@ export function AddMemberModal({
       return
     }
     const selectedTeam = teams.find((team) => team.id === teamId)
-    const created = await addTeamMember(ownerUserId, email, ROLE_MAP[role], role, selectedTeam?.name ?? '')
+    const created = await addTeamMember(ownerUserId, email, ROLE_MAP[role], role, selectedTeam?.name ?? '', selectedTeam?.id)
     setSubmitting(false)
     if (!created) {
       setError(t('settings.inviteError'))
+      return
+    }
+    if (created.existingAccount && !created.notificationCreated) {
+      setError(t('settings.inviteNotificationError'))
+      return
+    }
+    if (!created.existingAccount && !created.emailSent && created.inviteLink) {
+      setInviteLink(created.inviteLink)
+      onMemberAdded?.()
+      return
+    }
+    if (!created.existingAccount && !created.emailSent) {
+      setError(t('settings.inviteEmailSendError', { error: created.emailError ?? t('settings.inviteEmailUnknownError') }))
       return
     }
     setEmail('')
@@ -147,6 +163,15 @@ export function AddMemberModal({
             </Select>
           </div>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          {inviteLink ? (
+            <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+              <p>{t('settings.inviteLinkFallback')}</p>
+              <Input value={inviteLink} readOnly onFocus={(event) => event.currentTarget.select()} />
+              <Button type="button" variant="outline" size="sm" onClick={() => { void navigator.clipboard.writeText(inviteLink) }}>
+                {t('settings.copyInviteLink')}
+              </Button>
+            </div>
+          ) : null}
         </div>
 
         <DialogFooter>

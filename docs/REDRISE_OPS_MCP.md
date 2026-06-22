@@ -46,4 +46,4 @@ Expected static site settings:
 - Publish Directory: `dist`
 - Runtime: static
 - Service name: `redrise`
-- Production URL: `https://redrise.onrender.com`
+- Production URL: `https://www.redrise.app`

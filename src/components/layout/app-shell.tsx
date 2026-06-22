@@ -154,7 +154,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
         />
       : taskView === 'review'
         ? <ReviewTaskPage onBack={() => setTaskView('board')} />
-        : <TaskBoardPage tasks={tasks} agents={agents} onMoveTask={moveTask} onDeleteTask={removeTask} />
+        : <TaskBoardPage tasks={tasks} agents={agents} workspaces={workspaces} flows={flows} onMoveTask={moveTask} onDeleteTask={removeTask} />
   } else if (active === 'agents') {
     body = agentView === 'create'
       ? <AgentCreatePage

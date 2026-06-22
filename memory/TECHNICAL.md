@@ -25,7 +25,7 @@
 - `HITL` significa Human-in-the-loop: humanos revisam, aprovam ou bloqueiam ações importantes antes da execução final.
 - O app usa Supabase para autenticação, banco de dados e funções de backend.
 - O app usa Render como hospedagem pública atual.
-- A URL oficial é `https://redrise.onrender.com`.
+- A URL oficial é `https://www.redrise.app`.
 - A navegação principal fica na Sidebar à esquerda.
 - O título da tela atual fica na Topbar no topo.
 - O conteúdo principal fica no centro, dentro do `main` do AppShell.
@@ -51,6 +51,8 @@
 - Perfil pessoal: tabela Supabase `profiles`.
 - Sessões autenticadas e flag Remember Me: tabela Supabase `active_sessions`.
 - Lista global de membros da equipe: tabela Supabase `team_members`.
+- Convites in-app para usuários já cadastrados: tabela Supabase `team_invite_notifications`.
+- Convites por e-mail para usuários ainda não cadastrados: Supabase Auth gera o link de convite e a Edge Function `invite-member` envia o e-mail pela Resend.
 - Workspaces: Supabase via `src/lib/workspaces.ts`.
 - Flows: Supabase via `src/lib/flows.ts`.
 - Tasks: Supabase via `src/lib/tasks.ts`.
@@ -77,7 +79,7 @@
 - Sign in usa e-mail e senha via Supabase Auth.
 - Remember Me não é mais condição para registrar metadados de sessão; ele marca a sessão como lembrada/confiável via campo `remembered`.
 - Sign in registra metadados de sessão em `active_sessions`; o campo `remembered` indica se o usuário marcou Remember Me.
-- Sign up usa First Name, Middle Name, Last Name, e-mail, senha e confirmação de senha como campos obrigatórios visualmente e via HTML `required`.
+- Sign up usa First Name, Last Name, e-mail, senha e confirmação de senha como campos obrigatórios visualmente e via HTML `required`; Middle Name é opcional.
 - Após criar conta, o app faz logout imediato e volta ao Sign In com o aviso `Account created. Sign in with the credentials you just created.`
 - O cadastro não exige confirmação por e-mail no estado atual; `enable_confirmations=false` no Supabase Auth.
 - Login/cadastro OAuth com GitHub, Google e Microsoft está arquivado até existirem Client IDs/secrets válidos no Supabase e nos provedores.
@@ -170,6 +172,9 @@
 - Ao finalizar, `CreateTaskPage` chama `onCreate()` recebido do `AppShell`.
 - `AppShell` chama `addTask()` e volta para o board se criar com sucesso.
 - `TaskBoardPage` recebe tasks e agents carregados pelo `AppShell`.
+- `TaskBoardPage` também recebe workspaces e flows do `AppShell` para filtrar o board.
+- O board tem filtros por Workspace, Flow e Agent; cada filtro tem opção All/Tudo e não persiste em `localStorage`.
+- Ao trocar Workspace no filtro do board, o filtro de Flow volta para All para evitar flow incompatível com o workspace selecionado.
 - Mover card no board chama `moveTask()`.
 - Deletar task chama `removeTask()`.
 - `ReviewTaskPage` existe como visão futura de revisão, mas o fluxo atual do board precisa ser verificado antes de assumir persistência completa nessa tela.
@@ -236,6 +241,9 @@
 - Phone é salvo no perfil.
 - O carregamento remoto não deve sobrescrever campos já editados antes de salvar; isso é protegido por `dirtyRef`.
 - Username e Email Address são campos somente leitura na UI de Personal Information.
+- Username não mostra mais texto auxiliar `Read-only field` abaixo do campo.
+- Current Role usa o cargo atual salvo em `team_members.function`, ou seja, a mesma fonte editável em Settings > Members List.
+- Current Team usa `team_assignments` quando houver equipes formais associadas e cai no campo legado `team_members.team` apenas como fallback.
 - A tela de Personal Information segura o primeiro paint até o perfil remoto chegar para evitar flicker de valores intermediários como username/first name e timezone.
 
 ## Settings > Change Password
@@ -282,21 +290,38 @@
 - O botão `Add Member` abre `AddMemberModal`.
 - `AddMemberModal` pede e-mail, Role/Cargo obrigatório e equipe inicial opcional.
 - Em Settings, o campo antes chamado `Function` para membros agora aparece como `Role` / `Cargo`.
-- A lista oficial de cargos é `Owner`, `Board`, `Staff`, `Member` e `Viewer`.
-- Em PT-BR, os cargos aparecem como `Sócio`, `Diretor`, `Equipe`, `Membro` e `Visualizador`.
+- A lista oficial de cargos é `Admin`, `Owner`, `Board`, `Staff`, `Member` e `Viewer`.
+- Em PT-BR, os cargos aparecem como `Admin`, `Sócio`, `Diretor`, `Equipe`, `Membro` e `Visualizador`.
 - Os valores persistidos de cargo continuam em inglês para manter consistência técnica e tradução apenas na UI.
 - Ao enviar, `addTeamMember()` chama a Edge Function `invite-member`.
-- A Edge Function persiste a linha em `team_members` antes de tentar enviar e-mail.
+- A Edge Function faz a checagem exata de e-mail cadastrado com service role; o frontend não consulta `profiles` diretamente para descobrir e-mails arbitrários porque RLS bloqueia essa leitura.
+- A Edge Function persiste a linha em `team_members`, salva Role/Cargo, cria `team_assignments` quando uma equipe foi selecionada, cria notificação in-app para usuário existente e envia e-mail via Resend para usuário ainda não cadastrado.
+- O remetente parametrizado para convites por e-mail é `hi.from@redrise.app`, via secrets `RESEND_API_KEY` e `RESEND_FROM_EMAIL` na Supabase Edge Function.
+- `APP_BASE_URL` da Edge Function está parametrizado como `https://www.redrise.app`, então links de convite gerados apontam para o domínio oficial novo.
 - Role/Cargo do convite usa a mesma lista oficial de cargos e persiste em `team_members.function`; a permissão técnica enviada para a Edge Function é derivada desse cargo.
 - O campo Function/Função por associação não aparece em `AddMemberModal`; ele deve ser preenchido em Settings > Team List dentro da equipe.
-- Team no `AddMemberModal` é um dropdown padrão do app carregado por `loadTeams(user.id)` com as equipes formais criadas atualmente; quando selecionado, salva o nome da equipe em `team_members.team` como referência inicial.
+- Team no `AddMemberModal` é um dropdown padrão do app carregado por `loadTeams(user.id)` com as equipes formais criadas atualmente; quando selecionado, a Edge Function salva o nome da equipe em `team_members.team` como fallback e cria `team_assignments` para a equipe formal.
+- `MemberListTable` permite editar Role/Cargo diretamente no dropdown da coluna Function/Role e persiste em `team_members.function` com permissão técnica derivada em `team_members.role`.
+- A coluna Function/Role não mostra mais duplicação visual do cargo técnico abaixo do cargo traduzido.
+- A coluna Team usa `team_assignments` para listar todas as equipes formais do membro e usa `team_members.team` apenas como fallback.
+- Usuário já cadastrado convidado por e-mail fica com `team_members.status = invited`, recebe uma linha em `team_invite_notifications`, e vê um diálogo global ao entrar para aceitar ou recusar.
+- `team_invite_notifications` está na publicação `supabase_realtime`; o diálogo global assina mudanças Realtime por `recipient_user_id` e mantém polling de 30 segundos como fallback.
+- Se o disparo de notificação in-app ou envio de e-mail falhar, `AddMemberModal` não fecha silenciosamente e mostra erro traduzido para facilitar teste e diagnóstico.
+- Se a Resend não conseguir entregar o e-mail, a Edge Function ainda retorna o link oficial gerado pelo Supabase e o modal mostra esse link como fallback operacional de teste.
+- Migrations 026, 027 e 028 adicionam RLS para B2B: `Admin` gerencia Members List, Team List e API Keys; `Owner` e `Board` podem visualizar Members List sem Add Member/edição de cargos e podem gerenciar Team List.
+- Contas principais/self-owner são migradas de `Owner` para `Admin`; novos signups criam a linha própria como `Admin`.
+- `ensureCurrentUserTeamMember()` em `src/lib/user-profile.ts` também preserva a linha própria como `Admin`; não voltar para `Owner`, pois isso remove acesso administrativo após login.
+- Admin, Owner e Board convidados operam a organização pelo `owner_user_id` da linha em `team_members`, não pela própria conta individual.
+- RLS permite que Admin/Owner/Board visualizem membros e perfis vinculados à organização; escrita de `team_members` e `api_keys` fica restrita a Admin, enquanto `teams` e `team_assignments` podem ser gerenciados por Admin/Owner/Board.
+- Aceitar convite chama a função SQL `respond_to_team_invite()`, marca a notificação como accepted e ativa a linha em `team_members`.
+- Recusar convite chama a mesma função SQL, marca a notificação como declined e remove a linha pendente em `team_members`.
+- Usuário ainda não cadastrado recebe convite por e-mail via `inviteUserByEmail()` com redirect para Sign Up contendo o e-mail preenchido.
 - Se o Supabase limitar envio de e-mail, o convite ainda aparece na lista como `Invited`.
 - Quando um convidado cria conta com o mesmo e-mail, o trigger de signup conecta a linha convidada ao novo `member_user_id`.
 - Status `Invited` vem de `team_members.status = invited`.
 - Status `Online` é calculado se o perfil do membro teve `last_seen_at` nos últimos 2 minutos.
 - Status `Offline` aparece quando não está convidado e não está online.
-- Members List não possui mais botão de edição; ela é apenas lista geral de membros e entrada para convite.
-- A edição de Team e Function de membros existentes foi movida para Settings > Team List.
+- Members List edita apenas Role/Cargo geral do membro; Function/Função por equipe continua em Settings > Team List.
 - Não duplicar lista de membros em outras telas; use `loadTeamMembers()` ou `useTeamMemberOptions()`.
 
 ## Settings > Team List
@@ -346,6 +371,7 @@
 - Quando o trigger for um `Button`, usar `variant="outline"` junto com a constante para que o hover do CVA alinhe com `hover:bg-accent hover:text-accent-foreground`.
 - A constante garante: mesma cor de fundo, borda, padding, fonte, sombra, hover laranja com texto claro, focus ring, transição e estado disabled em todos os dropdowns.
 - `RequiredLabel` em `src/components/ui/required-label.tsx` é o componente padrão para rótulos de campos obrigatórios.
+- `Label` em `src/components/ui/label.tsx` padroniza títulos de campos com `text-sm font-medium leading-5`; labels opcionais e obrigatórios devem usar esse componente para manter alinhamento visual.
 - Todo campo obrigatório deve usar `RequiredLabel` em vez de criar asterisco/classe manual.
 - `RequiredLabel` usa o mesmo padrão visual dos wizards operacionais: texto e asterisco em `#A04D1F`.
 - Atualmente `RequiredLabel` é usado em Sign In, Sign Up, New Workspace, New Flow, New Task, Integrations, Add Member e Team List.
@@ -568,7 +594,7 @@
 
 ## Infraestrutura, Deploy E Qualidade
 
-- Produção oficial atual: `https://redrise.onrender.com`.
+- Produção oficial atual: `https://www.redrise.app`.
 - O frontend é uma SPA estática.
 - SPA significa Single Page Application: o navegador carrega um app único e o React troca as telas internamente.
 - Deploy frontend normal deve usar Render conectado a `https://github.com/correnthgroup/redrise.git`.

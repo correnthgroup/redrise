@@ -11,7 +11,7 @@ import { useI18n } from '@/hooks/use-i18n'
 
 const SCOPE_OPTIONS = ['agents:read', 'agents:write', 'tasks:read', 'tasks:write', 'analytics:read', 'integrations:manage'] as const
 
-export function ApiKeysManager({ onBack }: { onBack?: () => void }) {
+export function ApiKeysManager({ onBack, ownerUserId }: { onBack?: () => void; ownerUserId?: string }) {
   const { t, locale } = useI18n()
   const [keys, setKeys] = useState<ApiKey[]>([])
   const [loading, setLoading] = useState(true)
@@ -25,15 +25,15 @@ export function ApiKeysManager({ onBack }: { onBack?: () => void }) {
   const [createdKeyId, setCreatedKeyId] = useState<string | null>(null)
 
   useEffect(() => {
-    loadApiKeys().then(setKeys).finally(() => setLoading(false))
-  }, [])
+    loadApiKeys(ownerUserId).then(setKeys).finally(() => setLoading(false))
+  }, [ownerUserId])
 
   async function handleCreate(event: React.FormEvent) {
     event.preventDefault()
     if (!newName.trim() || newScopes.length === 0) return
     setSaving(true)
     try {
-      const result = await createApiKey({ name: newName.trim(), scopes: newScopes })
+      const result = await createApiKey({ name: newName.trim(), scopes: newScopes }, ownerUserId)
       setKeys((current) => [result.key, ...current])
       setCreatedSecret(result.secret)
       setCreatedKeyId(result.key.id)

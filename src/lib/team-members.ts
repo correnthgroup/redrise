@@ -1,5 +1,4 @@
 import { supabase } from './supabase'
-
 export type TeamMemberRole = 'owner' | 'admin' | 'member' | 'viewer'
 
 export type TeamMember = {
@@ -19,6 +18,13 @@ export type TeamMember = {
 
 export type AccessRole = 'admin' | 'member' | 'viewer'
 
+export type SettingsAdminContext = {
+  isAdmin: boolean
+  isTeamManager: boolean
+  ownerUserId: string
+  function: string
+}
+
 type TeamMemberRow = {
   id: string
   owner_user_id: string
@@ -29,6 +35,11 @@ type TeamMemberRow = {
   team: string
   status: 'active' | 'invited'
   joined_at: string
+}
+
+type TeamAssignmentTeamRow = {
+  team_member_id: string
+  teams: { name: string }[] | { name: string } | null
 }
 
 type ProfileRow = {
@@ -67,6 +78,17 @@ export async function loadTeamMembers(ownerUserId: string): Promise<TeamMember[]
     : { data: [] }
 
   const profilesById = new Map((profiles as ProfileRow[]).map((profile) => [profile.id, profile]))
+  const memberIds = ((members ?? []) as TeamMemberRow[]).map((member) => member.id)
+  const { data: assignments } = memberIds.length > 0
+    ? await supabase.from('team_assignments').select('team_member_id, teams(name)').in('team_member_id', memberIds)
+    : { data: [] }
+  const teamsByMemberId = new Map<string, string[]>()
+  ;((assignments ?? []) as unknown as TeamAssignmentTeamRow[]).forEach((assignment) => {
+    const names = Array.isArray(assignment.teams)
+      ? assignment.teams.map((team) => team.name).filter(Boolean)
+      : assignment.teams?.name ? [assignment.teams.name] : []
+    teamsByMemberId.set(assignment.team_member_id, [...(teamsByMemberId.get(assignment.team_member_id) ?? []), ...names])
+  })
 
   return ((members ?? []) as TeamMemberRow[]).map((member) => {
     const profile = member.member_user_id ? profilesById.get(member.member_user_id) : undefined
@@ -81,7 +103,7 @@ export async function loadTeamMembers(ownerUserId: string): Promise<TeamMember[]
       avatarUrl: profile?.avatar_url ?? null,
       role: member.role,
       function: member.function,
-      team: member.team,
+      team: teamsByMemberId.get(member.id)?.join(', ') || member.team,
       status: member.status === 'invited' ? 'Invited' : isOnline(profile?.last_seen_at ?? null) ? 'Online' : 'Offline',
       joined: new Intl.DateTimeFormat().format(new Date(member.joined_at)),
     }
@@ -89,30 +111,23 @@ export async function loadTeamMembers(ownerUserId: string): Promise<TeamMember[]
 }
 
 export async function addTeamMember(
-  ownerUserId: string,
+  _ownerUserId: string,
   email: string,
   role: TeamMemberRole,
   memberFunction?: string,
   team?: string,
+  teamId?: string,
 ) {
   const cleanEmail = email.trim().toLowerCase()
   if (!cleanEmail) return null
 
   const { data, error } = await supabase.functions.invoke('invite-member', {
-    body: { email: cleanEmail, role },
+    body: { email: cleanEmail, role, memberFunction, team, teamId, ownerUserId: _ownerUserId },
   })
 
   if (error) return null
 
-  if (memberFunction || team !== undefined) {
-    await supabase
-      .from('team_members')
-      .update({ function: memberFunction, team: team ?? '' })
-      .eq('owner_user_id', ownerUserId)
-      .eq('invite_email', cleanEmail)
-  }
-
-  return data as { ok: true; emailSent?: boolean; emailError?: string | null; existingAccount?: boolean }
+  return data as { ok: true; teamMemberId?: string; assignmentCreated?: boolean; notificationCreated?: boolean; emailSent?: boolean; emailError?: string | null; inviteLink?: string | null; existingAccount?: boolean }
 }
 
 export async function loadCurrentAccessRole(userId: string): Promise<AccessRole> {
@@ -128,6 +143,25 @@ export async function loadCurrentAccessRole(userId: string): Promise<AccessRole>
   if (role === 'viewer') return 'viewer'
   if (role === 'member') return 'member'
   return 'admin'
+}
+
+export async function loadSettingsAdminContext(userId: string): Promise<SettingsAdminContext> {
+  const { data } = await supabase
+    .from('team_members')
+    .select('owner_user_id, member_user_id, function, status, joined_at')
+    .or(`owner_user_id.eq.${userId},member_user_id.eq.${userId}`)
+    .eq('status', 'active')
+    .order('joined_at', { ascending: true })
+
+  const rows = data ?? []
+  const adminRow = rows.find((row) => row.member_user_id === userId && row.function === 'Admin')
+  const managerRow = adminRow ?? rows.find((row) => row.member_user_id === userId && ['Owner', 'Board'].includes(row.function))
+  return {
+    isAdmin: !!adminRow,
+    isTeamManager: !!managerRow,
+    ownerUserId: managerRow?.owner_user_id ?? userId,
+    function: managerRow?.function ?? '',
+  }
 }
 
 export async function loadCurrentTeamAssignment(userId: string): Promise<{ function: string; team: string } | null> {
@@ -156,11 +190,10 @@ export async function checkEmailExists(email: string): Promise<boolean> {
   const cleanEmail = email.trim().toLowerCase()
   if (!cleanEmail) return false
 
-  const { data } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('email', cleanEmail)
-    .limit(1)
+  const { data, error } = await supabase.functions.invoke('invite-member', {
+    body: { email: cleanEmail, checkOnly: true },
+  })
 
-  return (data ?? []).length > 0
+  if (error) return false
+  return !!(data as { existingAccount?: boolean } | null)?.existingAccount
 }

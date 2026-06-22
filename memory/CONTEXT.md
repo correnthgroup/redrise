@@ -7,7 +7,8 @@
 - Owner: `Correnth Group`.
 - Base operational account: `integration@correnth.com`.
 - GitHub repository: `https://github.com/correnthgroup/redrise.git`.
-- Official production URL: `https://redrise.onrender.com`.
+- Official production URL: `https://www.redrise.app`.
+- Invite sender domain: `hi.from@redrise.app` through Resend.
 - Supabase project ref: `vsaropewydcjsvplpugx`.
 - Render project/workspace: `Redrise`.
 - Render service: `redrise` (`srv-d8rjudj6sc1c73bc9fu0`).

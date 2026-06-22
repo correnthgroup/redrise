@@ -22,7 +22,7 @@
 ## Current Auth Decisions
 
 - Sign In uses Supabase e-mail/password.
-- Sign Up collects First Name, optional Middle Name, optional Last Name, e-mail, password, and confirmation password.
+- Sign Up collects required First Name, Last Name, e-mail, password, and confirmation password; Middle Name is optional.
 - Supabase e-mail confirmation is disabled for the current flow.
 - Sign Up must not leave the user in Dashboard automatically; the app suppresses Supabase's automatic sign-up session and returns to Sign In.
 - OAuth buttons and `/auth/callback` UI are archived until official provider credentials exist.
@@ -30,11 +30,14 @@
 
 ## Current Product Decisions
 
-- The official production host is Render at `https://redrise.onrender.com`.
+- The official production host is Render at `https://www.redrise.app`.
 - Settings > Plans remains a placeholder-like planning surface only; it must not unlock paid features from frontend state.
 - Real billing requires Stripe checkout, webhook, persisted plan state, and permission matrix.
 - Admin/Member/Viewer labels remain informational until backend/RLS enforcement is approved.
 - Existing-account team matching must happen server-side by exact e-mail only.
+- Existing-account team invitations require explicit in-app acceptance before the membership becomes active.
+- Unregistered-user invites are sent by Resend from `hi.from@redrise.app`; Supabase Auth remains responsible for generating the secure invite link.
+- B2B settings administration is represented by `team_members.function`; `Admin` manages Members List, Team List, and API Keys, while `Owner` and `Board` can view Members List and manage Team List only.
 - Authenticated UI language must use `profiles.language` from Supabase as source of truth; `localStorage` is not the language source for signed-in app copy.
 
 ## Future Decisions Already Approved

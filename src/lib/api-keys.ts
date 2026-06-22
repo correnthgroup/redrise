@@ -38,18 +38,22 @@ function generateApiKeySecret(): string {
   return secret
 }
 
-export async function loadApiKeys(): Promise<ApiKey[]> {
-  const { data, error } = await supabase
+export async function loadApiKeys(ownerUserId?: string): Promise<ApiKey[]> {
+  let query = supabase
     .from('api_keys')
     .select('*')
     .eq('revoked', false)
     .order('created_at', { ascending: false })
 
+  if (ownerUserId) query = query.eq('user_id', ownerUserId)
+
+  const { data, error } = await query
+
   if (error) throw error
   return data ?? []
 }
 
-export async function createApiKey(input: CreateApiKeyInput): Promise<{ key: ApiKey; secret: string }> {
+export async function createApiKey(input: CreateApiKeyInput, ownerUserId?: string): Promise<{ key: ApiKey; secret: string }> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
@@ -61,7 +65,7 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<{ key: Api
     .from('api_keys')
     .insert({
       id,
-      user_id: user.id,
+      user_id: ownerUserId ?? user.id,
       name: input.name,
       prefix,
       secret_hash: secret,
