@@ -9,6 +9,65 @@
 - Extraction: 87% EXTRACTED · 13% INFERRED · 0% AMBIGUOUS · INFERRED: 115 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
+## CLI Usage (Current Directory)
+
+This graph was generated from `D:\studio\redrise`. To use graphify CLI from this directory:
+
+```powershell
+# Ensure graphify is installed
+pip install graphifyy
+
+# Verify installation
+graphify --help
+
+# Query the graph (natural language)
+graphify query "How does authentication work?"
+graphify query "What calls loadUserProfile()?"
+graphify query "Trace the data flow through tasks"
+
+# Find shortest path between concepts
+graphify path "AuthModule" "Database"
+
+# Explain a specific node
+graphify explain "WizardShell"
+
+# Rebuild graph (full)
+graphify .
+
+# Incremental update (only new/changed files)
+graphify . --update
+
+# Re-cluster only (no re-extraction)
+graphify . --cluster-only
+
+# Export formats
+graphify export html          # interactive HTML (already generated)
+graphify export obsidian      # Obsidian vault
+graphify export graphml       # Gephi/yEd
+graphify export neo4j         # Cypher for Neo4j
+```
+
+### Python Interpreter (if graphify CLI is not on PATH)
+
+```powershell
+# Find the Python that has graphify installed
+python -c "import graphify; print(__file__)"
+
+# Or use the saved interpreter path
+$GRAPHIFY_PYTHON = Get-Content graphify-out\.graphify_python
+& $GRAPHIFY_PYTHON -m graphify query "How does auth work?"
+```
+
+### Environment Variables
+
+```powershell
+# Optional: set Gemini API key for semantic extraction (code-only corpus doesn't need it)
+$env:GEMINI_API_KEY = "your-key-here"
+
+# The OpenRouter API key for Redrise AI features (stored in .env, not graphify)
+# See .env file for OPENROUTER_API_KEY
+```
+
 ## Community Hubs (Navigation)
 - [[_COMMUNITY_UI Components|UI Components]]
 - [[_COMMUNITY_User Profile & Onboarding|User Profile & Onboarding]]
