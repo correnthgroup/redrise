@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Laptop, Loader2, LogOut, MapPin, Monitor, RefreshCcw, Smartphone, Tablet } from 'lucide-react'
+import { Laptop, Loader2, LogOut, MapPin, Monitor, RefreshCcw, Smartphone, Tablet } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { loadRememberedSessions, revokeRememberedSession, type RememberedSession } from '@/lib/user-profile'
@@ -142,10 +143,7 @@ export function SessionsList({ userId, onBack }: { userId: string; onBack?: () =
       ) : null}
 
       <div className="mt-4 flex justify-between border-t pt-4">
-        <Button type="button" variant="outline" size="sm" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4" />
-          {t('common.back')}
-        </Button>
+        <BackButton onClick={onBack} />
         <Button type="button" variant="outline" size="sm" onClick={refreshSessions} disabled={loading}>
           <RefreshCcw className="h-4 w-4" />
           {t('sessions.refresh')}

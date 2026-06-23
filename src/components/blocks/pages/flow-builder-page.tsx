@@ -4,7 +4,6 @@ import {
   BackgroundVariant,
   Controls,
   Handle,
-  MiniMap,
   Position,
   ReactFlow,
   ReactFlowProvider,
@@ -22,8 +21,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { Pencil, Check, X, Keyboard, CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, Plus, Trash2, ClipboardPaste, Undo2, Redo2, MousePointer2, Crosshair } from 'lucide-react'
 import { useFlowCards } from '@/hooks/use-flow-cards'
 import { useI18n } from '@/hooks/use-i18n'
 import { MultiSelectDropdown } from '../shared/multi-select-dropdown'
@@ -76,34 +74,35 @@ function FlowCardWithEdit({ data, selected, id }: NodeProps<FlowNode>) {
 const defaultNodes: FlowNode[] = []
 const defaultEdges: Edge[] = []
 
-function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave }: { flowId?: string | null; flowName?: string; onBack?: () => void; onSave?: () => void }) {
+function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | null; onSave?: () => void; onSaveRef?: React.MutableRefObject<(() => Promise<void>) | null> }) {
   const { t } = useI18n()
   const { cards, edges: dbEdges, load, save } = useFlowCards(flowId ?? null)
   const [nodes, setNodes, onNodesChange] = useNodesState<FlowNode>(defaultNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(defaultEdges)
-  const [flowName, setFlowName] = useState(initialFlowName ?? t('flow.newFlow'))
-  const [editingName, setEditingName] = useState(false)
-  const [tempName, setTempName] = useState('')
   const [editingCardId, setEditingCardId] = useState<string | null>(null)
   const [cardTitle, setCardTitle] = useState('')
   const [cardInstructions, setCardInstructions] = useState('')
   const [cardAgents, setCardAgents] = useState<string[]>([])
   const [agents, setAgents] = useState<Agent[]>([])
   const [loadingAgents, setLoadingAgents] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const { screenToFlowPosition, getNodes, setNodes: setReactFlowNodes, setEdges: setReactFlowEdges } = useReactFlow()
+  const [fabOpen, setFabOpen] = useState(false)
+  const fabRef = useRef<HTMLDivElement>(null)
+  const { screenToFlowPosition, getNodes, setNodes: setReactFlowNodes, setEdges: setReactFlowEdges, fitView, setCenter } = useReactFlow()
   const containerRef = useRef<HTMLDivElement>(null)
-  const loadedRef = useRef(false)
-  const shortcutItems = [
-    { key: 'N', action: t('flowBuilder.newCard') },
-    { key: 'Del', action: t('flowBuilder.deleteSelected') },
-    { key: 'Ctrl/⌘ + A', action: t('flowBuilder.selectAll') },
-    { key: 'Ctrl/⌘ + C', action: t('flowBuilder.copySelected') },
-    { key: 'Ctrl/⌘ + V', action: t('flowBuilder.paste') },
-    { key: 'Ctrl/⌘ + Z', action: t('flowBuilder.undo') },
-    { key: 'Ctrl/⌘ + Shift + Z', action: t('flowBuilder.redo') },
-    { key: 'Mouse scroll', action: t('flowBuilder.zoom') },
-  ]
+  const loadedFlowIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (fabRef.current && e.target && !fabRef.current.contains(e.target as unknown as globalThis.Node)) {
+        setFabOpen(false)
+      }
+    }
+    if (fabOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [fabOpen])
+
   const agentOptions = agents.map((agent) => ({
     value: agent.name,
     label: agent.name === 'Default Agent' ? t('agents.defaultAgent') : agent.name,
@@ -120,15 +119,14 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
 
   // Load data from Supabase
   useEffect(() => {
-    if (flowId && !loadedRef.current) {
-      loadedRef.current = true
+    if (flowId && loadedFlowIdRef.current !== flowId) {
+      loadedFlowIdRef.current = flowId
       load()
     }
   }, [flowId, load])
 
   // Populate React Flow when cards/edges load
   useEffect(() => {
-    if (cards.length > 0 && !loadedRef.current) return
     if (cards.length === 0 && dbEdges.length === 0 && nodes.length > 0) return
 
     if (cards.length > 0) {
@@ -265,6 +263,25 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
     setReactFlowEdges(next.edges)
   }, [setReactFlowNodes, setReactFlowEdges])
 
+  const centralize = useCallback(() => {
+    const currentNodes = getNodes()
+    if (currentNodes.length > 0) {
+      fitView({ padding: 0.2 })
+    } else {
+      setCenter(0, 0, { zoom: 1 })
+    }
+  }, [getNodes, fitView, setCenter])
+
+  const fabMenuItems = [
+    { icon: Plus, label: t('flowBuilder.newCard'), kbd: 'N', action: () => { addNode(); setFabOpen(false) } },
+    { icon: Trash2, label: t('flowBuilder.deleteSelected'), kbd: 'Del', action: () => { deleteSelected(); setFabOpen(false) } },
+    { icon: MousePointer2, label: t('flowBuilder.selectAll'), kbd: 'Ctrl+A', action: () => { selectAll(); setFabOpen(false) } },
+    { icon: ClipboardPaste, label: t('flowBuilder.paste'), kbd: 'Ctrl+V', action: () => { paste(); setFabOpen(false) } },
+    { icon: Undo2, label: t('flowBuilder.undo'), kbd: 'Ctrl+Z', action: () => { undo(); setFabOpen(false) } },
+    { icon: Redo2, label: t('flowBuilder.redo'), kbd: 'Ctrl+Shift+Z', action: () => { redo(); setFabOpen(false) } },
+    { icon: Crosshair, label: t('flowBuilder.centralize'), kbd: '', action: () => { centralize(); setFabOpen(false) } },
+  ]
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       const target = e.target as HTMLElement
@@ -299,22 +316,6 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [addNode, deleteSelected, selectAll, copySelected, paste, undo, redo])
 
-  function startRename() {
-    setTempName(flowName)
-    setEditingName(true)
-  }
-
-  function confirmRename() {
-    if (tempName.trim()) {
-      setFlowName(tempName.trim())
-    }
-    setEditingName(false)
-  }
-
-  function cancelRename() {
-    setEditingName(false)
-  }
-
   function saveCardEditor() {
     if (!editingCardId) return
     setNodes((nds) => nds.map((n) =>
@@ -325,12 +326,11 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
     setEditingCardId(null)
   }
 
-  async function handleSave() {
+  const handleSave = useCallback(async () => {
     if (!flowId) {
       onSave?.()
       return
     }
-    setSaving(true)
     const currentNodes = getNodes() as FlowNode[]
     const nodeData = currentNodes.map((n) => ({
       node_id: n.id,
@@ -348,68 +348,16 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
       animated: e.animated,
     }))
     await save(nodeData, edgeData)
-    setSaving(false)
     onSave?.()
-  }
+  }, [flowId, getNodes, edges, save, onSave])
+
+  useEffect(() => {
+    if (onSaveRef) onSaveRef.current = handleSave
+    return () => { if (onSaveRef) onSaveRef.current = null }
+  }, [handleSave, onSaveRef])
 
   return (
     <div ref={containerRef} className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center justify-between border-b bg-card/90 p-3 text-sm backdrop-blur">
-        <div className="flex items-center gap-2">
-          {editingName ? (
-            <div className="flex items-center gap-1">
-              <Input
-                value={tempName}
-                onChange={(e) => setTempName(e.target.value)}
-                className="h-7 w-48 text-sm"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') confirmRename()
-                  if (e.key === 'Escape') cancelRename()
-                }}
-                autoFocus
-              />
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={confirmRename} disabled={!tempName.trim()}>
-                <Check className="h-3.5 w-3.5" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelRename}>
-                <X className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={startRename}>
-                <Pencil className="h-3.5 w-3.5" />
-              </Button>
-              <span className="font-semibold">{flowName}</span>
-            </div>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7">
-                <Keyboard className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-64">
-              <DropdownMenuLabel>{t('flowBuilder.shortcuts')}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {shortcutItems.map((s) => (
-                <DropdownMenuItem key={s.key} className="flex items-center justify-between">
-                  <span>{s.action}</span>
-                  <kbd className="ml-4 rounded border bg-muted px-1.5 py-0.5 text-[10px] font-mono">{s.key}</kbd>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          {onBack && (
-            <Button variant="ghost" size="sm" onClick={onBack}>{t('common.cancel')}</Button>
-          )}
-          <Button size="sm" onClick={handleSave} disabled={saving}>
-            {saving ? t('flowBuilder.saving') : t('common.save')}
-          </Button>
-        </div>
-      </div>
       <div className="relative min-h-0 flex-1">
         <ReactFlow
           nodes={nodes}
@@ -422,14 +370,46 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
         >
           <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#C9D3DD" />
           <Controls />
-          <MiniMap
-            pannable
-            zoomable
-            style={{ backgroundColor: '#F8FAFC', border: '1px solid #E5E7EB' }}
-            maskColor="rgba(15, 23, 42, 0.08)"
-            nodeColor="#2F5D5A"
-          />
         </ReactFlow>
+
+        {/* Floating Action Button + Menu */}
+        <div ref={fabRef} className="absolute bottom-6 right-6 z-10">
+          <div className="relative">
+            {/* Menu items - animated */}
+            <div
+              className="absolute bottom-14 right-0 flex flex-col gap-2 transition-all duration-200 ease-out"
+              style={{
+                opacity: fabOpen ? 1 : 0,
+                transform: fabOpen ? 'translateY(0) scale(1)' : 'translateY(8px) scale(0.95)',
+                pointerEvents: fabOpen ? 'auto' : 'none',
+              }}
+            >
+              {/* eslint-disable-next-line react-hooks/refs */}
+              {fabMenuItems.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={item.action}
+                  className="flex items-center gap-2 whitespace-nowrap rounded-lg border bg-card px-3 py-2 text-sm shadow-md transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  <span className="flex-1 text-left">{item.label}</span>
+                  <kbd className="ml-2 rounded border bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">{item.kbd}</kbd>
+                </button>
+              ))}
+            </div>
+
+            {/* FAB trigger */}
+            <button
+              onClick={() => setFabOpen((prev) => !prev)}
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-[#2F5D5A] text-white shadow-lg transition-all duration-200 hover:bg-[#2F5D5A]/90 hover:shadow-xl"
+              style={{
+                transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
+              }}
+            >
+              <Plus className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
 
         <Dialog open={editingCardId !== null} onOpenChange={(open) => { if (!open) setEditingCardId(null) }}>
           <DialogContent className="sm:max-w-md">
@@ -482,10 +462,10 @@ function FlowBuilderContent({ flowId, flowName: initialFlowName, onBack, onSave 
   )
 }
 
-export function FlowBuilderPage({ flowId, flowName, onBack, onSave }: { flowId?: string | null; flowName?: string; onBack?: () => void; onSave?: () => void }) {
+export function FlowBuilderPage({ flowId, onSave, onSaveRef }: { flowId?: string | null; onSave?: () => void; onSaveRef?: React.MutableRefObject<(() => Promise<void>) | null> }) {
   return (
     <ReactFlowProvider>
-      <FlowBuilderContent flowId={flowId} flowName={flowName} onBack={onBack} onSave={onSave} />
+      <FlowBuilderContent flowId={flowId} onSave={onSave} onSaveRef={onSaveRef} />
     </ReactFlowProvider>
   )
 }

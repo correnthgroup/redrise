@@ -1,5 +1,9 @@
 import { supabase } from './supabase'
 import type { Session, User } from '@supabase/supabase-js'
+import { buildUsername } from './utils'
+import { createWorkspace } from './workspaces'
+import { createFlow } from './flows'
+import { addWorkspaceMember } from './workspace-members'
 
 export type UserProfile = {
   userId: string
@@ -60,7 +64,7 @@ type SupabaseProfile = {
 export function createDefaultProfile(user: { id: string; name: string; email: string }): UserProfile {
   const [firstName = user.name || 'User', middleName = '', ...rest] = user.name.split(/\s+/).filter(Boolean)
   const lastName = rest.join(' ')
-  const username = (firstName || user.email.split('@')[0] || 'user').toLowerCase().replace(/[^a-z0-9.]/g, '')
+  const username = buildUsername(firstName, middleName, lastName) || user.email.split('@')[0] || 'user'
 
   return {
     userId: user.id,
@@ -125,7 +129,18 @@ export async function loadUserProfile(user: { id: string; name: string; email: s
     .maybeSingle()
 
   if (error) return fallback
-  if (data) return fromSupabaseProfile(data as SupabaseProfile)
+  if (data) {
+    const profile = fromSupabaseProfile(data as SupabaseProfile)
+    const correctUsername = buildUsername(profile.firstName, profile.middleName, profile.lastName)
+    if (correctUsername && profile.username !== correctUsername) {
+      profile.username = correctUsername
+      await supabase
+        .from('profiles')
+        .update({ username: correctUsername })
+        .eq('id', profile.userId)
+    }
+    return profile
+  }
 
   const { data: inserted } = await supabase
     .from('profiles')
@@ -134,7 +149,9 @@ export async function loadUserProfile(user: { id: string; name: string; email: s
     .maybeSingle()
 
   await ensureCurrentUserTeamMember(fallback)
-  return inserted ? fromSupabaseProfile(inserted as SupabaseProfile) : fallback
+  const result = inserted ? fromSupabaseProfile(inserted as SupabaseProfile) : fallback
+  runOnboarding(result).catch(() => {})
+  return result
 }
 
 export async function saveUserProfile(profile: UserProfile): Promise<UserProfile> {
@@ -256,6 +273,34 @@ async function ensureCurrentUserTeamMember(profile: UserProfile) {
     await supabase.from('team_members').update(payload).eq('id', existing.id)
   } else {
     await supabase.from('team_members').insert(payload)
+  }
+}
+
+async function runOnboarding(profile: UserProfile) {
+  const { data: existingWorkspaces } = await supabase
+    .from('workspaces')
+    .select('id')
+    .eq('user_id', profile.userId)
+    .limit(1)
+
+  if (existingWorkspaces && existingWorkspaces.length > 0) return
+
+  const workspace = await createWorkspace({ name: 'My Workspace', mission: '' })
+  if (!workspace) return
+
+  await supabase
+    .from('workspaces')
+    .update({ status: 'healthy' })
+    .eq('id', workspace.id)
+
+  await addWorkspaceMember(workspace.id, profile.email, 'owner')
+
+  const flow = await createFlow({ name: 'My Flow', workspace_id: workspace.id, members: [profile.userId] })
+  if (flow) {
+    await supabase
+      .from('flows')
+      .update({ status: 'paused' })
+      .eq('id', flow.id)
   }
 }
 

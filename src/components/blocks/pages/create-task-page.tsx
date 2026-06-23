@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RequiredLabel } from '@/components/ui/required-label'
@@ -92,6 +93,7 @@ export function CreateTaskPage({
   const [selectedFlowId, setSelectedFlowId] = useState('')
   const [priority, setPriority] = useState<TaskPriority>('medium')
   const [kanbanColumn, setKanbanColumn] = useState<TaskStatus>('backlog')
+  const [hasSchedule, setHasSchedule] = useState(false)
   const [scheduleStart, setScheduleStart] = useState('')
   const [scheduleEnd, setScheduleEnd] = useState('')
   const [scheduleTime, setScheduleTime] = useState('09:00')
@@ -194,11 +196,11 @@ export function CreateTaskPage({
       className="overflow-y-auto"
       footer={(
         <>
-          <Button variant="ghost" onClick={step === 0 ? onBack : () => setStep((s) => s - 1)}>{t('common.back')}</Button>
+          <BackButton onClick={step === 0 ? onBack : () => setStep((s) => s - 1)} />
           <div className="ml-auto flex gap-2">
             {error && <span className="self-center text-xs text-destructive">{error}</span>}
             <Button
-              disabled={submitting || (step === 0 && (!objective || !prompt)) || (step === 1 && !selectedWorkspaceId)}
+              disabled={submitting || (step === 0 && (!objective || !prompt)) || (step === 1 && (!selectedWorkspaceId || !selectedFlowId))}
               onClick={async () => {
                 if (step === STEP_KEYS.length - 1) {
                   setError(null)
@@ -214,12 +216,12 @@ export function CreateTaskPage({
                       agent_id: selectedAgentId,
                       priority,
                       status: kanbanColumn,
-                      schedule_start: scheduleStart || null,
-                      schedule_end: scheduleEnd || null,
-                      schedule_time: scheduleTime || null,
-                      recurrence,
-                      recurrence_days: recurrenceDays,
-                      recurrence_monthly_days: recurrenceMonthlyDays,
+                      schedule_start: hasSchedule ? (scheduleStart || null) : null,
+                      schedule_end: hasSchedule ? (scheduleEnd || null) : null,
+                      schedule_time: hasSchedule ? (scheduleTime || null) : null,
+                      recurrence: hasSchedule ? recurrence : 'occasionally',
+                      recurrence_days: hasSchedule ? recurrenceDays : [],
+                      recurrence_monthly_days: hasSchedule ? recurrenceMonthlyDays : [],
                       workspace_id: selectedWorkspaceId,
                       flow_id: selectedFlowId || null,
                     })
@@ -333,10 +335,10 @@ export function CreateTaskPage({
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>{t('tasks.flow')}</Label>
+                  <RequiredLabel>{t('tasks.flow')}</RequiredLabel>
                   <Select value={selectedFlowId} onValueChange={setSelectedFlowId} disabled={!selectedWorkspaceId || loadingFlows || workspaceFlows.length === 0}>
                     <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES}>
-                      <SelectValue placeholder={!selectedWorkspaceId ? t('tasks.selectWorkspaceFirst') : loadingFlows ? t('common.loading') : t('tasks.selectFlowOptional')} />
+                      <SelectValue placeholder={!selectedWorkspaceId ? t('tasks.selectWorkspaceFirst') : loadingFlows ? t('common.loading') : t('tasks.selectFlow')} />
                     </SelectTrigger>
                     <SelectContent>
                       {workspaceFlows.map((flow) => (
@@ -502,219 +504,230 @@ export function CreateTaskPage({
 
               {/* Schedule Section */}
               <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <Label className="text-sm font-semibold">{t('tasks.schedule')}</Label>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <RequiredLabel htmlFor="schedule-start" className="text-xs">{t('tasks.startDate')}</RequiredLabel>
-                    <Input
-                      id="schedule-start"
-                      type="date"
-                      value={scheduleStart}
-                      onChange={(e) => {
-                        setScheduleStart(e.target.value)
-                        if (recurrence === 'occasionally') {
-                          setScheduleEnd(e.target.value)
-                        }
-                      }}
-                      className="h-9"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <RequiredLabel htmlFor="schedule-end" className="text-xs">{t('tasks.endDate')}</RequiredLabel>
-                    <Input
-                      id="schedule-end"
-                      type="date"
-                      value={recurrence === 'occasionally' ? scheduleStart : scheduleEnd}
-                      onChange={(e) => setScheduleEnd(e.target.value)}
-                      className="h-9"
-                      disabled={recurrence === 'occasionally'}
-                    />
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="has-schedule"
+                    checked={hasSchedule}
+                    onCheckedChange={(checked) => setHasSchedule(checked === true)}
+                  />
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="has-schedule" className="text-sm font-semibold cursor-pointer">{t('tasks.hasSchedule')}</Label>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <RequiredLabel htmlFor="schedule-time" className="text-xs">{t('tasks.time')}</RequiredLabel>
-                    <div className="relative">
-                      <Clock className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        id="schedule-time"
-                        type="time"
-                        value={scheduleTime}
-                        onChange={(e) => setScheduleTime(e.target.value)}
-                        className="h-9 pl-7"
-                      />
+                {hasSchedule && (
+                  <div className="space-y-4" style={{ animation: 'fadeIn 0.2s ease-out' }}>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <RequiredLabel htmlFor="schedule-start" className="text-xs">{t('tasks.startDate')}</RequiredLabel>
+                        <Input
+                          id="schedule-start"
+                          type="date"
+                          value={scheduleStart}
+                          onChange={(e) => {
+                            setScheduleStart(e.target.value)
+                            if (recurrence === 'occasionally') {
+                              setScheduleEnd(e.target.value)
+                            }
+                          }}
+                          className="h-9"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <RequiredLabel htmlFor="schedule-end" className="text-xs">{t('tasks.endDate')}</RequiredLabel>
+                        <Input
+                          id="schedule-end"
+                          type="date"
+                          value={recurrence === 'occasionally' ? scheduleStart : scheduleEnd}
+                          onChange={(e) => setScheduleEnd(e.target.value)}
+                          className="h-9"
+                          disabled={recurrence === 'occasionally'}
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Recurrence */}
-                  <div className="space-y-1">
-                      <Label className="text-xs">{t('tasks.recurrence')}</Label>
-                    <div ref={recurrenceRef} className="relative">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className={DROPDOWN_TRIGGER_CLASSES}
-                        onClick={() => setShowRecurrenceDropdown(!showRecurrenceDropdown)}
-                      >
-                        <span className="truncate">
-                          {selectedRecurrence ? t(selectedRecurrence.labelKey) : t('tasks.selectRecurrence')}
-                        </span>
-                        <ChevronDown className="h-4 w-4 opacity-50" />
-                      </Button>
-                      {showRecurrenceDropdown && (
-                        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
-                          <div className="p-1">
-                            {RECURRENCES.map((r) => (
-                              <button
-                                key={r.value}
-                                type="button"
-                                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-                                onClick={() => {
-                                  setRecurrence(r.value)
-                                  setRecurrenceDays([])
-                                  setRecurrenceMonthlyDays([])
-                                  setShowRecurrenceDropdown(false)
-                                }}
-                              >
-                                  <span className="flex-1 text-left">{t(r.labelKey)}</span>
-                                {recurrence === r.value && (
-                                  <Check className="h-4 w-4 text-[#2F5D5A]" />
-                                )}
-                              </button>
-                            ))}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-1">
+                        <RequiredLabel htmlFor="schedule-time" className="text-xs">{t('tasks.time')}</RequiredLabel>
+                        <div className="relative">
+                          <Clock className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            id="schedule-time"
+                            type="time"
+                            value={scheduleTime}
+                            onChange={(e) => setScheduleTime(e.target.value)}
+                            className="h-9 pl-7"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Recurrence */}
+                      <div className="space-y-1">
+                        <Label className="text-xs">{t('tasks.recurrence')}</Label>
+                        <div ref={recurrenceRef} className="relative">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className={DROPDOWN_TRIGGER_CLASSES}
+                            onClick={() => setShowRecurrenceDropdown(!showRecurrenceDropdown)}
+                          >
+                            <span className="truncate">
+                              {selectedRecurrence ? t(selectedRecurrence.labelKey) : t('tasks.selectRecurrence')}
+                            </span>
+                            <ChevronDown className="h-4 w-4 opacity-50" />
+                          </Button>
+                          {showRecurrenceDropdown && (
+                            <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                              <div className="p-1">
+                                {RECURRENCES.map((r) => (
+                                  <button
+                                    key={r.value}
+                                    type="button"
+                                    className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                    onClick={() => {
+                                      setRecurrence(r.value)
+                                      setRecurrenceDays([])
+                                      setRecurrenceMonthlyDays([])
+                                      setShowRecurrenceDropdown(false)
+                                    }}
+                                  >
+                                    <span className="flex-1 text-left">{t(r.labelKey)}</span>
+                                    {recurrence === r.value && (
+                                      <Check className="h-4 w-4 text-[#2F5D5A]" />
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Days of Week (when Weekly) */}
+                      {recurrence === 'weekly' && (
+                        <div className="space-y-1">
+                          <Label className="text-xs">{t('tasks.daysOfWeek')}</Label>
+                          <div ref={weekDayRef} className="relative">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className={DROPDOWN_TRIGGER_CLASSES}
+                              onClick={() => setShowWeekDayDropdown(!showWeekDayDropdown)}
+                            >
+                              <span className="truncate">
+                                {recurrenceDays.length === 0 ? t('tasks.selectDays') : t('tasks.daysSelected', { count: recurrenceDays.length })}
+                              </span>
+                              <ChevronDown className="h-4 w-4 opacity-50" />
+                            </Button>
+                            {showWeekDayDropdown && (
+                              <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                                <div className="p-1">
+                                  <button
+                                    type="button"
+                                    className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent border-b"
+                                    onClick={() => {
+                                      if (recurrenceDays.length === WEEK_DAYS.length) {
+                                        setRecurrenceDays([])
+                                      } else {
+                                        setRecurrenceDays(WEEK_DAYS.map((d) => d.id))
+                                      }
+                                    }}
+                                  >
+                                    <Checkbox
+                                      checked={recurrenceDays.length === WEEK_DAYS.length}
+                                      className="rounded-[2px]"
+                                    />
+                                    <span className="font-medium">{t('common.selectAll')}</span>
+                                  </button>
+                                  {WEEK_DAYS.map((day) => (
+                                    <button
+                                      key={day.id}
+                                      type="button"
+                                      className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                      onClick={() => toggleRecurrenceDay(day.id)}
+                                    >
+                                      <Checkbox
+                                        checked={recurrenceDays.includes(day.id)}
+                                        className="rounded-[2px]"
+                                      />
+                                      <span>{t(day.labelKey)}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Days of Month (when Monthly) */}
+                      {recurrence === 'monthly' && (
+                        <div className="space-y-1">
+                          <Label className="text-xs">{t('tasks.daysOfMonth')}</Label>
+                          <div ref={monthDayRef} className="relative">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className={DROPDOWN_TRIGGER_CLASSES}
+                              onClick={() => setShowMonthDayDropdown(!showMonthDayDropdown)}
+                            >
+                              <span className="truncate">
+                                {recurrenceMonthlyDays.length === 0 ? t('tasks.selectDays') : t('tasks.daysSelected', { count: recurrenceMonthlyDays.length })}
+                              </span>
+                              <ChevronDown className="h-4 w-4 opacity-50" />
+                            </Button>
+                            {showMonthDayDropdown && (
+                              <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                                <div className="max-h-60 overflow-y-auto p-1">
+                                  <button
+                                    type="button"
+                                    className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent border-b"
+                                    onClick={() => {
+                                      if (recurrenceMonthlyDays.length === MONTH_DAYS.length) {
+                                        setRecurrenceMonthlyDays([])
+                                      } else {
+                                        setRecurrenceMonthlyDays([...MONTH_DAYS])
+                                      }
+                                    }}
+                                  >
+                                    <Checkbox
+                                      checked={recurrenceMonthlyDays.length === MONTH_DAYS.length}
+                                      className="rounded-[2px]"
+                                    />
+                                    <span className="font-medium">{t('common.selectAll')}</span>
+                                  </button>
+                                  {MONTH_DAYS.map((day) => (
+                                    <button
+                                      key={day}
+                                      type="button"
+                                      className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                      onClick={() => toggleMonthlyDay(day)}
+                                    >
+                                      <Checkbox
+                                        checked={recurrenceMonthlyDays.includes(day)}
+                                        className="rounded-[2px]"
+                                      />
+                                      <span>{t('tasks.dayLabel', { day })}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {hasDay31 && (
+                              <div className="flex items-start gap-2 rounded-md bg-[#B7791F]/10 border border-[#B7791F]/30 p-2 mt-2">
+                                <AlertTriangle className="h-4 w-4 text-[#B7791F] shrink-0 mt-0.5" />
+                                <p className="text-[11px] text-[#7A3E14]">
+                                  {t('tasks.month31Warning')}
+                                </p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
                     </div>
                   </div>
-
-                  {/* Days of Week (when Weekly) */}
-                  {recurrence === 'weekly' && (
-                    <div className="space-y-1">
-                      <Label className="text-xs">{t('tasks.daysOfWeek')}</Label>
-                      <div ref={weekDayRef} className="relative">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className={DROPDOWN_TRIGGER_CLASSES}
-                          onClick={() => setShowWeekDayDropdown(!showWeekDayDropdown)}
-                        >
-                          <span className="truncate">
-                            {recurrenceDays.length === 0 ? t('tasks.selectDays') : t('tasks.daysSelected', { count: recurrenceDays.length })}
-                          </span>
-                          <ChevronDown className="h-4 w-4 opacity-50" />
-                        </Button>
-                        {showWeekDayDropdown && (
-                          <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
-                            <div className="p-1">
-                              <button
-                                type="button"
-                                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent border-b"
-                                onClick={() => {
-                                  if (recurrenceDays.length === WEEK_DAYS.length) {
-                                    setRecurrenceDays([])
-                                  } else {
-                                    setRecurrenceDays(WEEK_DAYS.map((d) => d.id))
-                                  }
-                                }}
-                              >
-                                <Checkbox
-                                  checked={recurrenceDays.length === WEEK_DAYS.length}
-                                  className="rounded-[2px]"
-                                />
-                                <span className="font-medium">{t('common.selectAll')}</span>
-                              </button>
-                              {WEEK_DAYS.map((day) => (
-                                <button
-                                  key={day.id}
-                                  type="button"
-                                  className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-                                  onClick={() => toggleRecurrenceDay(day.id)}
-                                >
-                                  <Checkbox
-                                    checked={recurrenceDays.includes(day.id)}
-                                    className="rounded-[2px]"
-                                  />
-                                  <span>{t(day.labelKey)}</span>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Days of Month (when Monthly) */}
-                  {recurrence === 'monthly' && (
-                    <div className="space-y-1">
-                      <Label className="text-xs">{t('tasks.daysOfMonth')}</Label>
-                      <div ref={monthDayRef} className="relative">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className={DROPDOWN_TRIGGER_CLASSES}
-                          onClick={() => setShowMonthDayDropdown(!showMonthDayDropdown)}
-                        >
-                          <span className="truncate">
-                            {recurrenceMonthlyDays.length === 0 ? t('tasks.selectDays') : t('tasks.daysSelected', { count: recurrenceMonthlyDays.length })}
-                          </span>
-                          <ChevronDown className="h-4 w-4 opacity-50" />
-                        </Button>
-                        {showMonthDayDropdown && (
-                          <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
-                            <div className="max-h-60 overflow-y-auto p-1">
-                              <button
-                                type="button"
-                                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent border-b"
-                                onClick={() => {
-                                  if (recurrenceMonthlyDays.length === MONTH_DAYS.length) {
-                                    setRecurrenceMonthlyDays([])
-                                  } else {
-                                    setRecurrenceMonthlyDays([...MONTH_DAYS])
-                                  }
-                                }}
-                              >
-                                <Checkbox
-                                  checked={recurrenceMonthlyDays.length === MONTH_DAYS.length}
-                                  className="rounded-[2px]"
-                                />
-                                <span className="font-medium">{t('common.selectAll')}</span>
-                              </button>
-                              {MONTH_DAYS.map((day) => (
-                                <button
-                                  key={day}
-                                  type="button"
-                                  className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-                                  onClick={() => toggleMonthlyDay(day)}
-                                >
-                                  <Checkbox
-                                    checked={recurrenceMonthlyDays.includes(day)}
-                                    className="rounded-[2px]"
-                                  />
-                                  <span>{t('tasks.dayLabel', { day })}</span>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        {hasDay31 && (
-                          <div className="flex items-start gap-2 rounded-md bg-[#B7791F]/10 border border-[#B7791F]/30 p-2 mt-2">
-                            <AlertTriangle className="h-4 w-4 text-[#B7791F] shrink-0 mt-0.5" />
-                            <p className="text-[11px] text-[#7A3E14]">
-                              {t('tasks.month31Warning')}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             </div>
           )}
@@ -824,24 +837,28 @@ export function CreateTaskPage({
                   <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('tasks.schedule')}</div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <div className="text-xs text-muted-foreground">{t('tasks.start')}</div>
-                    <div>{scheduleStart || t('tasks.notSet')}</div>
+                {!hasSchedule ? (
+                  <div className="text-sm text-muted-foreground">{t('tasks.noSchedule')}</div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <div className="text-xs text-muted-foreground">{t('tasks.start')}</div>
+                      <div>{scheduleStart || t('tasks.notSet')}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">{t('tasks.end')}</div>
+                      <div>{recurrence === 'occasionally' ? t('tasks.oneTime') : scheduleEnd || t('tasks.notSet')}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">{t('tasks.time')}</div>
+                      <div>{scheduleTime || t('tasks.notSet')}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">{t('tasks.recurrence')}</div>
+                      <div>{selectedRecurrence ? t(selectedRecurrence.labelKey) : null}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground">{t('tasks.end')}</div>
-                    <div>{recurrence === 'occasionally' ? t('tasks.oneTime') : scheduleEnd || t('tasks.notSet')}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground">{t('tasks.time')}</div>
-                    <div>{scheduleTime || t('tasks.notSet')}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground">{t('tasks.recurrence')}</div>
-                    <div>{selectedRecurrence ? t(selectedRecurrence.labelKey) : null}</div>
-                  </div>
-                </div>
+                )}
 
                 {recurrence === 'weekly' && recurrenceDays.length > 0 && (
                   <div>

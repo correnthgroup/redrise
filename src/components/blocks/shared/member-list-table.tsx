@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Loader2, Search, Trash2, UserPlus } from 'lucide-react'
+import { Loader2, Search, Trash2, UserPlus } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { PaginationFooter } from './pagination-footer'
@@ -173,10 +174,7 @@ export function MemberListTable({ user, onAddMember, onBack, canAddMember = true
       </div>
 
       <div className="mt-4 flex justify-between border-t pt-4">
-        <Button type="button" variant="outline" size="sm" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4" />
-          {t('common.back')}
-        </Button>
+        <BackButton onClick={onBack} />
         {canAddMember ? (
           <Button type="button" size="sm" onClick={onAddMember}>
             <UserPlus className="h-4 w-4" />

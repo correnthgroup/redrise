@@ -36,6 +36,13 @@ export function TaskBoardPage({
   flows,
   onMoveTask,
   onDeleteTask,
+  filtersOpen,
+  workspaceFilter,
+  flowFilter,
+  agentFilter,
+  onWorkspaceFilterChange,
+  onFlowFilterChange,
+  onAgentFilterChange,
 }: {
   tasks: Task[]
   agents: Agent[]
@@ -43,12 +50,16 @@ export function TaskBoardPage({
   flows: Flow[]
   onMoveTask?: (id: string, status: TaskStatus) => Promise<boolean>
   onDeleteTask?: (id: string) => Promise<boolean>
+  filtersOpen: boolean
+  workspaceFilter: string
+  flowFilter: string
+  agentFilter: string
+  onWorkspaceFilterChange: (value: string) => void
+  onFlowFilterChange: (value: string) => void
+  onAgentFilterChange: (value: string) => void
 }) {
   const [dragging, setDragging] = useState<string | null>(null)
   const [runTaskId, setRunTaskId] = useState<string | null>(null)
-  const [workspaceFilter, setWorkspaceFilter] = useState('all')
-  const [flowFilter, setFlowFilter] = useState('all')
-  const [agentFilter, setAgentFilter] = useState('all')
   const { t } = useI18n()
 
   const filteredTasks = tasks.filter((task) => {
@@ -67,28 +78,35 @@ export function TaskBoardPage({
 
   return (
     <div data-testid="task-board-page" className="flex h-full min-h-0 flex-col gap-4 p-6 animate-app-rise">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <Select value={workspaceFilter} onValueChange={(value) => { setWorkspaceFilter(value); setFlowFilter('all') }}>
-          <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES} aria-label={t('tasks.workspaceFilter')}><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('tasks.allWorkspaces')}</SelectItem>
-            {workspaces.map((workspace) => <SelectItem key={workspace.id} value={workspace.id}>{workspace.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={flowFilter} onValueChange={setFlowFilter}>
-          <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES} aria-label={t('tasks.flowFilter')}><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('tasks.allFlows')}</SelectItem>
-            {flows.filter((flow) => workspaceFilter === 'all' || flow.workspace_id === workspaceFilter).map((flow) => <SelectItem key={flow.id} value={flow.id}>{flow.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={agentFilter} onValueChange={setAgentFilter}>
-          <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES} aria-label={t('tasks.agentFilter')}><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('tasks.allAgents')}</SelectItem>
-            {agents.map((agent) => <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
+      <div
+        className="grid overflow-hidden transition-all duration-300 ease-in-out"
+        style={{ gridTemplateRows: filtersOpen ? '1fr' : '0fr', opacity: filtersOpen ? 1 : 0 }}
+      >
+        <div className="min-h-0">
+          <div className="grid grid-cols-1 gap-2 pb-2 sm:grid-cols-3">
+            <Select value={workspaceFilter} onValueChange={(value) => { onWorkspaceFilterChange(value); onFlowFilterChange('all') }}>
+              <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES} aria-label={t('tasks.workspaceFilter')}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('tasks.allWorkspaces')}</SelectItem>
+                {workspaces.map((workspace) => <SelectItem key={workspace.id} value={workspace.id}>{workspace.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={flowFilter} onValueChange={onFlowFilterChange}>
+              <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES} aria-label={t('tasks.flowFilter')}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('tasks.allFlows')}</SelectItem>
+                {flows.filter((flow) => workspaceFilter === 'all' || flow.workspace_id === workspaceFilter).map((flow) => <SelectItem key={flow.id} value={flow.id}>{flow.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={agentFilter} onValueChange={onAgentFilterChange}>
+              <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES} aria-label={t('tasks.agentFilter')}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('tasks.allAgents')}</SelectItem>
+                {agents.map((agent) => <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {COLUMNS.map((col) => {

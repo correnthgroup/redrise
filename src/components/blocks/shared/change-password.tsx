@@ -1,6 +1,7 @@
 ﻿import { useState } from 'react'
-import { ArrowLeft, CheckCircle2, Eye, EyeOff, Lock, Shield, XCircle } from 'lucide-react'
+import { CheckCircle2, Eye, EyeOff, Lock, Shield, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -60,10 +61,7 @@ export function ChangePassword({ onBack }: { onBack?: () => void }) {
             <PasswordField id="new-password" label={t('settings.newPassword')} value={newPassword} onChange={setNewPassword} />
             <PasswordField id="confirm-password" label={t('settings.confirmNewPassword')} />
             <div className="mt-8 flex gap-3">
-              <Button type="button" variant="outline" className="flex-1" onClick={onBack}>
-                <ArrowLeft className="h-4 w-4" />
-                {t('common.back')}
-              </Button>
+              <BackButton onClick={onBack} className="flex-1" />
               <Button type="submit" className="flex-1">{t('settings.updatePassword')}</Button>
             </div>
           </form>

@@ -1,7 +1,8 @@
 ﻿import { useState, useEffect, type ReactNode } from 'react'
-import { ArrowLeft, ArrowRight, Boxes, Check, CheckCircle2, CircleDashed, Code2, Database, Hash, Loader2, MessageSquare, PlugZap } from 'lucide-react'
+import { ArrowRight, Boxes, Check, CheckCircle2, CircleDashed, Code2, Database, Hash, Loader2, MessageSquare, PlugZap } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RequiredLabel } from '@/components/ui/required-label'
@@ -90,10 +91,7 @@ export function IntegrationSetupWizard({ onBack }: { onBack?: () => void }) {
       progressLabel={t('workflow.stepOf', { step, total: STEPS.length, label: currentStepLabel })}
       footer={(
         <>
-          <Button type="button" variant="outline" onClick={() => step === 1 ? onBack?.() : setStep((current) => current === 1 ? 1 : current === 2 ? 1 : current === 3 ? 2 : 3)}>
-            <ArrowLeft className="h-4 w-4" />
-            {t('common.back')}
-          </Button>
+          <BackButton onClick={() => step === 1 ? onBack?.() : setStep((current) => current === 1 ? 1 : current === 2 ? 1 : current === 3 ? 2 : 3)} />
           <Button type="button" onClick={() => {
             if (step === 4) {
               handleFinish()

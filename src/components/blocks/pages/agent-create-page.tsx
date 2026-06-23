@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -53,7 +54,7 @@ export function AgentCreatePage({
       contentClassName="space-y-3"
       footer={(
         <>
-          <Button variant="ghost" onClick={step === 0 ? onBack : () => setStep((s) => s - 1)}>{t('common.back')}</Button>
+          <BackButton onClick={step === 0 ? onBack : () => setStep((s) => s - 1)} />
           <div className="ml-auto flex gap-2">
             <Button
               disabled={loading}

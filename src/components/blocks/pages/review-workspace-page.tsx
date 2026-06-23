@@ -2,6 +2,7 @@
 import type { Workspace } from '@/types/workspace'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
@@ -50,7 +51,7 @@ export function ReviewWorkspacePage({
           <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setShowDeleteDialog(true)}>
             <Trash2 className="h-4 w-4" />
           </Button>
-          {onBack && <Button variant="ghost" size="sm" onClick={onBack}>{t('common.back')}</Button>}
+          {onBack && <BackButton onClick={onBack} />}
         </div>
       </header>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

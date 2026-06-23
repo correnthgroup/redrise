@@ -1,5 +1,5 @@
-﻿import { useState, type ReactNode } from 'react'
-import { Plus, Loader2 } from 'lucide-react'
+﻿import { useState, useRef, type ReactNode } from 'react'
+import { Plus, Loader2, Filter } from 'lucide-react'
 import { useWorkspaces } from '@/hooks/use-workspaces'
 import { useFlows } from '@/hooks/use-flows'
 import { useTasks } from '@/hooks/use-tasks'
@@ -21,6 +21,7 @@ import { SettingsPage } from '@/components/blocks/pages/settings-page'
 import { CreateWorkspacePage } from '@/components/blocks/pages/create-workspace-page'
 import { ReviewWorkspacePage } from '@/components/blocks/pages/review-workspace-page'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { Sidebar, type SidebarKey } from './sidebar'
 import { Topbar } from './topbar'
 
@@ -48,12 +49,19 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null)
   const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null)
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
+  const flowBuilderSaveRef = useRef<(() => Promise<void>) | null>(null)
+  const [flowBuilderSaving, setFlowBuilderSaving] = useState(false)
   const { workspaces, loading: workspacesLoading, addWorkspace, removeWorkspace } = useWorkspaces()
   const { flows, loading: flowsLoading, addFlow, updateFlow, removeFlow } = useFlows()
   const { tasks, loading: tasksLoading, addTask, moveTask, removeTask } = useTasks()
   const { agents, loading: agentsLoading, addAgent, removeAgent } = useAgents()
   const analytics = useAnalytics()
   const { t } = useI18n()
+  const [taskFiltersOpen, setTaskFiltersOpen] = useState(false)
+  const [taskWorkspaceFilter, setTaskWorkspaceFilter] = useState('all')
+  const [taskFlowFilter, setTaskFlowFilter] = useState('all')
+  const [taskAgentFilter, setTaskAgentFilter] = useState('all')
+  const hasActiveTaskFilter = taskWorkspaceFilter !== 'all' || taskFlowFilter !== 'all' || taskAgentFilter !== 'all'
 
   const isDataLoading = workspacesLoading || flowsLoading || tasksLoading || agentsLoading || analytics.loading
 
@@ -124,9 +132,8 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
             />
           )
   } else if (active === 'flow') {
-    const selectedFlow = flows.find((f) => f.id === selectedFlowId)
     body = flowView === 'builder'
-      ? <FlowBuilderPage flowId={selectedFlowId} flowName={selectedFlow?.name} onBack={() => { setFlowView('list'); setSelectedFlowId(null) }} onSave={() => { setFlowView('list'); setSelectedFlowId(null) }} />
+      ? <FlowBuilderPage flowId={selectedFlowId} onSaveRef={flowBuilderSaveRef} onSave={() => { setFlowView('list'); setSelectedFlowId(null) }} />
       : flowView === 'create'
         ? <CreateFlowPage
             onBack={() => setFlowView('list')}
@@ -154,7 +161,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
         />
       : taskView === 'review'
         ? <ReviewTaskPage onBack={() => setTaskView('board')} />
-        : <TaskBoardPage tasks={tasks} agents={agents} workspaces={workspaces} flows={flows} onMoveTask={moveTask} onDeleteTask={removeTask} />
+        : <TaskBoardPage tasks={tasks} agents={agents} workspaces={workspaces} flows={flows} onMoveTask={moveTask} onDeleteTask={removeTask} filtersOpen={taskFiltersOpen} workspaceFilter={taskWorkspaceFilter} flowFilter={taskFlowFilter} agentFilter={taskAgentFilter} onWorkspaceFilterChange={setTaskWorkspaceFilter} onFlowFilterChange={setTaskFlowFilter} onAgentFilterChange={setTaskAgentFilter} />
   } else if (active === 'agents') {
     body = agentView === 'create'
       ? <AgentCreatePage
@@ -196,11 +203,27 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
       <Plus className="h-4 w-4" />
       {t('flow.newFlow')}
     </Button>
+  ) : active === 'flow' && flowView === 'builder' ? (
+    <>
+      <BackButton onClick={() => { setFlowView('list'); setSelectedFlowId(null) }} label={t('common.cancel')} />
+      <Button size="sm" onClick={async () => { setFlowBuilderSaving(true); await flowBuilderSaveRef.current?.(); setFlowBuilderSaving(false) }} disabled={flowBuilderSaving}>
+        {flowBuilderSaving ? t('flowBuilder.saving') : t('common.save')}
+      </Button>
+    </>
   ) : active === 'tasks' && taskView === 'board' ? (
-    <Button data-testid="tasks-new-task" onClick={() => setTaskView('create')}>
-      <Plus className="h-4 w-4" />
-      {t('tasks.newTask')}
-    </Button>
+    <>
+      <Button variant="outline" size="sm" onClick={() => setTaskFiltersOpen((prev) => !prev)} className="relative gap-1.5">
+        <Filter className="h-4 w-4" />
+        {t('tasks.filters')}
+        {hasActiveTaskFilter && (
+          <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500" />
+        )}
+      </Button>
+      <Button data-testid="tasks-new-task" onClick={() => setTaskView('create')}>
+        <Plus className="h-4 w-4" />
+        {t('tasks.newTask')}
+      </Button>
+    </>
   ) : active === 'agents' && agentView === 'list' ? (
     <Button data-testid="agents-new-agent" onClick={() => setAgentView('create')}>
       <Plus className="h-4 w-4" />

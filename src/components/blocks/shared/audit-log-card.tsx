@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Shield, Loader2, Search } from 'lucide-react'
+import { Shield, Loader2, Search } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { loadAuditLogs, type AuditLog, type AuditAction, type AuditEntityType } from '@/lib/audit-logs'
@@ -111,10 +111,7 @@ export function AuditLogCard({ onBack }: { onBack?: () => void }) {
         )}
       </div>
       <div className="mt-4 flex justify-between border-t pt-4">
-        <Button type="button" variant="outline" size="sm" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4" />
-          {t('common.back')}
-        </Button>
+        <BackButton onClick={onBack} />
       </div>
     </Card>
   )

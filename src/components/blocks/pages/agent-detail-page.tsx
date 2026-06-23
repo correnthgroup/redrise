@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
@@ -176,7 +176,7 @@ export function AgentDetailPage({
           <p className="text-xs text-muted-foreground mt-1">{t('agents.model', { model: agent.model })}</p>
         </div>
         <div>
-          {onBack && <Button variant="outline" size="sm" onClick={onBack}>{t('common.back')}</Button>}
+          {onBack && <BackButton onClick={onBack} />}
         </div>
       </header>
 

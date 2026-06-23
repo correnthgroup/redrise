@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
-import { Camera, Globe, Info, Loader2, Mail, Phone, ShieldCheck, Trash2, Upload, User, ArrowLeft, UsersRound } from 'lucide-react'
+import { Camera, Globe, Info, Loader2, Mail, Phone, ShieldCheck, Trash2, Upload, User, UsersRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { RequiredLabel } from '@/components/ui/required-label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useI18n } from '@/hooks/use-i18n'
@@ -12,6 +14,7 @@ import { loadUserProfile, saveUserProfile, type UserProfile } from '@/lib/user-p
 import { loadCurrentAccessRole, loadCurrentTeamAssignment, type AccessRole } from '@/lib/team-members'
 import { loadCurrentTeamAssignments } from '@/lib/teams'
 import { getMemberFunctionLabelKey } from '@/lib/member-functions'
+import { buildUsername } from '@/lib/utils'
 
 type AccountUser = { id: string; name: string; email: string; avatarUrl?: string | null }
 
@@ -207,18 +210,6 @@ function FieldLabel({ htmlFor, icon, children }: { htmlFor?: string; icon: React
       {children}
     </Label>
   )
-}
-
-function buildUsername(firstName: string, middleName: string, lastName: string) {
-  return [firstName, middleName, lastName]
-    .filter(Boolean)
-    .join('.')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9.]/g, '.')
-    .replace(/\.+/g, '.')
-    .replace(/^\.|\.$/g, '')
 }
 
 const ACCESS_COPY_KEYS: Record<AccessRole, string> = {
@@ -480,7 +471,7 @@ export function AccountBasicInfoPage({
             <section className="space-y-3">
               <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
                 <Field>
-                  <FieldLabel htmlFor="firstName" icon={<User className="h-4 w-4" />}>{t('account.firstName')}</FieldLabel>
+                  <RequiredLabel htmlFor="firstName"><span className="inline-flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" />{t('account.firstName')}</span></RequiredLabel>
                   <Input id="firstName" value={profile.firstName} onChange={(event) => updateProfile({ firstName: event.target.value })} />
                 </Field>
                 <Field>
@@ -488,7 +479,7 @@ export function AccountBasicInfoPage({
                   <Input id="middleName" value={profile.middleName} onChange={(event) => updateProfile({ middleName: event.target.value })} />
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="lastName" icon={<User className="h-4 w-4" />}>{t('account.lastName')}</FieldLabel>
+                  <RequiredLabel htmlFor="lastName"><span className="inline-flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" />{t('account.lastName')}</span></RequiredLabel>
                   <Input id="lastName" value={profile.lastName} onChange={(event) => updateProfile({ lastName: event.target.value })} />
                 </Field>
                 <Field>
@@ -532,7 +523,7 @@ export function AccountBasicInfoPage({
                   <Input id="email" type="email" value={profile.email} disabled />
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="language" icon={<Globe className="h-4 w-4" />}>{t('account.language')}</FieldLabel>
+                  <RequiredLabel htmlFor="language"><span className="inline-flex items-center gap-2"><Globe className="h-4 w-4 text-muted-foreground" />{t('account.language')}</span></RequiredLabel>
                   <Select value={profile.language} onValueChange={(value) => updateProfile({ language: value as Locale })}>
                     <SelectTrigger id="language"><SelectValue placeholder={t('account.language')} /></SelectTrigger>
                     <SelectContent>
@@ -573,10 +564,7 @@ export function AccountBasicInfoPage({
           )}
 
           <div className="flex justify-between gap-3 border-t pt-5">
-            <Button type="button" variant="outline" onClick={onBack} disabled={saving}>
-              <ArrowLeft className="h-4 w-4" />
-              {t('common.back')}
-            </Button>
+            <BackButton onClick={onBack} disabled={saving} />
             <Button type="button" disabled={saving || profileLoading || !profile} onClick={handleSave}>
               {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('account.saving')}</> : t('account.saveChanges')}
             </Button>

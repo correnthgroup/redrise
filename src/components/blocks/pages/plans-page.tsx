@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { ArrowLeft, Check, Crown, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react'
+import { Check, Crown, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { Card } from '@/components/ui/card'
 import { useI18n } from '@/hooks/use-i18n'
 
@@ -132,10 +133,7 @@ export function PlansPage({ onBack }: { onBack?: () => void }) {
         ))}
       </div>
       <div className="flex justify-between">
-        <Button type="button" variant="outline" size="sm" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4" />
-          {t('common.back')}
-        </Button>
+        <BackButton onClick={onBack} />
       </div>
     </div>
   )

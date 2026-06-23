@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RequiredLabel } from '@/components/ui/required-label'
@@ -44,7 +45,7 @@ export function CreateWorkspacePage({
       progressLabel={t('workflow.stepOf', { step: step + 1, total: STEP_KEYS.length, label: currentStepLabel })}
       footer={(
         <>
-          <Button variant="ghost" onClick={step === 0 ? onBack : () => setStep((s) => s - 1)}>{t('common.back')}</Button>
+          <BackButton onClick={step === 0 ? onBack : () => setStep((s) => s - 1)} />
           <div className="ml-auto flex gap-2">
             {error && <span className="self-center text-xs text-destructive">{error}</span>}
             <Button

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Check, Loader2, Plus, Search } from 'lucide-react'
+import { Check, Loader2, Plus, Search } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -177,7 +178,7 @@ export function TeamListTable({ user, onBack }: { user: CurrentUser; onBack?: ()
         progressLabel={t('workflow.stepOf', { step, total: 3, label: currentStepLabel })}
         footer={(
           <>
-            <Button type="button" variant="outline" onClick={() => { if (step === 1) setWizardOpen(false); else setStep((current) => (Math.max(1, current - 1) as WizardStep)) }}>{step === 1 ? t('common.cancel') : t('common.back')}</Button>
+            <BackButton onClick={() => { if (step === 1) setWizardOpen(false); else setStep((current) => (Math.max(1, current - 1) as WizardStep)) }} label={step === 1 ? t('common.cancel') : undefined} />
             {step < 3 ? (
               <Button type="button" disabled={(step === 1 && !teamName.trim()) || (step === 2 && !selectedFunctionsComplete)} onClick={() => setStep((current) => (Math.min(3, current + 1) as WizardStep))}>{t('workflow.next')}</Button>
             ) : (
@@ -275,10 +276,7 @@ export function TeamListTable({ user, onBack }: { user: CurrentUser; onBack?: ()
         </Dialog>
 
         <div className="mt-4 flex justify-between border-t pt-4">
-          <Button type="button" variant="outline" size="sm" onClick={() => setSelectedTeam(null)}>
-            <ArrowLeft className="h-4 w-4" />
-            {t('common.back')}
-          </Button>
+          <BackButton onClick={() => setSelectedTeam(null)} />
         </div>
       </Card>
     )
@@ -330,10 +328,7 @@ export function TeamListTable({ user, onBack }: { user: CurrentUser; onBack?: ()
       </div>
 
       <div className="mt-4 flex justify-between border-t pt-4">
-        <Button type="button" variant="outline" size="sm" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4" />
-          {t('common.back')}
-        </Button>
+        <BackButton onClick={onBack} />
       </div>
     </Card>
   )

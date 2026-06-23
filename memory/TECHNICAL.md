@@ -80,13 +80,18 @@
 - Remember Me não é mais condição para registrar metadados de sessão; ele marca a sessão como lembrada/confiável via campo `remembered`.
 - Sign in registra metadados de sessão em `active_sessions`; o campo `remembered` indica se o usuário marcou Remember Me.
 - Sign up usa First Name, Last Name, e-mail, senha e confirmação de senha como campos obrigatórios visualmente e via HTML `required`; Middle Name é opcional.
-- Após criar conta, o app faz logout imediato e volta ao Sign In com o aviso `Account created. Sign in with the credentials you just created.`
+- O username é gerado automaticamente no formato `nome.meionome.sobrenome` (lowercase, sem acentos, separado por pontos) via `buildUsername()` em `src/lib/utils.ts`.
+- `createDefaultProfile()` em `src/lib/user-profile.ts` usa `buildUsername()` para garantir o formato correto desde a criação da conta.
+- `loadUserProfile()` em `src/lib/user-profile.ts` corrige automaticamente usernames de contas existentes que não estejam no formato correto.
+- Após criar conta, o app faz logout imediato e volta ao Sign In com o aviso `Account created. Sign in with the credentials you just created.`.
 - O cadastro não exige confirmação por e-mail no estado atual; `enable_confirmations=false` no Supabase Auth.
 - Login/cadastro OAuth com GitHub, Google e Microsoft está arquivado até existirem Client IDs/secrets válidos no Supabase e nos provedores.
 - O fluxo `/auth/callback` e o diálogo OAuth foram removidos da UI atual; reintroduzir apenas junto com credenciais oficiais.
 - A tela inicial usa loading inteligente com delayed reveal de 200ms e mensagens curtas como `Verifying your session...`, `Loading your profile...` e `Preparing your workspace...`.
 - Ao fazer login, `App.tsx` chama `loadUserProfile()` e `touchPresence()`.
 - `touchPresence()` atualiza `last_seen_at` no perfil para ajudar a calcular status Online/Offline na equipe.
+- Onboarding automático: ao primeiro login, `runOnboarding()` cria "My Workspace" (health check: daily, owner: usuário) e "My Flow" (workspace: My Flow, membro: usuário).
+- Onboarding é idempotente: verifica existência de workspaces no Supabase antes de criar.
 
 ## Dashboard
 
@@ -142,6 +147,9 @@
 - `FlowBuilderPage` é a tela de edição visual do flow.
 - `FlowBuilderPage` passou a carregar agentes reais via `loadAgents()` para o editor de cards, substituindo a lista placeholder anterior.
 - O editor de cards do Flow Builder não permite mais selecionar membros por card; responsáveis ficam no Flow List/board no nível do flow.
+- `FlowBuilderPage` possui um FAB (Floating Action Button) que abre menu animado com opções: New Card, Delete Selected, Select All, Paste, Undo e Redo.
+- O FAB fica no canto inferior direito do canvas; ao clicar, o ícone Plus gira 45° e o menu expande para cima com animação.
+- O menu fecha ao clicar fora dele (handler de `mousedown` com `useEffect`).
 - O botão voltar em `FlowBuilderPage` retorna para a lista.
 - O botão salvar em `FlowBuilderPage` retorna para a lista conforme callback do `AppShell`.
 - `FlowBuilderPage` usa `@xyflow/react`, também conhecido como React Flow, para canvas visual.
@@ -158,7 +166,10 @@
 - Na etapa Briefing, Objective e Prompt são obrigatórios visualmente.
 - A área Documents aceita arrastar arquivos ou escolher arquivos; atualmente guarda nomes de arquivos no estado da tela.
 - Remover documento tira o nome da lista local antes da criação.
-- Na etapa Team & Agent, Workspace é obrigatório e Flow é opcional.
+- `CreateTaskPage` possui checkbox `hasSchedule` que alterna a visibilidade dos campos de agendamento (Start Date, End Date, Time, Recurrence, Days of Week/Month).
+- Quando o checkbox está desmarcado, os campos de agendamento são enviados como null e recurrence como 'occasionally'.
+- A animação de alternância usa `@keyframes fadeIn` definido em `index.css`.
+- Na etapa Team & Agent, Workspace é obrigatório e Flow é obrigatório (campo não pode ficar vazio).
 - Workspace em New Task usa `useWorkspaces()` e persiste em `tasks.workspace_id`.
 - Flow em New Task usa `useFlows()` filtrado pelo workspace selecionado e persiste em `tasks.flow_id` quando informado.
 - Na etapa Team & Agent, o dropdown de membros usa `useTeamMemberOptions()`.
@@ -382,7 +393,7 @@
 - `Label` em `src/components/ui/label.tsx` padroniza títulos de campos com `text-sm font-medium leading-5`; labels opcionais e obrigatórios devem usar esse componente para manter alinhamento visual.
 - Todo campo obrigatório deve usar `RequiredLabel` em vez de criar asterisco/classe manual.
 - `RequiredLabel` usa o mesmo padrão visual dos wizards operacionais: texto e asterisco em `#A04D1F`.
-- Atualmente `RequiredLabel` é usado em Sign In, Sign Up, New Workspace, New Flow, New Task, Integrations, Add Member e Team List.
+- Atualmente `RequiredLabel` é usado em Sign In, Sign Up, New Workspace, New Flow, New Task, Integrations, Add Member, Team List e Settings > Personal Information (First Name, Last Name, Language).
 - `WizardShell` em `src/components/blocks/shared/wizard-shell.tsx` é o shell compartilhado para wizards dedicados com título, progresso, card de etapa e rodapé de ações.
 - Todos os wizards dedicados atuais devem usar `WizardShell` em vez de recriar header, progress, card e footer localmente; os campos, validações e parâmetros de cada wizard continuam dentro de cada componente específico.
 - `WizardShell` é usado por New Workspace, New Flow, New Task, New Agent, Settings > Integrations e Settings > Team List > New Team.

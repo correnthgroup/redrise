@@ -1,7 +1,8 @@
 ﻿import { useState, useEffect } from 'react'
-import { ArrowLeft, Copy, Eye, EyeOff, KeyRound, Loader2, Plus, Trash2 } from 'lucide-react'
+import { Copy, Eye, EyeOff, KeyRound, Loader2, Plus, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -176,10 +177,7 @@ export function ApiKeysManager({ onBack, ownerUserId }: { onBack?: () => void; o
         </div>
       )}
       <div className="mt-4 flex justify-between border-t pt-4">
-        <Button type="button" variant="outline" size="sm" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4" />
-          {t('common.back')}
-        </Button>
+        <BackButton onClick={onBack} />
         <Button type="button" size="sm" onClick={() => setShowCreate((value) => !value)}>
           <Plus className="h-4 w-4" />
           {t('settings.newKey')}
