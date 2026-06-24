@@ -8,12 +8,23 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Check, X, AlertTriangle, Send } from 'lucide-react'
+import { Loader2, Check, X, AlertTriangle, Send, Link2 } from 'lucide-react'
 import type { Task } from '@/types/task'
 import type { Agent } from '@/types/agent'
 import type { TaskExecution } from '@/types/task-execution'
-import { chatCompletion, type ChatMessage } from '@/lib/ai-client'
-import { createExecution, completeExecution, rejectExecution, failExecution } from '@/lib/task-executions'
+import { taskExecute } from '@/lib/ai-client'
+import {
+  createExecution,
+  completeExecution,
+  rejectExecution,
+  failExecution,
+  approveExecution,
+  addMessage,
+  addOutput,
+  loadOutputs,
+  approveOutput,
+  resolveUpstreamContext,
+} from '@/lib/task-executions'
 import { useI18n } from '@/hooks/use-i18n'
 
 type RunStep = 'preview' | 'running' | 'response' | 'done'
@@ -24,18 +35,23 @@ export function TaskRunDialog({
   open,
   onOpenChange,
   onComplete,
+  language = 'en-US',
 }: {
   task: Task
   agent: Agent | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onComplete?: () => void
+  language?: string
 }) {
   const [step, setStep] = useState<RunStep>('preview')
   const [execution, setExecution] = useState<TaskExecution | null>(null)
   const [response, setResponse] = useState('')
+  const [parsedOutput, setParsedOutput] = useState<Record<string, unknown> | null>(null)
+  const [parseError, setParseError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [tokensUsed, setTokensUsed] = useState<number | null>(null)
+  const [hasUpstream, setHasUpstream] = useState(false)
   const { t } = useI18n()
 
   // Reset state when dialog opens
@@ -44,8 +60,11 @@ export function TaskRunDialog({
     setStep('preview')
     setExecution(null)
     setResponse('')
+    setParsedOutput(null)
+    setParseError(null)
     setError(null)
     setTokensUsed(null)
+    setHasUpstream(false)
     setPrevOpen(true)
   } else if (!open && prevOpen) {
     setPrevOpen(false)
@@ -70,32 +89,55 @@ export function TaskRunDialog({
       )
       setExecution(exec)
 
-      // Build messages
-      const messages: ChatMessage[] = []
+      // Persist system message
+      await addMessage(exec.id, 0, 'system', 'system', `Task: ${task.title}\nObjective: ${task.objective || 'N/A'}`)
 
-      if (task.objective) {
-        messages.push({
-          role: 'system',
-          content: `Objective: ${task.objective}`,
-        })
+      // Resolve upstream context
+      const upstreamContext = await resolveUpstreamContext(task.id)
+      setHasUpstream(!!upstreamContext)
+
+      if (upstreamContext) {
+        await addMessage(exec.id, 1, 'context', 'context', upstreamContext)
       }
 
-      messages.push({
-        role: 'user',
-        content: task.prompt || task.objective,
-      })
+      // Persist user prompt
+      const userPrompt = task.prompt || task.objective
+      await addMessage(exec.id, upstreamContext ? 2 : 1, 'user', 'prompt', userPrompt)
 
-      // Call AI
-      const result = await chatCompletion(messages, agent?.model)
+      // Call structured task execution
+      const result = await taskExecute(
+        task.objective,
+        userPrompt,
+        upstreamContext,
+        agent?.model,
+        language,
+      )
 
-      const aiResponse = result.choices?.[0]?.message?.content || 'No response received.'
-      const tokens = result.usage?.total_tokens || 0
+      setResponse(result.raw_output)
+      setTokensUsed(result.tokens_used)
+      setParsedOutput(result.parsed_output)
+      setParseError(result.parse_error)
 
-      setResponse(aiResponse)
-      setTokensUsed(tokens)
+      // Persist assistant response
+      const seq = upstreamContext ? 3 : 2
+      await addMessage(exec.id, seq, 'assistant', 'response', result.raw_output)
+
+      // Persist structured output if parsed successfully
+      if (result.parsed_output) {
+        await addOutput(
+          exec.id,
+          'json',
+          result.parsed_output.final_answer as string || result.raw_output,
+          result.parsed_output,
+          result.raw_output,
+        )
+      } else {
+        // Save as text output even if parsing failed
+        await addOutput(exec.id, 'text', result.raw_output, null, result.raw_output)
+      }
 
       // Update execution
-      await completeExecution(exec.id, aiResponse, tokens)
+      await completeExecution(exec.id, result.raw_output, result.tokens_used)
 
       setStep('response')
     } catch (err) {
@@ -110,7 +152,15 @@ export function TaskRunDialog({
     }
   }
 
-  function handleApprove() {
+  async function handleApprove() {
+    if (execution) {
+      await approveExecution(execution.id).catch(() => {})
+      // Approve the output
+      const outputs = await loadOutputs(execution.id).catch(() => [])
+      if (outputs.length > 0) {
+        await approveOutput(outputs[outputs.length - 1].id).catch(() => {})
+      }
+    }
     setStep('done')
     onOpenChange(false)
     onComplete?.()
@@ -206,7 +256,9 @@ export function TaskRunDialog({
             <div className="text-center">
               <p className="text-sm font-medium">{t('taskRun.processing')}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                {t('taskRun.sendingPrompt', { model: agent?.model || 'AI model' })}
+                {hasUpstream
+                  ? t('taskRun.resolvingUpstream')
+                  : t('taskRun.sendingPrompt', { model: agent?.model || 'AI model' })}
               </p>
             </div>
           </div>
@@ -225,10 +277,77 @@ export function TaskRunDialog({
               </div>
             ) : (
               <div className="space-y-3">
+                {/* Structured output display */}
+                {parsedOutput && (
+                  <div className="rounded-lg border border-[#2F5D5A]/25 bg-[#2F5D5A]/5 p-4 space-y-3">
+                    <div className="flex items-center gap-2 text-[#2F5D5A]">
+                      <Check className="h-4 w-4" />
+                      <span className="text-sm font-medium">{t('taskRun.structuredOutput')}</span>
+                    </div>
+                    {typeof parsedOutput.decision_summary === 'string' && (
+                      <div>
+                        <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1">{t('taskRun.decisionSummary')}</div>
+                        <p className="text-sm">{parsedOutput.decision_summary}</p>
+                      </div>
+                    )}
+                    {typeof parsedOutput.confidence === 'number' && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{t('taskRun.confidence')}</span>
+                        <Badge variant="outline" className={`text-[10px] ${
+                          parsedOutput.confidence >= 0.8
+                            ? 'border-[#2F5D5A]/25 bg-[#2F5D5A]/8 text-[#2F5D5A]'
+                            : parsedOutput.confidence >= 0.5
+                            ? 'border-[#B7791F]/18 bg-[#FFF8E1] text-[#7A3E14]'
+                            : 'border-[#A04D1F]/25 bg-[#A04D1F]/8 text-[#A04D1F]'
+                        }`}>
+                          {Math.round(parsedOutput.confidence * 100)}%
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {parseError && (
+                  <div className="rounded-lg border border-[#B7791F]/25 bg-[#FFF8E1] p-3 text-xs text-[#7A3E14]">
+                    {t('taskRun.parseNote')}: {parseError}
+                  </div>
+                )}
+
+                {/* Raw response */}
                 <div className="rounded-lg border bg-muted/20 p-4">
                   <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">{t('taskRun.aiResponse')}</div>
-                  <div className="text-sm whitespace-pre-wrap leading-relaxed">{response}</div>
+                  {parsedOutput?.final_answer ? (
+                    <div className="space-y-2">
+                      <p className="text-sm whitespace-pre-wrap leading-relaxed font-medium">{String(parsedOutput.final_answer)}</p>
+                      {typeof parsedOutput.steps_summary === 'object' && Array.isArray(parsedOutput.steps_summary) && parsedOutput.steps_summary.length > 0 && (
+                        <div className="mt-3">
+                          <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1">{t('taskRun.stepsSummary')}</div>
+                          <ul className="list-decimal pl-4 space-y-1 text-sm text-muted-foreground">
+                            {(parsedOutput.steps_summary as string[]).map((step, i) => (
+                              <li key={i}>{step}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {typeof parsedOutput.handoff_notes === 'string' && parsedOutput.handoff_notes && (
+                        <div className="mt-3">
+                          <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1">{t('taskRun.handoffNotes')}</div>
+                          <p className="text-sm text-muted-foreground">{parsedOutput.handoff_notes}</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-sm whitespace-pre-wrap leading-relaxed">{response}</div>
+                  )}
                 </div>
+
+                {/* Upstream context indicator */}
+                {hasUpstream && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Link2 className="h-3 w-3" />
+                    <span>{t('taskRun.usedUpstreamContext')}</span>
+                  </div>
+                )}
 
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   {tokensUsed != null && tokensUsed > 0 && (

@@ -37,6 +37,20 @@ export async function loadFlowCards(flowId: string): Promise<FlowCard[]> {
   return (data ?? []) as FlowCard[]
 }
 
+export async function loadCardsByFlowOrdered(flowId: string): Promise<FlowCard[]> {
+  const { data, error } = await supabase
+    .from('flow_cards')
+    .select('*')
+    .eq('flow_id', flowId)
+    .order('run_order', { ascending: true })
+
+  if (error) {
+    console.error('[loadCardsByFlowOrdered] Error:', error.message)
+    return []
+  }
+  return (data ?? []) as FlowCard[]
+}
+
 export async function createFlowCard(input: CreateFlowCardInput): Promise<FlowCard | null> {
   const id = generateShortId()
   const now = new Date().toISOString()
@@ -51,6 +65,7 @@ export async function createFlowCard(input: CreateFlowCardInput): Promise<FlowCa
       instructions: input.instructions || '',
       members: input.members ?? [],
       agents: input.agents ?? [],
+      approvers: input.approvers ?? [],
       position_x: input.position_x,
       position_y: input.position_y,
       created_at: now,
@@ -67,7 +82,7 @@ export async function createFlowCard(input: CreateFlowCardInput): Promise<FlowCa
   return data as FlowCard
 }
 
-export async function updateFlowCard(id: string, updates: Partial<Pick<FlowCard, 'label' | 'instructions' | 'members' | 'agents' | 'position_x' | 'position_y'>>): Promise<boolean> {
+export async function updateFlowCard(id: string, updates: Partial<Pick<FlowCard, 'label' | 'instructions' | 'members' | 'agents' | 'approvers' | 'position_x' | 'position_y'>>): Promise<boolean> {
   const now = new Date().toISOString()
   const { error } = await supabase
     .from('flow_cards')
@@ -157,7 +172,7 @@ export async function deleteFlowEdge(id: string): Promise<boolean> {
 
 export async function syncFlowEditor(
   flowId: string,
-  cards: { node_id: string; label: string; instructions?: string; members?: string[]; agents?: string[]; position_x: number; position_y: number }[],
+  cards: { node_id: string; label: string; instructions?: string; members?: string[]; agents?: string[]; approvers?: string[]; position_x: number; position_y: number }[],
   edges: { edge_id: string; source: string; target: string; animated?: boolean }[]
 ): Promise<boolean> {
   console.log('[syncFlowEditor] Syncing', cards.length, 'cards and', edges.length, 'edges for flow', flowId)
@@ -177,6 +192,7 @@ export async function syncFlowEditor(
       instructions: c.instructions || '',
       members: c.members ?? [],
       agents: c.agents ?? [],
+      approvers: c.approvers ?? [],
       position_x: c.position_x,
       position_y: c.position_y,
       created_at: now,

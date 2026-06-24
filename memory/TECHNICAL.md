@@ -154,7 +154,10 @@
 - O botão salvar em `FlowBuilderPage` retorna para a lista conforme callback do `AppShell`.
 - `FlowBuilderPage` usa `@xyflow/react`, também conhecido como React Flow, para canvas visual.
 - `@xyflow/react` é a biblioteca que permite arrastar nós, conectar linhas e navegar no canvas de fluxo.
-- Cards do Flow Builder devem preservar título, membros, agentes e ID visível.
+- Cards do Flow Builder devem preservar título, agentes, aprovadores e ID visível.
+- O botão de edição do card no canvas agora mostra o texto 'Edit'/'Editar' em vez de um ícone.
+- Cada card no Flow Builder possui um dropdown 'Approvers'/'Aprovadores' para selecionar membros que aprovarão as tasks vinculadas a este card.
+- O editor de cards do Flow Builder permite selecionar agentes e aprovadores por card.
 - Atalhos do Flow Builder, quando ativos, devem continuar previsíveis: criar, selecionar, copiar, colar, desfazer e refazer.
 
 ## Tasks
@@ -162,20 +165,20 @@
 - A aba Tasks tem visão de board, criação e review.
 - A Topbar mostra `New Task` quando o usuário está no board de tasks.
 - Clicar em `New Task` muda `taskView` para `create`.
-- `CreateTaskPage` tem três etapas: Briefing, Team & Agent, Review.
+- `CreateTaskPage` tem três etapas: Briefing, Flow & Card, Review.
 - Na etapa Briefing, Objective e Prompt são obrigatórios visualmente.
 - A área Documents aceita arrastar arquivos ou escolher arquivos; atualmente guarda nomes de arquivos no estado da tela.
 - Remover documento tira o nome da lista local antes da criação.
 - `CreateTaskPage` possui checkbox `hasSchedule` que alterna a visibilidade dos campos de agendamento (Start Date, End Date, Time, Recurrence, Days of Week/Month).
 - Quando o checkbox está desmarcado, os campos de agendamento são enviados como null e recurrence como 'occasionally'.
 - A animação de alternância usa `@keyframes fadeIn` definido em `index.css`.
-- Na etapa Team & Agent, Workspace é obrigatório e Flow é obrigatório (campo não pode ficar vazio).
+- Na etapa Flow & Card, Workspace é obrigatório, Flow é obrigatório, Card é obrigatório e Queue Position é obrigatório.
 - Workspace em New Task usa `useWorkspaces()` e persiste em `tasks.workspace_id`.
-- Flow em New Task usa `useFlows()` filtrado pelo workspace selecionado e persiste em `tasks.flow_id` quando informado.
-- Na etapa Team & Agent, o dropdown de membros usa `useTeamMemberOptions()`.
-- Portanto, membros atribuíveis a tasks vêm de Settings > Team Members.
+- Flow em New Task usa `useFlows()` filtrado pelo workspace selecionado e persiste em `tasks.flow_id`.
+- Card em New Task usa `loadCardsByFlowOrdered()` filtrado pelo flow selecionado e persiste em `tasks.flow_card_id`.
+- Queue Position é um select com valores 1, 2 ou 3 e persiste em `tasks.queue_position`.
 - O dropdown de Agents carrega agents por `loadAgents()`.
-- Create Task agora traduz os textos da tela pelo provider de i18n e usa dropdown multi-select com `Select All` para Team Members.
+- Create Task agora traduz os textos da tela pelo provider de i18n.
 - Priority usa os valores Min, Med e High mapeados para low, medium e high.
 - Kanban Column escolhe a coluna inicial: Backlog, In Progress, In Review ou Done.
 - Recurrence escolhe recorrência: Occasionally, Daily, Weekly ou Monthly.
@@ -188,12 +191,26 @@
 - Ao trocar Workspace no filtro do board, o filtro de Flow volta para All para evitar flow incompatível com o workspace selecionado.
 - Mover card no board chama `moveTask()`.
 - Deletar task chama `removeTask()`.
-- `ReviewTaskPage` existe como visão futura de revisão, mas o fluxo atual do board precisa ser verificado antes de assumir persistência completa nessa tela.
-- Task Board é um board estilo Kanban.
-- Kanban significa organizar trabalho em colunas por status.
-- As colunas principais são Backlog, In Progress, In Review e Done.
-- Drag and drop move tasks entre colunas e deve persistir a mudança de status quando conectado ao hook atual.
-- Cada task deve manter ID visível ou rastreável para suporte e auditoria.
+- Clicar em uma task no board abre `ReviewTaskPage` via `AppShell.selectedTaskId`.
+- `ReviewTaskPage` recebe `taskId` e carrega task, executions, messages e outputs do Supabase.
+- `ReviewTaskPage` mostra identidade (priority, agent, flow, run_order), briefing (objective, prompt, documents), team, e histórico de execuções.
+- O histórico de execuções mostra mensagens (user/assistant) e outputs estruturados (decision_summary, confidence).
+- Cada execução pode ter status: pending, running, completed, failed.
+- Outputs podem ter status: pending, approved, rejected.
+- Contexto upstream: tasks com `run_order` menor no mesmo flow são resolvidos via `resolveUpstreamContext()`.
+- `resolveUpstreamContext()` busca a última task_execution com output aprovado para cada task upstream e injeta no prompt.
+
+## Task Executions (PRD Architecture)
+
+- **task_executions**: uma task pode ter múltiplas execuções (runs). Cada execução tem status (pending, running, completed, failed), model, tokens_used, error_message.
+- **task_execution_messages**: cada execução tem mensagens (user, system, assistant). Cada mensagem tem role, content, token_count.
+- **task_execution_outputs**: cada execução pode ter outputs estruturados. Schema: final_answer, decision_summary, steps_summary, evidence_used, open_questions, confidence, handoff_notes.
+- **flow_runs/flow_run_steps**: execução de um flow inteiro. Cada step é uma task. `run_order` define a ordem de execução.
+- **Run Order**: tasks e flow_cards têm campo `run_order` (integer) que define a ordem de execução dentro de um flow.
+- **Execution Policy**: flow_cards têm campo `execution_policy` (auto | manual | on-demand) que define como as tasks são executadas.
+- **Frontend**: TaskRunDialog usa `taskExecute()` (Edge Function) em vez de `chatCompletion()`. A função resolve contexto upstream, injeta no prompt, persiste mensagens e outputs.
+- **Backend**: Edge Function `task-execute` faz parsing estruturado do output JSON da IA e persiste no Supabase.
+- **AgentDetailPage**: mostra histórico real de execuções do agente via `loadExecutionsByAgent()`, com métricas (total, success rate, tokens).
 
 ## Agents
 
@@ -206,6 +223,9 @@
 - `AgentCreatePage` chama `addAgent()` recebido do `AppShell`.
 - Se criar com sucesso, volta para a lista.
 - `AgentDetailPage` recebe `agentId` e callback de voltar.
+- `AgentDetailPage` tem abas: Real Activity e Benchmark.
+- Real Activity: mostra histórico real de execuções via `loadExecutionsByAgent()`, com métricas (total, success rate, tokens), lista de execuções com status, e clique em execução abre ReviewTaskPage.
+- Benchmark: mantém o teste de benchmark existente.
 - Existe trigger legado no Supabase para criar um Default Agent ao criar usuário; ele foi endurecido pela migration 018.
 - Agent Detail pode reutilizar blocos compartilhados como SessionsList, ApiKeysManager e ChangePassword quando o contexto exigir.
 - Ações de pausa/restart de agente não devem ser tratadas como reais sem integração backend explícita.
@@ -370,8 +390,9 @@
 - Flow > New Flow > Team Members lê essa lista via `useTeamMemberOptions()`.
 - Flow > Flow List > dropdown de usuários lê essa lista via `useTeamMemberOptions()`.
 - Flow > Flow Builder lê essa lista via `useTeamMemberOptions()`.
-- Tasks > New Task > Team Members lê essa lista via `useTeamMemberOptions()`.
-- Qualquer novo dropdown de membros deve usar a mesma fonte.
+- Tasks > New Task > Agent não usa mais membros da equipe (substituído por Card + Queue Position).
+- `useTeamMemberOptions()` filtra automaticamente membros com status `'Invited'` — apenas membros `'active'` aparecem nos dropdowns.
+- Qualquer novo dropdown de membros deve usar a mesma fonte e o mesmo filtro.
 - Se um membro é removido futuramente, as telas que mostram atribuições antigas precisam decidir se mantêm texto histórico ou limpam atribuições.
 - Essa decisão ainda está `[PENDENTE]`.
 

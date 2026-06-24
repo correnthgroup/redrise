@@ -12,13 +12,12 @@ import { Upload, X, FileText, ChevronDown, Check, ArrowDown, ArrowUp, Minus, Lay
 import { loadAgents } from '@/lib/agents'
 import type { Agent } from '@/types/agent'
 import type { TaskPriority, TaskStatus, RecurrenceType } from '@/types/task'
+import type { FlowCard } from '@/types/flow-card'
 import { useWorkspaces } from '@/hooks/use-workspaces'
 import { useFlows } from '@/hooks/use-flows'
-import { useTeamMemberOptions } from '@/hooks/use-team-member-options'
 import { useI18n } from '@/hooks/use-i18n'
 import { useDropdownClose } from '@/hooks/use-dropdown-close'
 import { DROPDOWN_TRIGGER_CLASSES } from '@/lib/styles'
-import { MultiSelectDropdown } from '../shared/multi-select-dropdown'
 import { WizardShell } from '../shared/wizard-shell'
 
 const STEP_KEYS = ['tasks.briefing', 'tasks.teamAgent', 'workflow.review'] as const
@@ -78,6 +77,8 @@ export function CreateTaskPage({
     recurrence_monthly_days: number[]
     workspace_id: string
     flow_id: string | null
+    flow_card_id: string | null
+    queue_position: number
   }) => Promise<unknown>
 }) {
   const { t } = useI18n()
@@ -87,10 +88,10 @@ export function CreateTaskPage({
   const [objective, setObjective] = useState('')
   const [prompt, setPrompt] = useState('')
   const [documents, setDocuments] = useState<string[]>([])
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([])
-  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState('')
   const [selectedFlowId, setSelectedFlowId] = useState('')
+  const [selectedCardId, setSelectedCardId] = useState('')
+  const [queuePosition, setQueuePosition] = useState<number>(1)
   const [priority, setPriority] = useState<TaskPriority>('medium')
   const [kanbanColumn, setKanbanColumn] = useState<TaskStatus>('backlog')
   const [hasSchedule, setHasSchedule] = useState(false)
@@ -101,9 +102,9 @@ export function CreateTaskPage({
   const [recurrenceDays, setRecurrenceDays] = useState<number[]>([])
   const [recurrenceMonthlyDays, setRecurrenceMonthlyDays] = useState<number[]>([])
   const [agents, setAgents] = useState<Agent[]>([])
-  const { members: teamMembers, loading: loadingMembers } = useTeamMemberOptions()
+  const [flowCards, setFlowCards] = useState<FlowCard[]>([])
+  const [loadingCards, setLoadingCards] = useState(false)
   const [loadingAgents, setLoadingAgents] = useState(true)
-  const [showAgentDropdown, setShowAgentDropdown] = useState(false)
   const [showColumnDropdown, setShowColumnDropdown] = useState(false)
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false)
   const [showRecurrenceDropdown, setShowRecurrenceDropdown] = useState(false)
@@ -114,14 +115,12 @@ export function CreateTaskPage({
 
   const closePriority = useCallback(() => setShowPriorityDropdown(false), [])
   const closeColumn = useCallback(() => setShowColumnDropdown(false), [])
-  const closeAgent = useCallback(() => setShowAgentDropdown(false), [])
   const closeRecurrence = useCallback(() => setShowRecurrenceDropdown(false), [])
   const closeWeekDay = useCallback(() => setShowWeekDayDropdown(false), [])
   const closeMonthDay = useCallback(() => setShowMonthDayDropdown(false), [])
 
   const priorityRef = useDropdownClose(showPriorityDropdown, closePriority)
   const columnRef = useDropdownClose(showColumnDropdown, closeColumn)
-  const agentRef = useDropdownClose(showAgentDropdown, closeAgent)
   const recurrenceRef = useDropdownClose(showRecurrenceDropdown, closeRecurrence)
   const weekDayRef = useDropdownClose(showWeekDayDropdown, closeWeekDay)
   const monthDayRef = useDropdownClose(showMonthDayDropdown, closeMonthDay)
@@ -132,6 +131,21 @@ export function CreateTaskPage({
       setLoadingAgents(false)
     })
   }, [])
+
+  useEffect(() => {
+    if (!selectedFlowId) return
+    let cancelled = false
+    import('@/lib/flow-cards').then(({ loadCardsByFlowOrdered }) => {
+      loadCardsByFlowOrdered(selectedFlowId).then((cards) => {
+        if (!cancelled) {
+          setFlowCards(cards)
+          setSelectedCardId('')
+          setLoadingCards(false)
+        }
+      })
+    })
+    return () => { cancelled = true }
+  }, [selectedFlowId])
 
   function handleFileDrop(e: React.DragEvent) {
     e.preventDefault()
@@ -162,14 +176,12 @@ export function CreateTaskPage({
     )
   }
 
-  const selectedAgent = agents.find((a) => a.id === selectedAgentId)
-  const displayedAgentName = selectedAgent?.name === 'Default Agent' && t('agents.defaultAgent') !== 'Default Agent'
+  const selectedCard = flowCards.find((card) => card.id === selectedCardId)
+  const cardAgentNames = selectedCard?.agents ?? []
+  const cardAgent = agents.find((a) => cardAgentNames.includes(a.name))
+  const displayedAgentName = cardAgent?.name === 'Default Agent' && t('agents.defaultAgent') !== 'Default Agent'
     ? t('agents.defaultAgent')
-    : selectedAgent?.name
-  const selectedMemberNames = teamMembers
-    .filter((m) => selectedMembers.includes(m.id))
-    .map((m) => m.name)
-  const teamMemberOptions = teamMembers.map((member) => ({ value: member.id, label: member.name }))
+    : cardAgent?.name
   const workspaceFlows = flows.filter((flow) => flow.workspace_id === selectedWorkspaceId)
   const selectedWorkspace = workspaces.find((workspace) => workspace.id === selectedWorkspaceId)
   const selectedFlow = flows.find((flow) => flow.id === selectedFlowId)
@@ -200,7 +212,7 @@ export function CreateTaskPage({
           <div className="ml-auto flex gap-2">
             {error && <span className="self-center text-xs text-destructive">{error}</span>}
             <Button
-              disabled={submitting || (step === 0 && (!objective || !prompt)) || (step === 1 && (!selectedWorkspaceId || !selectedFlowId))}
+              disabled={submitting || (step === 0 && (!objective || !prompt)) || (step === 1 && (!selectedWorkspaceId || !selectedFlowId || !selectedCardId))}
               onClick={async () => {
                 if (step === STEP_KEYS.length - 1) {
                   setError(null)
@@ -212,8 +224,8 @@ export function CreateTaskPage({
                       objective,
                       prompt,
                       documents,
-                      team_members: selectedMemberNames,
-                      agent_id: selectedAgentId,
+                      team_members: [],
+                      agent_id: cardAgent?.id ?? null,
                       priority,
                       status: kanbanColumn,
                       schedule_start: hasSchedule ? (scheduleStart || null) : null,
@@ -224,6 +236,8 @@ export function CreateTaskPage({
                       recurrence_monthly_days: hasSchedule ? recurrenceMonthlyDays : [],
                       workspace_id: selectedWorkspaceId,
                       flow_id: selectedFlowId || null,
+                      flow_card_id: selectedCardId || null,
+                      queue_position: queuePosition,
                     })
                     if (!result) {
                       setError(t('tasks.createError'))
@@ -336,7 +350,7 @@ export function CreateTaskPage({
                 </div>
                 <div className="space-y-2">
                   <RequiredLabel>{t('tasks.flow')}</RequiredLabel>
-                  <Select value={selectedFlowId} onValueChange={setSelectedFlowId} disabled={!selectedWorkspaceId || loadingFlows || workspaceFlows.length === 0}>
+                  <Select value={selectedFlowId} onValueChange={(value) => { setSelectedFlowId(value); setFlowCards([]); setSelectedCardId(''); setLoadingCards(true) }} disabled={!selectedWorkspaceId || loadingFlows || workspaceFlows.length === 0}>
                     <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES}>
                       <SelectValue placeholder={!selectedWorkspaceId ? t('tasks.selectWorkspaceFirst') : loadingFlows ? t('common.loading') : t('tasks.selectFlow')} />
                     </SelectTrigger>
@@ -349,8 +363,23 @@ export function CreateTaskPage({
                 </div>
               </div>
 
-              {/* Priority + Kanban Column */}
+              {/* Card + Priority */}
               <div className="grid grid-cols-2 gap-4">
+                {/* Flow Card */}
+                <div className="space-y-2">
+                  <RequiredLabel>{t('tasks.flowCard')}</RequiredLabel>
+                  <Select value={selectedCardId} onValueChange={setSelectedCardId} disabled={!selectedFlowId || loadingCards || flowCards.length === 0}>
+                    <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES}>
+                      <SelectValue placeholder={!selectedFlowId ? t('tasks.selectFlowFirst') : loadingCards ? t('common.loading') : t('tasks.selectCard')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {flowCards.map((card) => (
+                        <SelectItem key={card.id} value={card.id}>{card.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* Priority */}
                 <div className="space-y-2">
                   <Label>{t('tasks.priority')}</Label>
@@ -390,6 +419,24 @@ export function CreateTaskPage({
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Queue Position + Kanban Column */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Queue Position */}
+                <div className="space-y-2">
+                  <RequiredLabel>{t('tasks.queuePosition')}</RequiredLabel>
+                  <Select value={queuePosition.toString()} onValueChange={(value) => setQueuePosition(parseInt(value, 10))} disabled={!selectedCardId}>
+                    <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES}>
+                      <SelectValue placeholder={!selectedCardId ? t('tasks.selectCardFirst') : t('tasks.selectPosition')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="3">3</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 {/* Kanban Column */}
                 <div className="space-y-2">
@@ -401,7 +448,6 @@ export function CreateTaskPage({
                       className={DROPDOWN_TRIGGER_CLASSES}
                       onClick={() => {
                         setShowColumnDropdown(!showColumnDropdown)
-                        setShowAgentDropdown(false)
                       }}
                     >
                       <span className="truncate">
@@ -435,70 +481,26 @@ export function CreateTaskPage({
                 </div>
               </div>
 
-              {/* Team Members + Agent */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Team Members */}
-                <div className="space-y-2">
-                  <Label>{t('tasks.teamMembers')}</Label>
-                  <MultiSelectDropdown
-                    options={teamMemberOptions}
-                    selectedValues={selectedMembers}
-                    onChange={setSelectedMembers}
-                    placeholder={t('tasks.selectTeamMembers')}
-                    selectedLabel={(count) => t('common.selectedCount', { count })}
-                    selectAllLabel={t('common.selectAll')}
-                    loading={loadingMembers}
-                    loadingLabel={t('flow.loadingMembers')}
-                    emptyLabel={t('flow.noMembersAvailable')}
-
-                    contentClassName="min-w-[var(--radix-dropdown-menu-trigger-width)]"
-                  />
-                </div>
-
-                {/* Agent */}
-                <div className="space-y-2">
-                  <Label>{t('tasks.agent')}</Label>
-                  <div ref={agentRef} className="relative">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={DROPDOWN_TRIGGER_CLASSES}
-                      onClick={() => {
-                        setShowAgentDropdown(!showAgentDropdown)
-                        setShowColumnDropdown(false)
-                      }}
-                      disabled={loadingAgents}
-                    >
-                      <span className="truncate">
-                        {loadingAgents ? t('agents.loadingAgents') : selectedAgent ? displayedAgentName : t('tasks.selectAgent')}
-                      </span>
-                      <ChevronDown className="h-4 w-4 opacity-50" />
-                    </Button>
-                    {showAgentDropdown && !loadingAgents && (
-                      <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
-                        <div className="max-h-60 overflow-y-auto p-1">
-                          {agents.length === 0 ? (
-                            <div className="px-2 py-1.5 text-sm text-muted-foreground">{t('tasks.noAgentsAvailable')}</div>
-                          ) : (
-                            agents.map((agent) => (
-                              <button
-                                key={agent.id}
-                                type="button"
-                                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-                                onClick={() => {
-                                  setSelectedAgentId(agent.id)
-                                  setShowAgentDropdown(false)
-                                }}
-                              >
-                                <span className="flex-1 text-left">{agent.name === 'Default Agent' ? t('agents.defaultAgent') : agent.name}</span>
-                                <span className="text-[10px] text-muted-foreground">{agent.model}</span>
-                              </button>
-                            ))
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+              {/* Agent (read-only from card) */}
+              <div className="space-y-2">
+                <Label>{t('tasks.agent')}</Label>
+                <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
+                  {loadingAgents ? (
+                    <span className="text-muted-foreground">{t('agents.loadingAgents')}</span>
+                  ) : cardAgent ? (
+                    <div className="flex items-center gap-2">
+                      <span className={`h-2 w-2 rounded-full ${
+                        cardAgent.status === 'active' ? 'bg-[#2F5D5A]' :
+                        cardAgent.status === 'paused' ? 'bg-amber-500' :
+                        cardAgent.status === 'error' ? 'bg-[#A04D1F]' :
+                        'bg-slate-400'
+                      }`} />
+                      <span className="font-medium">{displayedAgentName}</span>
+                      <span className="text-xs text-muted-foreground">({cardAgent.model})</span>
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">{t('tasks.selectCardFirst')}</span>
+                  )}
                 </div>
               </div>
 
@@ -800,30 +802,31 @@ export function CreateTaskPage({
                 </div>
 
                 <div>
-                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t('tasks.teamMembers')}</div>
-                  {selectedMemberNames.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">{t('tasks.noTeamMembersSelected')}</div>
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t('tasks.flowCard')}</div>
+                  {selectedCard ? (
+                    <div className="text-sm font-medium">{selectedCard.label}</div>
                   ) : (
-                    <div className="flex flex-wrap gap-1.5">
-                      {selectedMemberNames.map((name) => (
-                        <Badge key={name} variant="secondary" className="bg-[#2F5D5A]/10 text-[#2F5D5A]">{name}</Badge>
-                      ))}
-                    </div>
+                    <div className="text-sm text-muted-foreground">{t('tasks.noCardSelected')}</div>
                   )}
                 </div>
 
                 <div>
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t('tasks.queuePosition')}</div>
+                  <div className="text-sm font-medium">{queuePosition}</div>
+                </div>
+
+                <div>
                   <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t('tasks.agent')}</div>
-                  {selectedAgent ? (
+                  {cardAgent ? (
                     <div className="flex items-center gap-2">
                       <span className={`h-2 w-2 rounded-full ${
-                        selectedAgent.status === 'active' ? 'bg-[#2F5D5A]' :
-                        selectedAgent.status === 'paused' ? 'bg-amber-500' :
-                        selectedAgent.status === 'error' ? 'bg-[#A04D1F]' :
+                        cardAgent.status === 'active' ? 'bg-[#2F5D5A]' :
+                        cardAgent.status === 'paused' ? 'bg-amber-500' :
+                        cardAgent.status === 'error' ? 'bg-[#A04D1F]' :
                         'bg-slate-400'
                       }`} />
                       <span className="text-sm font-medium">{displayedAgentName}</span>
-                      <span className="text-xs text-muted-foreground">({selectedAgent.model})</span>
+                      <span className="text-xs text-muted-foreground">({cardAgent.model})</span>
                     </div>
                   ) : (
                     <div className="text-sm text-muted-foreground">{t('tasks.noAgentSelected')}</div>

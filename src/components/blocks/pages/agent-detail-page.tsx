@@ -3,9 +3,12 @@ import { BackButton } from '@/components/ui/back-button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Brain, Code, FileText, BarChart3, Lightbulb, Zap, Globe, Shield } from 'lucide-react'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Brain, Code, FileText, BarChart3, Lightbulb, Zap, Globe, Shield, Clock, Check, X, AlertTriangle } from 'lucide-react'
 import type { Agent } from '@/types/agent'
+import type { TaskExecution } from '@/types/task-execution'
 import { loadAgent } from '@/lib/agents'
+import { loadExecutionsByAgent } from '@/lib/task-executions'
 import { useI18n } from '@/hooks/use-i18n'
 
 const STATUS_BADGE: Record<Agent['status'], string> = {
@@ -13,6 +16,14 @@ const STATUS_BADGE: Record<Agent['status'], string> = {
   paused: 'border-[#B7791F]/18 bg-[#FFF8E1] text-[#7A3E14]',
   error: 'border-primary/18 bg-primary/8 text-primary',
   idle: 'border-slate-200 bg-slate-50 text-slate-600',
+}
+
+const EXEC_STATUS_ICON: Record<string, typeof Clock> = {
+  pending: Clock,
+  running: Clock,
+  completed: Check,
+  rejected: X,
+  failed: AlertTriangle,
 }
 
 type BenchmarkData = {
@@ -26,20 +37,6 @@ type BenchmarkData = {
   error: string | null
 }
 
-type LogEntry = {
-  id: string
-  timestamp: string
-  action: string
-  status: 'success' | 'error' | 'pending'
-  details: string
-}
-
-const PLACEHOLDER_LOGS: LogEntry[] = [
-  { id: '1', timestamp: new Date(Date.now() - 3600000).toISOString(), action: 'Agent initialized', status: 'success', details: 'Default agent created and configured with OpenRouter.' },
-  { id: '2', timestamp: new Date(Date.now() - 7200000).toISOString(), action: 'Model connection tested', status: 'success', details: 'Successfully connected to openai/gpt-oss-120b:free via OpenRouter.' },
-  { id: '3', timestamp: new Date(Date.now() - 10800000).toISOString(), action: 'API key validated', status: 'success', details: 'OpenRouter API key verified and active.' },
-]
-
 export function AgentDetailPage({
   agentId,
   onBack,
@@ -51,6 +48,7 @@ export function AgentDetailPage({
   const [tab, setTab] = useState('benchmark')
   const [agent, setAgent] = useState<Agent | null>(null)
   const [loading, setLoading] = useState(true)
+  const [executions, setExecutions] = useState<TaskExecution[]>([])
   const [benchmark, setBenchmark] = useState<BenchmarkData>({
     qualityIndex: null,
     pricePerToken: null,
@@ -70,7 +68,13 @@ export function AgentDetailPage({
     })
   }, [agentId])
 
-  // Fetch benchmark data from artificialanalysis.ai
+  // Load real execution history
+  useEffect(() => {
+    if (!agentId) return
+    loadExecutionsByAgent(agentId).then(setExecutions).catch(() => setExecutions([]))
+  }, [agentId])
+
+  // Fetch benchmark data
   useEffect(() => {
     if (tab !== 'benchmark') return
 
@@ -92,7 +96,6 @@ export function AgentDetailPage({
           error: null,
         })
       } catch {
-        // Fallback to known data from the model page
         setBenchmark({
           qualityIndex: 85,
           pricePerToken: 0,
@@ -107,7 +110,7 @@ export function AgentDetailPage({
     }
 
     fetchBenchmark()
-    const interval = setInterval(fetchBenchmark, 3 * 60 * 60 * 1000) // Refresh every 3 hours
+    const interval = setInterval(fetchBenchmark, 3 * 60 * 60 * 1000)
     return () => clearInterval(interval)
   }, [tab])
 
@@ -115,38 +118,18 @@ export function AgentDetailPage({
     return name === 'Default Agent' && locale === 'pt-BR' ? t('agents.defaultAgent') : name
   }
 
-  function statusLabel(status: Agent['status'] | LogEntry['status']) {
+  function statusLabel(status: Agent['status']) {
     if (status === 'active') return t('agents.status.active')
     if (status === 'paused') return t('agents.status.paused')
     if (status === 'idle') return t('agents.status.idle')
-    if (status === 'success') return t('agents.logStatus.success')
-    if (status === 'pending') return t('agents.logStatus.pending')
-    return t(status === 'error' ? 'agents.logStatus.error' : 'agents.status.error')
+    return t('agents.status.error')
   }
 
-  const logs: LogEntry[] = [
-    {
-      id: '1',
-      timestamp: PLACEHOLDER_LOGS[0].timestamp,
-      action: t('agents.recentActivity'),
-      status: 'success',
-      details: t('agents.modelOverviewDesc'),
-    },
-    {
-      id: '2',
-      timestamp: PLACEHOLDER_LOGS[1].timestamp,
-      action: t('agents.performanceMetrics'),
-      status: 'success',
-      details: t('agents.benchmarkRefreshes'),
-    },
-    {
-      id: '3',
-      timestamp: PLACEHOLDER_LOGS[2].timestamp,
-      action: t('agents.provider'),
-      status: 'success',
-      details: `${agent?.provider ?? 'OpenRouter'} ${t('agents.viaRedrise')}`,
-    },
-  ]
+  // Compute execution metrics
+  const totalExecs = executions.length
+  const completedExecs = executions.filter((e) => e.status === 'completed').length
+  const successRate = totalExecs > 0 ? Math.round((completedExecs / totalExecs) * 100) : 0
+  const totalTokens = executions.reduce((sum, e) => sum + (e.tokens_used || 0), 0)
 
   if (loading) {
     return (
@@ -189,7 +172,7 @@ export function AgentDetailPage({
         <TabsContent value="benchmark" className="min-h-0 flex-1">
           <div className="space-y-4">
             {/* Model Overview Card */}
-            <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
+            <Card className="border-border/80 shadow-sm">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -198,7 +181,7 @@ export function AgentDetailPage({
                     </div>
                     <div>
                       <CardTitle className="text-sm font-semibold">{agent.model}</CardTitle>
-                      <p className="text-[10px] text-muted-foreground">{agent.provider} • {benchmark.pricePerToken === 0 ? t('agents.free') : t('agents.provider')}</p>
+                      <p className="text-[10px] text-muted-foreground">{agent.provider} · {benchmark.pricePerToken === 0 ? t('agents.free') : t('agents.provider')}</p>
                     </div>
                   </div>
                   {benchmark.lastUpdated && (
@@ -216,7 +199,7 @@ export function AgentDetailPage({
             </Card>
 
             {/* Performance Metrics */}
-            <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
+            <Card className="border-border/80 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-sm font-semibold">{t('agents.performanceMetrics')}</CardTitle>
               </CardHeader>
@@ -268,120 +251,61 @@ export function AgentDetailPage({
 
             {/* Capabilities & Best Use Cases */}
             <div className="grid gap-4 md:grid-cols-2">
-              {/* Capabilities */}
-              <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
+              <Card className="border-border/80 shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-sm font-semibold">{t('agents.capabilities')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F5D5A]/10 shrink-0">
-                        <Brain className="h-3.5 w-3.5 text-[#2F5D5A]" />
+                    {[
+                      { icon: Brain, label: t('agents.advancedReasoning'), desc: t('agents.advancedReasoningDesc') },
+                      { icon: Code, label: t('agents.codeGeneration'), desc: t('agents.codeGenerationDesc') },
+                      { icon: FileText, label: t('agents.documentAnalysis'), desc: t('agents.documentAnalysisDesc') },
+                      { icon: BarChart3, label: t('agents.dataAnalysis'), desc: t('agents.dataAnalysisDesc') },
+                      { icon: Lightbulb, label: t('agents.creativeWriting'), desc: t('agents.creativeWritingDesc') },
+                    ].map(({ icon: Icon, label, desc }) => (
+                      <div key={label} className="flex items-start gap-3">
+                        <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F5D5A]/10 shrink-0">
+                          <Icon className="h-3.5 w-3.5 text-[#2F5D5A]" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium">{label}</div>
+                          <div className="text-xs text-muted-foreground">{desc}</div>
+                        </div>
                       </div>
-                      <div>
-                          <div className="text-sm font-medium">{t('agents.advancedReasoning')}</div>
-                          <div className="text-xs text-muted-foreground">{t('agents.advancedReasoningDesc')}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F5D5A]/10 shrink-0">
-                        <Code className="h-3.5 w-3.5 text-[#2F5D5A]" />
-                      </div>
-                      <div>
-                          <div className="text-sm font-medium">{t('agents.codeGeneration')}</div>
-                          <div className="text-xs text-muted-foreground">{t('agents.codeGenerationDesc')}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F5D5A]/10 shrink-0">
-                        <FileText className="h-3.5 w-3.5 text-[#2F5D5A]" />
-                      </div>
-                      <div>
-                          <div className="text-sm font-medium">{t('agents.documentAnalysis')}</div>
-                          <div className="text-xs text-muted-foreground">{t('agents.documentAnalysisDesc')}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F5D5A]/10 shrink-0">
-                        <BarChart3 className="h-3.5 w-3.5 text-[#2F5D5A]" />
-                      </div>
-                      <div>
-                          <div className="text-sm font-medium">{t('agents.dataAnalysis')}</div>
-                          <div className="text-xs text-muted-foreground">{t('agents.dataAnalysisDesc')}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#2F5D5A]/10 shrink-0">
-                        <Lightbulb className="h-3.5 w-3.5 text-[#2F5D5A]" />
-                      </div>
-                      <div>
-                          <div className="text-sm font-medium">{t('agents.creativeWriting')}</div>
-                          <div className="text-xs text-muted-foreground">{t('agents.creativeWritingDesc')}</div>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Best Use Cases */}
-              <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
+              <Card className="border-border/80 shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-sm font-semibold">{t('agents.bestUseCases')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#A04D1F]/10 shrink-0">
-                        <Zap className="h-3.5 w-3.5 text-[#A04D1F]" />
+                    {[
+                      { icon: Zap, label: t('agents.workflowAutomation'), desc: t('agents.workflowAutomationDesc') },
+                      { icon: Globe, label: t('agents.customerSupport'), desc: t('agents.customerSupportDesc') },
+                      { icon: Shield, label: t('agents.complianceReview'), desc: t('agents.complianceReviewDesc') },
+                      { icon: Brain, label: t('agents.researchAnalysis'), desc: t('agents.researchAnalysisDesc') },
+                      { icon: Code, label: t('agents.codeAssistant'), desc: t('agents.codeAssistantDesc') },
+                    ].map(({ icon: Icon, label, desc }) => (
+                      <div key={label} className="flex items-start gap-3">
+                        <div className="flex h-6 w-6 items-center justify-center rounded bg-[#A04D1F]/10 shrink-0">
+                          <Icon className="h-3.5 w-3.5 text-[#A04D1F]" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium">{label}</div>
+                          <div className="text-xs text-muted-foreground">{desc}</div>
+                        </div>
                       </div>
-                      <div>
-                          <div className="text-sm font-medium">{t('agents.workflowAutomation')}</div>
-                          <div className="text-xs text-muted-foreground">{t('agents.workflowAutomationDesc')}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#A04D1F]/10 shrink-0">
-                        <Globe className="h-3.5 w-3.5 text-[#A04D1F]" />
-                      </div>
-                      <div>
-                          <div className="text-sm font-medium">{t('agents.customerSupport')}</div>
-                          <div className="text-xs text-muted-foreground">{t('agents.customerSupportDesc')}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#A04D1F]/10 shrink-0">
-                        <Shield className="h-3.5 w-3.5 text-[#A04D1F]" />
-                      </div>
-                      <div>
-                          <div className="text-sm font-medium">{t('agents.complianceReview')}</div>
-                          <div className="text-xs text-muted-foreground">{t('agents.complianceReviewDesc')}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#A04D1F]/10 shrink-0">
-                        <Brain className="h-3.5 w-3.5 text-[#A04D1F]" />
-                      </div>
-                      <div>
-                          <div className="text-sm font-medium">{t('agents.researchAnalysis')}</div>
-                          <div className="text-xs text-muted-foreground">{t('agents.researchAnalysisDesc')}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-[#A04D1F]/10 shrink-0">
-                        <Code className="h-3.5 w-3.5 text-[#A04D1F]" />
-                      </div>
-                      <div>
-                          <div className="text-sm font-medium">{t('agents.codeAssistant')}</div>
-                          <div className="text-xs text-muted-foreground">{t('agents.codeAssistantDesc')}</div>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Footer */}
             <div className="rounded-lg border bg-muted/20 p-3">
               <p className="text-xs text-muted-foreground">
                 {t('agents.benchmarkSource', { source: 'Artificial Analysis' })} {t('agents.benchmarkRefreshes')}
@@ -391,36 +315,75 @@ export function AgentDetailPage({
         </TabsContent>
 
         <TabsContent value="logs" className="min-h-0 flex-1">
-          <Card className="border-border/80 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_24px_rgba(16,24,40,0.06)]">
-            <CardHeader><CardTitle className="text-sm font-semibold">{t('agents.recentActivity')}</CardTitle></CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {logs.map((log) => (
-                  <div key={log.id} className="flex items-start gap-3 rounded-lg border p-3 text-sm">
-                    <div className={`mt-0.5 h-2 w-2 rounded-full shrink-0 ${
-                      log.status === 'success' ? 'bg-[#2F5D5A]' :
-                      log.status === 'error' ? 'bg-[#A04D1F]' :
-                      'bg-amber-500'
-                    }`} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{log.action}</span>
-                        <Badge variant="outline" className={`text-[10px] ${
-                          log.status === 'success' ? 'border-[#2F5D5A]/25 bg-[#2F5D5A]/8 text-[#2F5D5A]' :
-                          log.status === 'error' ? 'border-primary/18 bg-primary/8 text-primary' :
-                          'border-[#B7791F]/18 bg-[#FFF8E1] text-[#7A3E14]'
-                        }`}>{statusLabel(log.status)}</Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">{log.details}</p>
-                      <p className="text-[10px] text-muted-foreground/60 mt-1">
-                        {new Date(log.timestamp).toLocaleString()}
-                      </p>
-                    </div>
+          <div className="space-y-4">
+            {/* Metrics cards */}
+            <div className="grid grid-cols-3 gap-4">
+              <Card className="border-border/80 shadow-sm">
+                <CardContent className="pt-4">
+                  <div className="text-xs text-muted-foreground">{t('agentDetail.totalExecutions')}</div>
+                  <div className="mt-1 text-2xl font-bold text-[#2F5D5A]">{totalExecs}</div>
+                </CardContent>
+              </Card>
+              <Card className="border-border/80 shadow-sm">
+                <CardContent className="pt-4">
+                  <div className="text-xs text-muted-foreground">{t('agentDetail.successRate')}</div>
+                  <div className="mt-1 text-2xl font-bold text-[#2F5D5A]">{successRate}%</div>
+                </CardContent>
+              </Card>
+              <Card className="border-border/80 shadow-sm">
+                <CardContent className="pt-4">
+                  <div className="text-xs text-muted-foreground">{t('agentDetail.totalTokens')}</div>
+                  <div className="mt-1 text-2xl font-bold text-[#2F5D5A]">{totalTokens.toLocaleString()}</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Execution list */}
+            <Card className="border-border/80 shadow-sm">
+              <CardHeader><CardTitle className="text-sm font-semibold">{t('agentDetail.recentExecutions')}</CardTitle></CardHeader>
+              <CardContent>
+                {executions.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <Clock className="h-8 w-8 text-muted-foreground/40 mb-3" />
+                    <p className="text-sm text-muted-foreground">{t('agentDetail.noActivity')}</p>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                ) : (
+                  <ScrollArea className="max-h-96">
+                    <div className="space-y-2">
+                      {executions.map((exec) => {
+                        const ExecIcon = EXEC_STATUS_ICON[exec.status] || Clock
+                        return (
+                          <div key={exec.id} className="flex items-start gap-3 rounded-lg border p-3 text-sm">
+                            <ExecIcon className={`mt-0.5 h-4 w-4 shrink-0 ${
+                              exec.status === 'completed' ? 'text-[#2F5D5A]' :
+                              exec.status === 'rejected' || exec.status === 'failed' ? 'text-[#A04D1F]' :
+                              'text-muted-foreground'
+                            }`} />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{exec.task_id}</span>
+                                <Badge variant="outline" className={`text-[10px] ${
+                                  exec.status === 'completed' ? 'border-[#2F5D5A]/25 bg-[#2F5D5A]/8 text-[#2F5D5A]' :
+                                  exec.status === 'rejected' || exec.status === 'failed' ? 'border-[#A04D1F]/25 bg-[#A04D1F]/8 text-[#A04D1F]' :
+                                  'border-slate-200 bg-slate-50 text-slate-600'
+                                }`}>{exec.status}</Badge>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{exec.prompt_sent}</p>
+                              <div className="flex items-center gap-3 text-[10px] text-muted-foreground/60 mt-1">
+                                <span>{new Date(exec.created_at).toLocaleString()}</span>
+                                {exec.tokens_used != null && <span>{exec.tokens_used} tokens</span>}
+                                {exec.model && <span>{exec.model}</span>}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

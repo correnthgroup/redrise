@@ -9,6 +9,8 @@ export type Task = {
   user_id: string
   workspace_id: string | null
   flow_id: string | null
+  flow_card_id: string | null
+  queue_position: number | null
   title: string
   brief: string
   objective: string
@@ -18,6 +20,7 @@ export type Task = {
   agent_id: string | null
   priority: TaskPriority
   status: TaskStatus
+  run_order: number
   schedule_start: string | null
   schedule_end: string | null
   schedule_time: string | null
@@ -38,6 +41,7 @@ export type CreateTaskInput = {
   agent_id: string | null
   priority: TaskPriority
   status: TaskStatus
+  run_order?: number
   schedule_start: string | null
   schedule_end: string | null
   schedule_time: string | null
@@ -46,6 +50,8 @@ export type CreateTaskInput = {
   recurrence_monthly_days: number[]
   workspace_id?: string
   flow_id?: string | null
+  flow_card_id?: string | null
+  queue_position?: number | null
 }
 
 export type TaskFlow = {

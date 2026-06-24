@@ -1,3 +1,5 @@
+export type ExecutionPolicy = 'sequential' | 'parallel'
+
 export type FlowCard = {
   id: string
   flow_id: string
@@ -6,6 +8,9 @@ export type FlowCard = {
   instructions: string
   members: string[]
   agents: string[]
+  approvers: string[]
+  run_order: number
+  execution_policy: ExecutionPolicy
   position_x: number
   position_y: number
   created_at: string
@@ -29,6 +34,7 @@ export type CreateFlowCardInput = {
   instructions?: string
   members?: string[]
   agents?: string[]
+  approvers?: string[]
   position_x: number
   position_y: number
 }

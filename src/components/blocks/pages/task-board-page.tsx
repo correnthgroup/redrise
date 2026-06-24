@@ -36,6 +36,7 @@ export function TaskBoardPage({
   flows,
   onMoveTask,
   onDeleteTask,
+  onOpenTask,
   filtersOpen,
   workspaceFilter,
   flowFilter,
@@ -50,6 +51,7 @@ export function TaskBoardPage({
   flows: Flow[]
   onMoveTask?: (id: string, status: TaskStatus) => Promise<boolean>
   onDeleteTask?: (id: string) => Promise<boolean>
+  onOpenTask?: (id: string) => void
   filtersOpen: boolean
   workspaceFilter: string
   flowFilter: string
@@ -60,7 +62,7 @@ export function TaskBoardPage({
 }) {
   const [dragging, setDragging] = useState<string | null>(null)
   const [runTaskId, setRunTaskId] = useState<string | null>(null)
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   const filteredTasks = tasks.filter((task) => {
     if (workspaceFilter !== 'all' && task.workspace_id !== workspaceFilter) return false
@@ -152,7 +154,10 @@ export function TaskBoardPage({
                           >
                             <Play className="h-3 w-3" />
                           </Button>
-                          <ArrowRight className="mt-0.5 h-3.5 w-3.5 text-muted-foreground" />
+                          <ArrowRight
+                            className="mt-0.5 h-3.5 w-3.5 text-muted-foreground cursor-pointer hover:text-foreground"
+                            onClick={(e) => { e.stopPropagation(); onOpenTask?.(task.id) }}
+                          />
                           <Button
                             variant="ghost"
                             size="icon"
@@ -183,6 +188,7 @@ export function TaskBoardPage({
           open={!!runTaskId}
           onOpenChange={(open) => { if (!open) setRunTaskId(null) }}
           onComplete={() => { setRunTaskId(null) }}
+          language={locale}
         />
       )}
     </div>

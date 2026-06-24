@@ -6,6 +6,7 @@ import { AppShell } from '@/components/layout/app-shell'
 import { supabase } from '@/lib/supabase'
 import type { Session, User } from '@supabase/supabase-js'
 import { I18nProvider } from '@/components/providers/i18n-provider'
+import { t as translate, type Locale } from '@/lib/i18n'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { loadUserProfile, PROFILE_UPDATED_EVENT, registerActiveSession, revokeCurrentActiveSession, touchCurrentActiveSession, touchPresence, type UserProfile } from '@/lib/user-profile'
 import { FlowBuilderPage } from '@/components/blocks/pages/flow-builder-page'
@@ -18,6 +19,18 @@ import { ReviewTaskPage } from '@/components/blocks/pages/review-task-page'
 import { ReviewWorkspacePage } from '@/components/blocks/pages/review-workspace-page'
 import { TeamInviteDialog } from '@/components/blocks/shared/team-invite-dialog'
 
+async function fetchUserLanguage(userId: string): Promise<Locale> {
+  try {
+    const { data } = await supabase
+      .from('profiles')
+      .select('language')
+      .eq('id', userId)
+      .single()
+    if (data?.language === 'pt-BR' || data?.language === 'en-US') return data.language
+  } catch { /* ignore */ }
+  return 'en-US'
+}
+
 export default function App() {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -25,6 +38,7 @@ export default function App() {
   const [showLoading, setShowLoading] = useState(false)
   const [authCheckError, setAuthCheckError] = useState(false)
   const [loadingMessage, setLoadingMessage] = useState('Verifying your session...')
+  const [loadingLang, setLoadingLang] = useState<Locale>('en-US')
   const suppressNextAuthSessionRef = useRef(false)
 
   const syncSessionUser = useCallback(async (session: Session | null) => {
@@ -43,14 +57,18 @@ export default function App() {
       return
     }
 
-    setLoadingMessage('Loading your profile...')
+    const lang = await fetchUserLanguage(sessionUser.id)
+    setLoadingLang(lang)
+    setLoadingMessage(translate(lang, 'app.loading.loadingProfile'))
     const nextProfile = await loadUserProfile({
       id: sessionUser.id,
       name: sessionUser.user_metadata?.full_name || sessionUser.email?.split('@')[0] || 'User',
       email: sessionUser.email || '',
     })
     setProfile(nextProfile)
-    setLoadingMessage('Preparing your workspace...')
+    const userLang = nextProfile?.language ?? lang
+    setLoadingLang(userLang)
+    setLoadingMessage(translate(userLang, 'app.loading.preparingWorkspace'))
     await registerActiveSession({ user: sessionUser, session, remembered: false, source: 'password' })
     await Promise.all([touchPresence(sessionUser.id), touchCurrentActiveSession()])
   }, [])
@@ -58,12 +76,12 @@ export default function App() {
   const checkSession = useCallback(async () => {
     setLoading(true)
     setAuthCheckError(false)
-    setLoadingMessage('Verifying your session...')
+    setLoadingMessage(translate(loadingLang, 'app.loading.verifyingSession'))
     const { data: { session }, error } = await supabase.auth.getSession()
     if (error) throw error
     await syncSessionUser(session)
     setLoading(false)
-  }, [syncSessionUser])
+  }, [syncSessionUser, loadingLang])
 
   useEffect(() => {
     const timer = window.setTimeout(() => setShowLoading(true), 200)
@@ -71,7 +89,7 @@ export default function App() {
     Promise.resolve().then(checkSession)
       .catch(() => {
         setAuthCheckError(true)
-        setLoadingMessage('Unable to verify your session.')
+        setLoadingMessage(translate(loadingLang, 'app.loading.unableToVerify'))
         setLoading(false)
       })
       .finally(() => window.clearTimeout(timer))
@@ -88,7 +106,7 @@ export default function App() {
       window.clearTimeout(timer)
       subscription.unsubscribe()
     }
-  }, [checkSession, syncSessionUser])
+  }, [checkSession, syncSessionUser, loadingLang])
 
   useEffect(() => {
     if (!user) return

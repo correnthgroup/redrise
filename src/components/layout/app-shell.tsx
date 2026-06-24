@@ -49,6 +49,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null)
   const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null)
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const flowBuilderSaveRef = useRef<(() => Promise<void>) | null>(null)
   const [flowBuilderSaving, setFlowBuilderSaving] = useState(false)
   const { workspaces, loading: workspacesLoading, addWorkspace, removeWorkspace } = useWorkspaces()
@@ -72,7 +73,10 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
       setSelectedWorkspaceId(null)
     }
     if (next !== 'flow') setFlowView('list')
-    if (next !== 'tasks') setTaskView('board')
+    if (next !== 'tasks') {
+      setTaskView('board')
+      setSelectedTaskId(null)
+    }
     if (next !== 'agents') {
       setAgentView('list')
       setSelectedAgentId(null)
@@ -160,8 +164,8 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
           }}
         />
       : taskView === 'review'
-        ? <ReviewTaskPage onBack={() => setTaskView('board')} />
-        : <TaskBoardPage tasks={tasks} agents={agents} workspaces={workspaces} flows={flows} onMoveTask={moveTask} onDeleteTask={removeTask} filtersOpen={taskFiltersOpen} workspaceFilter={taskWorkspaceFilter} flowFilter={taskFlowFilter} agentFilter={taskAgentFilter} onWorkspaceFilterChange={setTaskWorkspaceFilter} onFlowFilterChange={setTaskFlowFilter} onAgentFilterChange={setTaskAgentFilter} />
+        ? <ReviewTaskPage taskId={selectedTaskId ?? ''} onBack={() => { setTaskView('board'); setSelectedTaskId(null) }} />
+        : <TaskBoardPage tasks={tasks} agents={agents} workspaces={workspaces} flows={flows} onMoveTask={moveTask} onDeleteTask={removeTask} onOpenTask={(id) => { setSelectedTaskId(id); setTaskView('review') }} filtersOpen={taskFiltersOpen} workspaceFilter={taskWorkspaceFilter} flowFilter={taskFlowFilter} agentFilter={taskAgentFilter} onWorkspaceFilterChange={setTaskWorkspaceFilter} onFlowFilterChange={setTaskFlowFilter} onAgentFilterChange={setTaskAgentFilter} />
   } else if (active === 'agents') {
     body = agentView === 'create'
       ? <AgentCreatePage

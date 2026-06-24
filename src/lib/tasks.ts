@@ -69,6 +69,8 @@ export async function createTask(input: CreateTaskInput): Promise<Task | null> {
       user_id: user.id,
       workspace_id: input.workspace_id ?? null,
       flow_id: input.flow_id ?? null,
+      flow_card_id: input.flow_card_id ?? null,
+      queue_position: input.queue_position ?? null,
       title: input.title || 'New Task',
       brief: input.brief || '',
       objective: input.objective || '',
@@ -142,4 +144,43 @@ export async function deleteTask(id: string): Promise<boolean> {
   })
 
   return true
+}
+
+export async function loadTasksByFlow(flowId: string): Promise<Task[]> {
+  const { data, error } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('flow_id', flowId)
+    .order('run_order', { ascending: true })
+
+  if (error) {
+    console.error('[loadTasksByFlow] Error:', error.message)
+    return []
+  }
+  return (data ?? []) as Task[]
+}
+
+export async function loadTasksByCard(flowId: string, cardNodeId: string): Promise<Task[]> {
+  const { data: cards, error: cardErr } = await supabase
+    .from('flow_cards')
+    .select('id')
+    .eq('flow_id', flowId)
+    .eq('node_id', cardNodeId)
+    .limit(1)
+
+  if (cardErr || !cards || cards.length === 0) return []
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('flow_id', flowId)
+    .eq('flow_card_id', cards[0].id)
+    .order('run_order', { ascending: true })
+
+  if (error) {
+    console.error('[loadTasksByCard] Error:', error.message)
+    return []
+  }
+
+  return (data ?? []) as Task[]
 }

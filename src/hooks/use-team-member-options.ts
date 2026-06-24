@@ -12,9 +12,10 @@ export function useTeamMemberOptions() {
     async function load() {
       setLoading(true)
       const { data: { user } } = await supabase.auth.getUser()
-      const nextMembers = user ? await loadTeamMembers(user.id) : []
+      const allMembers = user ? await loadTeamMembers(user.id) : []
+      const activeMembers = allMembers.filter((m) => m.status !== 'Invited')
       if (!cancelled) {
-        setMembers(nextMembers)
+        setMembers(activeMembers)
         setLoading(false)
       }
     }

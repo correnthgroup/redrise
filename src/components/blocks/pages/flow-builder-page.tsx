@@ -19,16 +19,20 @@ import {
 import '@xyflow/react/dist/style.css'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { CheckCircle2, Plus, Trash2, ClipboardPaste, Undo2, Redo2, MousePointer2, Crosshair } from 'lucide-react'
+import { Plus, Trash2, ClipboardPaste, Undo2, Redo2, MousePointer2, Crosshair } from 'lucide-react'
 import { useFlowCards } from '@/hooks/use-flow-cards'
 import { useI18n } from '@/hooks/use-i18n'
+import { useTeamMemberOptions } from '@/hooks/use-team-member-options'
 import { MultiSelectDropdown } from '../shared/multi-select-dropdown'
 import { loadAgents } from '@/lib/agents'
+import { loadTasksByCard } from '@/lib/tasks'
+import { Label } from '@/components/ui/label'
+import { RequiredLabel } from '@/components/ui/required-label'
 import type { Agent } from '@/types/agent'
+import type { Task } from '@/types/task'
 
-type FlowNode = Node<{ label: string; instructions?: string; members?: string[]; agents?: string[] }>
+type FlowNode = Node<{ label: string; instructions?: string; members?: string[]; agents?: string[]; approvers?: string[] }>
 
 let nodeIdCounter = 5
 
@@ -36,6 +40,7 @@ function FlowCardWithEdit({ data, selected, id }: NodeProps<FlowNode>) {
   const { t } = useI18n()
   const openCardEditor = (window as unknown as Record<string, (id: string) => void>).__flowCardEdit
   const agents = data.agents ?? []
+  const approvers = (data as Record<string, unknown>).approvers as string[] | undefined ?? []
 
   return (
     <div
@@ -45,27 +50,28 @@ function FlowCardWithEdit({ data, selected, id }: NodeProps<FlowNode>) {
       }
     >
       <Handle type="target" position={Position.Left} />
-      <div className="flex items-center justify-between">
-        <div className="font-medium truncate">{data.label}</div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-5 w-5 shrink-0 text-[#A04D1F] hover:text-[#A04D1F]/80"
-          onClick={(e) => {
-            e.stopPropagation()
-            openCardEditor?.(id)
-          }}
-        >
-          <CheckCircle2 className="h-3.5 w-3.5" />
-        </Button>
-      </div>
+      <div className="font-medium truncate">{data.label}</div>
       {agents.length > 0 && (
         <div className="text-xs text-muted-foreground truncate">{t('flowBuilder.agents', { agents: agents.join(', ') })}</div>
       )}
       {agents.length === 0 && (
         <div className="text-xs text-muted-foreground">{t('flowBuilder.undefined')}</div>
       )}
+      {approvers.length > 0 && (
+        <div className="text-[10px] text-muted-foreground truncate">{t('flowBuilder.approvers', { count: approvers.length })}</div>
+      )}
       <div className="text-[10px] text-muted-foreground/60 font-mono mt-0.5">ID: {id}</div>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-5 px-1.5 mt-1 text-[#A04D1F] hover:text-white hover:bg-[#A04D1F] text-[10px] font-medium"
+        onClick={(e) => {
+          e.stopPropagation()
+          openCardEditor?.(id)
+        }}
+      >
+        {t('common.edit')}
+      </Button>
       <Handle type="source" position={Position.Right} />
     </div>
   )
@@ -81,11 +87,15 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(defaultEdges)
   const [editingCardId, setEditingCardId] = useState<string | null>(null)
   const [cardTitle, setCardTitle] = useState('')
-  const [cardInstructions, setCardInstructions] = useState('')
   const [cardAgents, setCardAgents] = useState<string[]>([])
+  const [cardApprovers, setCardApprovers] = useState<string[]>([])
   const [agents, setAgents] = useState<Agent[]>([])
   const [loadingAgents, setLoadingAgents] = useState(true)
+  const { members: teamMembers, loading: loadingMembers } = useTeamMemberOptions()
   const [fabOpen, setFabOpen] = useState(false)
+  const [cardTasks, setCardTasks] = useState<Task[]>([])
+  const [cardTasksLoading, setCardTasksLoading] = useState(false)
+  const [validationError, setValidationError] = useState<string[]>([])
   const fabRef = useRef<HTMLDivElement>(null)
   const { screenToFlowPosition, getNodes, setNodes: setReactFlowNodes, setEdges: setReactFlowEdges, fitView, setCenter } = useReactFlow()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -134,7 +144,7 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
         id: c.node_id,
         type: 'flowCard',
         position: { x: c.position_x, y: c.position_y },
-        data: { label: c.label, instructions: c.instructions, members: c.members, agents: c.agents },
+        data: { label: c.label, instructions: c.instructions, members: c.members, agents: c.agents, approvers: (c as Record<string, unknown>).approvers as string[] ?? [] },
       }))
       setReactFlowNodes(flowNodes)
 
@@ -157,14 +167,20 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
     }
   }, [cards, dbEdges, nodes.length, setReactFlowNodes, setReactFlowEdges])
 
-  const openCardEditor = useCallback((nodeId: string) => {
+  const openCardEditor = useCallback(async (nodeId: string) => {
     const node = nodes.find((n) => n.id === nodeId)
     if (!node) return
     setEditingCardId(nodeId)
     setCardTitle(node.data.label)
-    setCardInstructions(node.data.instructions ?? '')
     setCardAgents(node.data.agents ?? [])
-  }, [nodes])
+    setCardApprovers((node.data as Record<string, unknown>).approvers as string[] ?? [])
+    if (flowId) {
+      setCardTasksLoading(true)
+      const tasks = await loadTasksByCard(flowId, nodeId)
+      setCardTasks(tasks)
+      setCardTasksLoading(false)
+    }
+  }, [nodes, flowId])
 
   useEffect(() => {
     const win = window as unknown as Record<string, (id: string) => void>
@@ -320,7 +336,7 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
     if (!editingCardId) return
     setNodes((nds) => nds.map((n) =>
       n.id === editingCardId
-        ? { ...n, data: { ...n.data, label: cardTitle, instructions: cardInstructions, members: [], agents: cardAgents } }
+        ? { ...n, data: { ...n.data, label: cardTitle, members: [], agents: cardAgents, approvers: cardApprovers } }
         : n
     ))
     setEditingCardId(null)
@@ -332,12 +348,29 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
       return
     }
     const currentNodes = getNodes() as FlowNode[]
+    const missingCards: string[] = []
+    for (const n of currentNodes) {
+      const agents = n.data.agents ?? []
+      const approvers = (n.data as Record<string, unknown>).approvers as string[] | undefined ?? []
+      const missing: string[] = []
+      if (!n.data.label?.trim()) missing.push(t('flowBuilder.title'))
+      if (agents.length === 0) missing.push(t('flowBuilder.agentsLabel'))
+      if (approvers.length === 0) missing.push(t('flowBuilder.approversLabel'))
+      if (missing.length > 0) {
+        missingCards.push(`${n.data.label || t('flowBuilder.unnamedCard')}: ${missing.join(', ')}`)
+      }
+    }
+    if (missingCards.length > 0) {
+      setValidationError(missingCards)
+      return
+    }
     const nodeData = currentNodes.map((n) => ({
       node_id: n.id,
       label: n.data.label,
       instructions: n.data.instructions,
       members: [],
       agents: n.data.agents,
+      approvers: (n.data as Record<string, unknown>).approvers as string[] ?? [],
       position_x: n.position.x,
       position_y: n.position.y,
     }))
@@ -349,7 +382,7 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
     }))
     await save(nodeData, edgeData)
     onSave?.()
-  }, [flowId, getNodes, edges, save, onSave])
+  }, [flowId, getNodes, edges, save, onSave, t])
 
   useEffect(() => {
     if (onSaveRef) onSaveRef.current = handleSave
@@ -418,7 +451,7 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">{t('flowBuilder.title')}</label>
+                <RequiredLabel>{t('flowBuilder.title')}</RequiredLabel>
                 <Input
                   value={cardTitle}
                   onChange={(e) => setCardTitle(e.target.value)}
@@ -426,16 +459,7 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">{t('flowBuilder.instructions')}</label>
-                <Textarea
-                  value={cardInstructions}
-                  onChange={(e) => setCardInstructions(e.target.value)}
-                  placeholder={t('flowBuilder.instructionsPlaceholder')}
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('flowBuilder.agentsLabel')}</label>
+                  <RequiredLabel>{t('flowBuilder.agentsLabel')}</RequiredLabel>
                   <MultiSelectDropdown
                     options={agentOptions}
                     selectedValues={cardAgents}
@@ -449,11 +473,78 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
                     contentClassName="min-w-[var(--radix-dropdown-menu-trigger-width)]"
                   />
               </div>
+              <div className="space-y-2">
+                  <RequiredLabel>{t('flowBuilder.approversLabel')}</RequiredLabel>
+                  <MultiSelectDropdown
+                    options={teamMembers.map((m) => ({ value: m.id, label: m.name }))}
+                    selectedValues={cardApprovers}
+                    onChange={setCardApprovers}
+                    placeholder={t('flowBuilder.selectApprovers')}
+                    selectedLabel={(count) => t('common.selectedCount', { count })}
+                    selectAllLabel={t('common.selectAll')}
+                    loading={loadingMembers}
+                    loadingLabel={t('common.loading')}
+                    emptyLabel={t('flowBuilder.noMembersAvailable')}
+                    contentClassName="min-w-[var(--radix-dropdown-menu-trigger-width)]"
+                  />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('flowBuilder.tasks')}</Label>
+                {cardTasksLoading ? (
+                  <div className="text-sm text-muted-foreground py-2">{t('common.loading')}</div>
+                ) : cardTasks.length === 0 ? (
+                  <div className="text-sm text-muted-foreground py-2">{t('flowBuilder.noTasksForCard')}</div>
+                ) : (
+                  <div className="max-h-40 overflow-y-auto rounded-md border">
+                    <table className="w-full text-sm">
+                      <thead className="sticky top-0 bg-muted/50">
+                        <tr>
+                          <th className="px-2 py-1.5 text-left font-medium text-muted-foreground">#</th>
+                          <th className="px-2 py-1.5 text-left font-medium text-muted-foreground">{t('tasks.title')}</th>
+                          <th className="px-2 py-1.5 text-left font-medium text-muted-foreground">{t('common.status')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cardTasks.map((task, idx) => (
+                          <tr key={task.id} className="border-t">
+                            <td className="px-2 py-1.5 text-muted-foreground">{idx + 1}</td>
+                            <td className="px-2 py-1.5 truncate max-w-[200px]">{task.title}</td>
+                            <td className="px-2 py-1.5">
+                              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium">
+                                {task.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
               <div className="text-[10px] text-muted-foreground/60 font-mono">ID: {editingCardId}</div>
             </div>
             <DialogFooter>
               <Button variant="ghost" onClick={() => setEditingCardId(null)}>{t('common.cancel')}</Button>
-              <Button onClick={saveCardEditor} disabled={!cardTitle.trim()}>{t('common.save')}</Button>
+              <Button onClick={saveCardEditor} disabled={!cardTitle.trim() || cardAgents.length === 0 || cardApprovers.length === 0}>{t('common.save')}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={validationError.length > 0} onOpenChange={(open) => { if (!open) setValidationError([]) }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t('flowBuilder.missingRequiredFields')}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">{t('flowBuilder.missingRequiredFieldsDescription')}</p>
+              <ul className="list-disc pl-4 space-y-1">
+                {validationError.map((msg) => (
+                  <li key={msg} className="text-sm">{msg}</li>
+                ))}
+              </ul>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => setValidationError([])}>{t('common.ok')}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
