@@ -31,6 +31,7 @@
 - Billing state is persisted in Supabase `billing_subscriptions`; Plans UI must read this state and must not unlock paid features from frontend-only state.
 - Stripe checkout starts only through the `billing-checkout` Edge Function; Stripe plan changes are persisted by `billing-webhook`, not by frontend redirects.
 - The ReactBits-inspired visual pattern selected for Redrise is a restrained spotlight/glow follow on high-signal cards, not broad decorative animation.
+- Agent provider connections are stored as `integrations.category = agent_provider`; Admin-created Agents use the organization `owner_user_id`, are usable by active non-Viewer roles, and are configurable only by function `Admin`.
 - UI primitives follow the local Radix/shadcn-style component pattern under `src/components/ui/`.
 - Sidebar collapse state may persist in `localStorage` because it is a UI preference.
 - Domain data must be Supabase-backed, not browser-storage-backed.
@@ -48,6 +49,7 @@
 - Integration setup overview/detail RPCs are defined by migration 041 and enforce role-aware visibility from `team_members.function`.
 - Migrations 042 and 043 enforce role-scoped operational RLS and Settings PRD3 management helpers.
 - Migration 044 creates persisted billing subscription state and role-scoped billing RLS.
+- Migration 045 adds Agent provider connection fields, organization-scoped Agent RLS, and Admin-only `agent_provider` integration insert/view policies.
 
 ## Current Auth Decisions
 

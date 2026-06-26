@@ -31,11 +31,15 @@ async function generateUniqueId(): Promise<string> {
   return id
 }
 
-export async function loadAgents(): Promise<Agent[]> {
-  const { data, error } = await supabase
+export async function loadAgents(ownerUserId?: string): Promise<Agent[]> {
+  let query = supabase
     .from('agents')
     .select('*')
     .order('created_at', { ascending: false })
+
+  if (ownerUserId) query = query.eq('user_id', ownerUserId)
+
+  const { data, error } = await query
 
   if (error) {
     console.error('[loadAgents] Error:', error.message, error.details, error.hint)
@@ -81,12 +85,15 @@ export async function createAgent(input: CreateAgentInput): Promise<Agent | null
     .from('agents')
     .insert({
       id,
-      user_id: user.id,
+      user_id: input.ownerUserId || user.id,
       name: input.name || 'New Agent',
       brief: input.brief || '',
       status: 'idle',
       model: input.model || 'openai/gpt-oss-120b:free',
       provider: input.provider || 'openrouter',
+      provider_connection_id: input.providerConnectionId || null,
+      provider_auth_method: input.providerAuthMethod || 'api',
+      provider_connection_status: input.providerConnectionStatus || 'untested',
       created_at: now,
       updated_at: now,
     })
@@ -111,7 +118,7 @@ export async function createAgent(input: CreateAgentInput): Promise<Agent | null
   return data as Agent
 }
 
-export async function updateAgent(id: string, updates: Partial<Pick<Agent, 'name' | 'brief' | 'status' | 'model'>>): Promise<Agent | null> {
+export async function updateAgent(id: string, updates: Partial<Pick<Agent, 'name' | 'brief' | 'status' | 'model' | 'provider_connection_status'>>): Promise<Agent | null> {
   const { data, error } = await supabase
     .from('agents')
     .update({ ...updates, updated_at: new Date().toISOString() })

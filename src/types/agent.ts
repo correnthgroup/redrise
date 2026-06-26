@@ -8,6 +8,9 @@ export type Agent = {
   status: AgentStatus
   model: string
   provider: string
+  provider_connection_id: string | null
+  provider_auth_method: string
+  provider_connection_status: 'untested' | 'connected' | 'error'
   created_at: string
   updated_at: string
 }
@@ -17,4 +20,8 @@ export type CreateAgentInput = {
   brief: string
   model?: string
   provider?: string
+  ownerUserId?: string
+  providerConnectionId?: string | null
+  providerAuthMethod?: string
+  providerConnectionStatus?: 'untested' | 'connected' | 'error'
 }

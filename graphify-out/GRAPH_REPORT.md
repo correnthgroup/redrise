@@ -1,16 +1,16 @@
 # Graph Report - redrise  (2026-06-26)
 
 ## Corpus Check
-- 237 files · ~126,299 words
+- 241 files · ~129,792 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1230 nodes · 1497 edges · 145 communities (127 shown, 18 thin omitted)
+- 1251 nodes · 1520 edges · 148 communities (129 shown, 19 thin omitted)
 - Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 134 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `09e90764`
+- Built from commit: `cbf63d7b`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -100,7 +100,9 @@
 - [[_COMMUNITY_Community 82|Community 82]]
 - [[_COMMUNITY_Community 83|Community 83]]
 - [[_COMMUNITY_Community 84|Community 84]]
+- [[_COMMUNITY_Community 85|Community 85]]
 - [[_COMMUNITY_Community 86|Community 86]]
+- [[_COMMUNITY_Community 87|Community 87]]
 - [[_COMMUNITY_Community 88|Community 88]]
 - [[_COMMUNITY_Community 89|Community 89]]
 - [[_COMMUNITY_Community 90|Community 90]]
@@ -128,6 +130,7 @@
 - [[_COMMUNITY_Community 135|Community 135]]
 - [[_COMMUNITY_Community 136|Community 136]]
 - [[_COMMUNITY_Community 137|Community 137]]
+- [[_COMMUNITY_Community 138|Community 138]]
 - [[_COMMUNITY_Community 139|Community 139]]
 - [[_COMMUNITY_Community 140|Community 140]]
 - [[_COMMUNITY_Community 143|Community 143]]
@@ -142,7 +145,7 @@
 3. `TECHNICAL` - 45 edges
 4. `logAuditEvent()` - 28 edges
 5. `compilerOptions` - 22 edges
-6. `supabase` - 20 edges
+6. `supabase` - 21 edges
 7. `compilerOptions` - 18 edges
 8. `cn()` - 14 edges
 9. `AGENTS` - 13 edges
@@ -165,7 +168,7 @@
 - 1-file cycle: `src/app/dashboard/page.tsx -> src/app/dashboard/page.tsx`
 - 1-file cycle: `src/app/settings/page.tsx -> src/app/settings/page.tsx`
 
-## Communities (145 total, 18 thin omitted)
+## Communities (148 total, 19 thin omitted)
 
 ### Community 0 - "UI Components"
 Cohesion: 0.05
@@ -212,12 +215,12 @@ Cohesion: 0.13
 Nodes (8): addMessage(), addOutput(), createExecution(), generateMessageId(), generateOutputId(), generateShortExecId(), loadLatestApprovedOutput(), resolveUpstreamContext()
 
 ### Community 11 - "Flow Builder"
-Cohesion: 0.11
-Nodes (9): AccessRole, loadCurrentTeamAssignment(), normalizeTeamName(), ProfileRow, SettingsAdminContext, TeamAssignmentTeamRow, TeamMember, TeamMemberRole (+1 more)
+Cohesion: 0.10
+Nodes (10): AccessRole, AgentAccessContext, loadCurrentTeamAssignment(), normalizeTeamName(), ProfileRow, SettingsAdminContext, TeamAssignmentTeamRow, TeamMember (+2 more)
 
 ### Community 12 - "Team Management"
-Cohesion: 0.08
-Nodes (29): LoadingScreen(), LoadingScreenProps, ErrorFallback(), useFlowCards(), useI18n(), useTeamMemberOptions(), Topbar(), Locale (+21 more)
+Cohesion: 0.12
+Nodes (22): LoadingScreen(), LoadingScreenProps, ErrorFallback(), useFlowCards(), useI18n(), useTeamMemberOptions(), Topbar(), t() (+14 more)
 
 ### Community 13 - "Workspace Management"
 Cohesion: 0.24
@@ -252,8 +255,8 @@ Cohesion: 0.05
 Nodes (36): Agent Detail Page (`agent-detail-page.tsx`), App Shell (`app-shell.tsx`), Approvers Dropdown, Card Editor — Required Fields, Card Editor — Tasks Table, Edit Button, Files Changed (Complete List), i18n (`src/lib/i18n.ts`) (+28 more)
 
 ### Community 22 - "Community 22"
-Cohesion: 0.23
-Nodes (11): supabase, supabaseAnonKey, supabaseUrl, createWorkspace(), deleteWorkspace(), generateShortId(), generateUniqueId(), getWorkspace() (+3 more)
+Cohesion: 0.29
+Nodes (9): supabase, createWorkspace(), deleteWorkspace(), generateShortId(), generateUniqueId(), getWorkspace(), isIdUnique(), loadWorkspaces() (+1 more)
 
 ### Community 23 - "Community 23"
 Cohesion: 0.27
@@ -304,12 +307,12 @@ Cohesion: 0.15
 Nodes (13): AGENTS, Architecture blocks (modular), Commands, Deploy, Entry points, Invariants, Language, localStorage Keys (+5 more)
 
 ### Community 35 - "Community 35"
-Cohesion: 0.38
-Nodes (4): STEP_KEYS, STEP_KEYS, MultiSelectDropdown(), MultiSelectOption
+Cohesion: 0.25
+Nodes (4): ACCESS_COPY_KEYS, accessLabelKey(), AccountUser, COUNTRIES
 
 ### Community 36 - "Community 36"
-Cohesion: 0.29
-Nodes (4): EXEC_STATUS_ICON, STATUS_BADGE, COLUMNS, STATUS_TONE
+Cohesion: 0.22
+Nodes (6): EXEC_STATUS_ICON, STATUS_BADGE, ReviewWorkspacePage(), statusBadgeClass(), COLUMNS, STATUS_TONE
 
 ### Community 37 - "Community 37"
 Cohesion: 0.33
@@ -336,8 +339,8 @@ Cohesion: 0.29
 Nodes (6): Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle
 
 ### Community 44 - "Community 44"
-Cohesion: 0.13
-Nodes (9): getMemberFunctionLabelKey(), MEMBER_FUNCTIONS, MemberFunction, ACCESS_COPY_KEYS, accessLabelKey(), AccountBasicInfoPage(), AccountUser, COUNTRIES (+1 more)
+Cohesion: 0.25
+Nodes (5): getMemberFunctionLabelKey(), MEMBER_FUNCTIONS, MemberFunction, AccountBasicInfoPage(), TeamInviteDialog()
 
 ### Community 45 - "Community 45"
 Cohesion: 0.11
@@ -428,8 +431,8 @@ Cohesion: 0.33
 Nodes (3): DEFAULT_ALLOWED_ORIGINS, getAllowedOrigins(), getCorsHeaders()
 
 ### Community 68 - "Community 68"
-Cohesion: 0.67
-Nodes (3): audit log, en-US, pt-BR
+Cohesion: 0.25
+Nodes (7): Data Requirements, Goal, Out Of Scope, PRD: Agent Provider Wizard And Agent Board Actions, Scope, UX Requirements, Validation
 
 ### Community 69 - "Community 69"
 Cohesion: 0.10
@@ -444,8 +447,8 @@ Cohesion: 0.67
 Nodes (3): dashboard, en-US, pt-BR
 
 ### Community 72 - "Community 72"
-Cohesion: 0.33
-Nodes (4): defaultEdges, defaultNodes, FlowNode, parseExternalOutline()
+Cohesion: 0.22
+Nodes (7): STEP_KEYS, defaultEdges, defaultNodes, FlowNode, parseExternalOutline(), MultiSelectDropdown(), MultiSelectOption
 
 ### Community 73 - "Community 73"
 Cohesion: 0.33
@@ -456,8 +459,8 @@ Cohesion: 0.67
 Nodes (3): flow, en-US, pt-BR
 
 ### Community 75 - "Community 75"
-Cohesion: 0.67
-Nodes (3): health check, en-US, pt-BR
+Cohesion: 0.40
+Nodes (3): DEFAULT_ALLOWED_ORIGINS, getAllowedOrigins(), getCorsHeaders()
 
 ### Community 76 - "Community 76"
 Cohesion: 0.33
@@ -488,16 +491,24 @@ Cohesion: 0.40
 Nodes (5): language, pt-BR, phone, en-US, pt-BR
 
 ### Community 83 - "Community 83"
-Cohesion: 0.29
-Nodes (4): ChatCompletionResponse, ChatMessage, TaskExecuteContext, TaskExecuteResult
+Cohesion: 0.14
+Nodes (8): AgentProviderAuthMethod, AgentProviderId, ChatCompletionResponse, ChatMessage, TaskExecuteContext, TaskExecuteResult, supabaseAnonKey, supabaseUrl
 
 ### Community 84 - "Community 84"
 Cohesion: 0.29
 Nodes (5): CurrentUser, MemberListTable(), ROLE_MAP, PaginationFooter(), PaginationFooterProps
 
+### Community 85 - "Community 85"
+Cohesion: 0.40
+Nodes (3): OPENAI_METHODS, PROVIDERS, STEP_KEYS
+
 ### Community 86 - "Community 86"
 Cohesion: 0.67
 Nodes (3): staff, en-US, pt-BR
+
+### Community 87 - "Community 87"
+Cohesion: 0.50
+Nodes (3): Locale, LOCALES, translations
 
 ### Community 88 - "Community 88"
 Cohesion: 0.67
@@ -508,8 +519,8 @@ Cohesion: 0.67
 Nodes (3): timezone, en-US, pt-BR
 
 ### Community 90 - "Community 90"
-Cohesion: 0.67
-Nodes (3): username, en-US, pt-BR
+Cohesion: 0.40
+Nodes (5): audit log, en-US, username, en-US, pt-BR
 
 ### Community 91 - "Community 91"
 Cohesion: 0.40
@@ -520,8 +531,8 @@ Cohesion: 0.67
 Nodes (3): biological gender, en-US, pt-BR
 
 ### Community 94 - "Community 94"
-Cohesion: 0.67
-Nodes (3): agent, en-US, pt-BR
+Cohesion: 0.29
+Nodes (7): agent, en-US, pt-BR, plan, en-US, select all, pt-BR
 
 ### Community 130 - "Community 130"
 Cohesion: 0.33
@@ -564,8 +575,8 @@ Cohesion: 0.33
 Nodes (5): Active PRD, Current Product Source Of Truth, Immediate Slice, Implementation Rule, Next Ordered Slices
 
 ### Community 143 - "Community 143"
-Cohesion: 0.18
-Nodes (11): first name, en-US, member, en-US, pt-BR, plan, en-US, select all (+3 more)
+Cohesion: 0.22
+Nodes (9): first name, en-US, health check, pt-BR, member, en-US, pt-BR, task (+1 more)
 
 ### Community 146 - "Community 146"
 Cohesion: 0.67
@@ -576,24 +587,24 @@ Cohesion: 0.67
 Nodes (3): email address, en-US, pt-BR
 
 ## Knowledge Gaps
-- **588 isolated node(s):** `$schema`, `style`, `rsc`, `tsx`, `css` (+583 more)
+- **596 isolated node(s):** `$schema`, `style`, `rsc`, `tsx`, `css` (+591 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **18 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **19 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `UI Components` to `User Profile & Auth`, `App Shell & Navigation`, `Community 136`, `Community 84`, `Community 57`?**
-  _High betweenness centrality (0.064) - this node is a cross-community bridge._
 - **Why does `PlansPage()` connect `Settings & Plans` to `Community 65`, `Team Management`?**
-  _High betweenness centrality (0.057) - this node is a cross-community bridge._
+  _High betweenness centrality (0.063) - this node is a cross-community bridge._
 - **Why does `effectiveBillingPlan()` connect `Community 65` to `Settings & Plans`?**
-  _High betweenness centrality (0.056) - this node is a cross-community bridge._
+  _High betweenness centrality (0.062) - this node is a cross-community bridge._
+- **Why does `cn()` connect `UI Components` to `User Profile & Auth`, `App Shell & Navigation`, `Community 136`, `Community 84`, `Community 57`?**
+  _High betweenness centrality (0.060) - this node is a cross-community bridge._
 - **Are the 49 inferred relationships involving `t()` (e.g. with `AuthFlow()` and `LoadingScreen()`) actually correct?**
   _`t()` has 49 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 48 inferred relationships involving `useI18n()` (e.g. with `AuthFlow()` and `LoadingScreen()`) actually correct?**
   _`useI18n()` has 48 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `$schema`, `style`, `rsc` to the rest of the system?**
-  _588 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _596 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `UI Components` be split into smaller, more focused modules?**
   _Cohesion score 0.0507399577167019 - nodes in this community are weakly interconnected._

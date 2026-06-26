@@ -1,12 +1,16 @@
 ﻿import { useState } from 'react'
-import { Search, Pause, Play, RotateCcw, Network, LayoutDashboard, Trash2 } from 'lucide-react'
+import { Search, Pause, Play, RotateCcw, Network, LayoutDashboard, Trash2, Plus, Eye, Pencil, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import type { Agent } from '@/types/agent'
 import { useI18n } from '@/hooks/use-i18n'
+import { DROPDOWN_TRIGGER_CLASSES } from '@/lib/styles'
 
 type AgentFlow = { flowId: string; flowName: string; workspaceId: string; workspaceName: string; flowStatus: string }
 
@@ -40,17 +44,28 @@ const FLOW_STATUS_BADGE: Record<string, string> = {
 export function AgentListPage({
   agents,
   loading,
+  canManageAgents = false,
+  canUseAgents = true,
   onDeleteAgent,
+  onRenameAgent,
   onOpenAgent,
 }: {
   agents: Agent[]
   loading: boolean
-  onDeleteAgent?: (id: string) => void
+  canManageAgents?: boolean
+  canUseAgents?: boolean
+  onDeleteAgent?: (id: string) => void | Promise<void>
+  onRenameAgent?: (id: string, name: string) => Promise<Agent | null>
   onOpenAgent?: (id: string) => void
 }) {
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [checkedFlowIds, setCheckedFlowIds] = useState<Set<string>>(new Set())
+  const [renameAgent, setRenameAgent] = useState<Agent | null>(null)
+  const [renameValue, setRenameValue] = useState('')
+  const [deleteAgent, setDeleteAgent] = useState<Agent | null>(null)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  const [processing, setProcessing] = useState(false)
   const { t } = useI18n()
 
   const filtered = agents.filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
@@ -85,13 +100,44 @@ export function AgentListPage({
   }
 
   function handleRun() {
+    if (!canUseAgents) return
     const selectedFlows = agentFlows.filter((af) => checkedFlowIds.has(af.flowId))
     console.log('[AgentList] Run agent', selectedAgent?.name, 'on flows:', selectedFlows.map((f) => f.flowName))
     // TODO: persist agent execution in future sprint
   }
 
+  function openRename(agent: Agent) {
+    setRenameAgent(agent)
+    setRenameValue(agent.name)
+  }
+
+  async function handleRename() {
+    if (!renameAgent || !renameValue.trim() || processing) return
+    setProcessing(true)
+    try {
+      const updated = await onRenameAgent?.(renameAgent.id, renameValue.trim())
+      if (updated) setRenameAgent(null)
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!deleteAgent || deleteConfirmation !== 'DELETE' || processing) return
+    setProcessing(true)
+    try {
+      await onDeleteAgent?.(deleteAgent.id)
+      if (selectedId === deleteAgent.id) setSelectedId(null)
+      setDeleteAgent(null)
+      setDeleteConfirmation('')
+    } finally {
+      setProcessing(false)
+    }
+  }
+
   return (
-    <div data-testid="agent-list-page" className="grid h-full min-h-0 grid-cols-1 gap-6 p-6 lg:grid-cols-[2fr_1fr]">
+    <>
+      <div data-testid="agent-list-page" className="grid h-full min-h-0 grid-cols-1 gap-6 p-6 lg:grid-cols-[2fr_1fr]">
       <div className="flex h-full min-h-0 flex-col gap-4">
         <div className="flex items-center gap-2">
           <div className="relative max-w-sm flex-1">
@@ -111,20 +157,33 @@ export function AgentListPage({
               <ul className="space-y-2">
                 {filtered.map((a) => (
                   <li key={a.id}>
-                    <button
-                      type="button"
-                      onClick={() => selectAgent(a.id)}
+                    <div
                       className={`flex w-full items-center gap-3 rounded-md border p-3 text-left text-sm transition-colors ${
                         selectedId === a.id
                           ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/20'
                           : 'bg-card hover:bg-accent/40'
                       }`}
                     >
-                      <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLOR[a.status]}`} aria-hidden />
-                      <span className="flex-1 truncate font-medium">{a.name}</span>
-                      <span className="text-xs text-muted-foreground">{a.model}</span>
-                      <Badge variant="outline" className={`text-[10px] uppercase ${STATUS_BADGE[a.status]}`}>{a.status}</Badge>
-                    </button>
+                      <button type="button" onClick={() => selectAgent(a.id)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                        <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLOR[a.status]}`} aria-hidden />
+                        <span className="flex-1 truncate font-medium">{a.name}</span>
+                        <span className="hidden text-xs text-muted-foreground sm:inline">{a.model}</span>
+                        <Badge variant="outline" className={`text-[10px] uppercase ${STATUS_BADGE[a.status]}`}>{a.status}</Badge>
+                      </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="icon" aria-label={t('agents.actionsFor', { name: a.name })} className={`${DROPDOWN_TRIGGER_CLASSES} h-8 w-8 shrink-0 justify-center rounded-full p-0`}>
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => onOpenAgent?.(a.id)}><Eye className="h-3.5 w-3.5" />{t('agents.viewDetails')}</DropdownMenuItem>
+                          {canManageAgents ? <DropdownMenuItem onClick={() => openRename(a)}><Pencil className="h-3.5 w-3.5" />{t('agents.rename')}</DropdownMenuItem> : null}
+                          {canManageAgents ? <DropdownMenuSeparator /> : null}
+                          {canManageAgents ? <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeleteAgent(a)}><Trash2 className="h-3.5 w-3.5" />{t('common.delete')}</DropdownMenuItem> : null}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -137,7 +196,7 @@ export function AgentListPage({
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="text-sm font-semibold">{t('agents.agentDetails')}</CardTitle>
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleRun} disabled={!selectedAgent || checkedFlowIds.size === 0}><Play className="h-3.5 w-3.5" /></Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleRun} disabled={!canUseAgents || !selectedAgent || checkedFlowIds.size === 0}><Play className="h-3.5 w-3.5" /></Button>
             <Button variant="ghost" size="icon" className="h-7 w-7"><Pause className="h-3.5 w-3.5" /></Button>
             <Button variant="ghost" size="icon" className="h-7 w-7"><RotateCcw className="h-3.5 w-3.5" /></Button>
           </div>
@@ -167,14 +226,8 @@ export function AgentListPage({
                 >
                   {t('agents.viewDetails')}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => onDeleteAgent?.(selectedAgent.id)}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                {canManageAgents ? <Button variant="outline" size="sm" onClick={() => openRename(selectedAgent)}>{t('agents.rename')}</Button> : null}
+                {canManageAgents ? <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteAgent(selectedAgent)}><Trash2 className="h-3.5 w-3.5" /></Button> : null}
               </div>
 
               <div>
@@ -218,5 +271,35 @@ export function AgentListPage({
         </CardContent>
       </Card>
     </div>
+      <Dialog open={!!renameAgent} onOpenChange={(open) => { if (!open) setRenameAgent(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('agents.rename')}</DialogTitle>
+            <DialogDescription>{t('agents.renameDesc')}</DialogDescription>
+          </DialogHeader>
+          <Input value={renameValue} onChange={(event) => setRenameValue(event.target.value)} placeholder={t('agents.renamePlaceholder')} />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameAgent(null)}>{t('common.cancel')}</Button>
+            <Button onClick={handleRename} disabled={processing || !renameValue.trim()}>{processing ? <><Loader2 className="h-4 w-4 animate-spin" />{t('common.updating')}</> : t('common.save')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deleteAgent} onOpenChange={(open) => { if (!open) { setDeleteAgent(null); setDeleteConfirmation('') } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('agents.deleteTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('agents.deleteDesc', { name: deleteAgent?.name ?? '' })}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input value={deleteConfirmation} onChange={(event) => setDeleteConfirmation(event.target.value)} placeholder="DELETE" autoComplete="off" />
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={processing}>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={(event) => { event.preventDefault(); void handleDelete() }} disabled={processing || deleteConfirmation !== 'DELETE'} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {processing ? <><Loader2 className="h-4 w-4 animate-spin" />{t('common.updating')}</> : t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

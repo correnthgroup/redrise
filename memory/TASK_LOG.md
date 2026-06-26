@@ -120,6 +120,9 @@
 - Breadcrumb accessibility fix: current breadcrumb segments now render as non-clickable spans instead of disabled buttons, avoiding duplicate button roles with Sidebar navigation.
 - Final validation for the billing/spotlight/i18n/cursor slice passed: `corepack yarn lint`, `corepack yarn build`, `git diff --check` (CRLF warnings only), and `corepack yarn test:e2e` 27/27.
 - `.\.tools\uv\uv.exe run python -m graphify update . --force` refreshed the structural graph to 1230 nodes, 1497 edges, and 145 communities after the billing, spotlight, i18n, cursor polish, and breadcrumb accessibility fix; semantic doc extraction remains pending without `GEMINI_API_KEY` or `GOOGLE_API_KEY`.
+- Agents provider wizard slice added: `docs/product/agent-provider-wizard-prd.md`, migration 045, `agent-provider-test`, provider connection helper, Admin-only creation gating, org-owner Agent loading, provider test/review wizard, and per-Agent `+` menu with View Details/Rename/Delete requiring `DELETE`.
+- Validation for the Agents provider wizard slice passed: `corepack yarn lint`, `corepack yarn build`, `git diff --check` with CRLF warnings only, `supabase db push` applied migration 045, `supabase functions deploy agent-provider-test` deployed the function, and unauthenticated HTTPS smoke returned `401` as expected.
+- `.\.tools\uv\uv.exe run python -m graphify update . --force` refreshed the structural graph to 1251 nodes, 1520 edges, and 148 communities after the Agents provider wizard slice; semantic doc extraction remains pending without `GEMINI_API_KEY` or `GOOGLE_API_KEY`.
 
 ## Next Tasks
 

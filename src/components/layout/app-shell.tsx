@@ -1,4 +1,4 @@
-﻿import { useState, useRef, type ReactNode } from 'react'
+﻿import { useEffect, useState, useRef, type ReactNode } from 'react'
 import { Plus, Loader2, Filter } from 'lucide-react'
 import { useWorkspaces } from '@/hooks/use-workspaces'
 import { useFlows } from '@/hooks/use-flows'
@@ -25,8 +25,10 @@ import { CreateWorkspacePage } from '@/components/blocks/pages/create-workspace-
 import { ReviewWorkspacePage } from '@/components/blocks/pages/review-workspace-page'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Sidebar, type SidebarKey } from './sidebar'
 import { Topbar, type TopbarBreadcrumbItem } from './topbar'
+import { loadAgentAccessContext, type AgentAccessContext } from '@/lib/team-members'
 
 type AppShellProps = {
   user: { id: string; name: string; firstName: string; email: string; avatarUrl?: string | null }
@@ -55,12 +57,15 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null)
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
+  const [agentAccess, setAgentAccess] = useState<AgentAccessContext>({ ownerUserId: user.id, function: '', canConfigureAgents: false, canUseAgents: false })
+  const [agentAccessLoading, setAgentAccessLoading] = useState(true)
+  const [agentAdminDialogOpen, setAgentAdminDialogOpen] = useState(false)
   const flowBuilderSaveRef = useRef<(() => Promise<void>) | null>(null)
   const [flowBuilderSaving, setFlowBuilderSaving] = useState(false)
   const { workspaces, loading: workspacesLoading, addWorkspace, removeWorkspace } = useWorkspaces()
   const { flows, loading: flowsLoading, addFlow, updateFlow, requestApproval, approve, requestAdjustments, markExternalLlm, markRedriseSupport, removeFlow } = useFlows()
   const { tasks, loading: tasksLoading, addTask, moveTask, removeTask } = useTasks()
-  const { agents, loading: agentsLoading, addAgent, removeAgent } = useAgents()
+  const { agents, loading: agentsLoading, addAgent, removeAgent, updateAgent } = useAgents(agentAccess.ownerUserId, agentAccess.canUseAgents)
   const notifications = useNotifications(user.id)
   const analytics = useAnalytics()
   const { t } = useI18n()
@@ -70,7 +75,17 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const [taskAgentFilter, setTaskAgentFilter] = useState('all')
   const hasActiveTaskFilter = taskWorkspaceFilter !== 'all' || taskFlowFilter !== 'all' || taskAgentFilter !== 'all'
 
-  const isDataLoading = workspacesLoading || flowsLoading || tasksLoading || agentsLoading || analytics.loading
+  useEffect(() => {
+    let cancelled = false
+    void loadAgentAccessContext(user.id).then((context) => {
+      if (!cancelled) setAgentAccess(context)
+    }).finally(() => {
+      if (!cancelled) setAgentAccessLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [user.id])
+
+  const isDataLoading = workspacesLoading || flowsLoading || tasksLoading || agentsLoading || agentAccessLoading || analytics.loading
 
   function selectPage(next: SidebarKey) {
     setActive(next)
@@ -271,6 +286,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   } else if (active === 'agents') {
     body = agentView === 'create'
       ? <AgentCreatePage
+          ownerUserId={agentAccess.ownerUserId}
           onBack={() => setAgentView('list')}
           onCreate={async (input) => {
             const result = await addAgent(input)
@@ -285,8 +301,13 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
         : <AgentListPage
             agents={agents}
             loading={agentsLoading}
+            canManageAgents={agentAccess.canConfigureAgents}
+            canUseAgents={agentAccess.canUseAgents}
             onDeleteAgent={async (id) => {
               await removeAgent(id)
+            }}
+            onRenameAgent={async (id, name) => {
+              return await updateAgent(id, { name })
             }}
             onOpenAgent={(id) => {
               setSelectedAgentId(id)
@@ -341,7 +362,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
       </Button>
     </>
   ) : active === 'agents' && agentView === 'list' ? (
-    <Button data-testid="agents-new-agent" onClick={() => setAgentView('create')}>
+    <Button data-testid="agents-new-agent" onClick={() => agentAccess.canConfigureAgents ? setAgentView('create') : setAgentAdminDialogOpen(true)}>
       <Plus className="h-4 w-4" />
       {t('agents.newAgent')}
     </Button>
@@ -354,6 +375,17 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
         <Topbar title={pageMeta.title} subtitle={pageMeta.subtitle} breadcrumbs={breadcrumbs} actions={topbarActions} />
         <main className="min-w-0 flex-1 overflow-hidden">{body}</main>
       </div>
+      <AlertDialog open={agentAdminDialogOpen} onOpenChange={setAgentAdminDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('agents.contactAdminTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('agents.contactAdminDesc')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction>{t('common.ok')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

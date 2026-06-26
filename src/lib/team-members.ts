@@ -25,6 +25,13 @@ export type SettingsAdminContext = {
   function: string
 }
 
+export type AgentAccessContext = {
+  ownerUserId: string
+  function: string
+  canConfigureAgents: boolean
+  canUseAgents: boolean
+}
+
 type TeamMemberRow = {
   id: string
   owner_user_id: string
@@ -170,6 +177,27 @@ export async function loadSettingsAdminContext(userId: string): Promise<Settings
     isTeamManager: !!managerRow,
     ownerUserId: managerRow?.owner_user_id ?? userId,
     function: managerRow?.function ?? '',
+  }
+}
+
+export async function loadAgentAccessContext(userId: string): Promise<AgentAccessContext> {
+  const { data } = await supabase
+    .from('team_members')
+    .select('owner_user_id, member_user_id, function, status, joined_at')
+    .or(`owner_user_id.eq.${userId},member_user_id.eq.${userId}`)
+    .eq('status', 'active')
+    .order('joined_at', { ascending: true })
+
+  const rows = data ?? []
+  const externalRows = rows.filter((row) => row.member_user_id === userId && row.owner_user_id !== userId)
+  const ownerRow = rows.find((row) => row.owner_user_id === userId && row.member_user_id === userId)
+  const row = externalRows[0] ?? ownerRow ?? rows[0]
+  const userFunction = row?.function || 'Admin'
+  return {
+    ownerUserId: row?.owner_user_id ?? userId,
+    function: userFunction,
+    canConfigureAgents: userFunction === 'Admin',
+    canUseAgents: userFunction !== 'Viewer',
   }
 }
 

@@ -42,6 +42,7 @@ export type CreateIntegrationInput = {
   config?: Record<string, unknown>
   status?: IntegrationStatus
   workspace_id?: string
+  ownerUserId?: string
 }
 
 function generateShortId(): string {
@@ -103,7 +104,7 @@ export async function createIntegration(input: CreateIntegrationInput): Promise<
     .from('integrations')
     .insert({
       id,
-      user_id: user.id,
+      user_id: input.ownerUserId || user.id,
       workspace_id: input.workspace_id || null,
       name: input.name,
       provider: input.provider,

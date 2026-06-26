@@ -247,11 +247,13 @@
 
 - A aba Agents tem lista, criação e detalhe.
 - A Topbar mostra `New Agent` quando o usuário está na lista de agents.
-- Clicar em `New Agent` muda `agentView` para `create`.
-- `AgentListPage` recebe agents do hook `useAgents()`.
+- Clicar em `New Agent` muda `agentView` para `create` somente quando a Function/Função ativa do usuário é `Admin`; outros usuários veem o aviso `Contate o Administrador da Organizacao`.
+- `AgentListPage` recebe agents do hook `useAgents(ownerUserId, canUseAgents)`; `Viewer` recebe lista vazia e não usa Agents para execução.
 - Ao abrir agent, `AppShell` guarda `selectedAgentId` e muda para detalhe.
-- Ao deletar agent, `AgentListPage` chama `removeAgent()` recebido do `AppShell`.
-- `AgentCreatePage` chama `addAgent()` recebido do `AppShell`.
+- Cada Agent na lista tem menu `+` com `Ver Detalhes`, `Renomear` e `Deletar`; renomear/deletar aparece apenas para Admin.
+- Ao deletar agent, `AgentListPage` exige digitar `DELETE` e chama `removeAgent()` recebido do `AppShell`.
+- `AgentCreatePage` usa `WizardShell` em 4 etapas: nome/provedor, conexão, teste de conexão e revisão.
+- `AgentCreatePage` cria uma integração `agent_provider` em `integrations`, testa o provider pela Edge Function `agent-provider-test`, e chama `addAgent()` com `provider_connection_id` quando o teste passa.
 - Se criar com sucesso, volta para a lista.
 - `AgentDetailPage` recebe `agentId` e callback de voltar.
 - `AgentDetailPage` tem abas: Real Activity e Benchmark.
@@ -261,6 +263,7 @@
 - Agent Detail pode reutilizar blocos compartilhados como SessionsList, ApiKeysManager e ChangePassword quando o contexto exigir.
 - Ações de pausa/restart de agente não devem ser tratadas como reais sem integração backend explícita.
 - OpenRouter aparece no histórico técnico como provedor planejado/usado para IA; qualquer chave de IA deve ficar fora do frontend.
+- Migration 045 adiciona campos de conexão em `agents`, permite uso org-wide para roles ativas exceto `Viewer`, e mantém escrita de Agents/Admin provider integrations restrita a `can_manage_user_scoped_data()`.
 
 ## Analytics
 

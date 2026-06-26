@@ -25,6 +25,7 @@
 - Edge Functions redeployadas no remoto `vsaropewydcjsvplpugx`: `rise-insider-terminal --no-verify-jwt` e `rise-insider-filesystem --no-verify-jwt` após hardening inicial por bearer token opcional/obrigatório via secrets.
 - Billing real foundation foi aplicado: remote migration 044 cria `billing_subscriptions`, `billing-checkout` inicia checkout Stripe autenticado, `billing-webhook --no-verify-jwt` persiste eventos Stripe, e Plans lê estado real do Supabase.
 - UI polish aplicado: cards de Plans e Analytics usam spotlight/glow follow sutil, controles clicáveis recebem cursor de mãozinha, e Auth/Loading/Error/Dialog/aria labels relevantes usam i18n.
+- Agents provider wizard foi aplicado: `New Agent` usa wizard de provedor em 4 etapas, `agent-provider-test` foi publicado, migration 045 foi aplicada, e a lista de Agents tem menu `+` por Agent com Ver Detalhes/Renomear/Deletar com `DELETE`.
 - Remote Supabase migration 040 is applied on `vsaropewydcjsvplpugx`.
 - Remote Supabase migration 039 is applied on `vsaropewydcjsvplpugx`.
 - Remote Supabase migrations 036, 037, and 038 are applied on `vsaropewydcjsvplpugx`.
@@ -74,7 +75,7 @@
 - Settings > Plans is not billing yet; it is a future-plan surface.
 - `redrise-ops` MCP exists for validation, build/status checks, Supabase function deploy, graph status, and memory notes.
 - Python/Graphify tooling is local to the repo: use `.\.tools\uv\uv.exe sync` and `.\.tools\uv\uv.exe run python -m graphify update . --force`; do not use global Python for project operations.
-- Detailed local Graphify output is in `graphify-out/`; the latest clean structural update produced 1230 nodes, 1497 edges, and 145 communities after the billing, spotlight, i18n, cursor polish, and breadcrumb accessibility fix.
+- Detailed local Graphify output is in `graphify-out/`; the latest clean structural update produced 1251 nodes, 1520 edges, and 148 communities after the Agents provider wizard slice.
 - Workspace root is now `D:\studio\redrise`; old briefing/framework/backlog folders are not active guidance.
 - Update 2.0 test bundle now covers Create Task, Flow Builder, Agent Detail, Create Workspace, Create Flow, Personal Information field locks/search, and auxiliary `team-members-card` copy.
 - Previous deployment targets are legacy and are no longer active targets for this project reset.
@@ -96,6 +97,7 @@
 - **PRD3 (Update 3.0)**: Resolve Settings menu definitively. Covers 4 phases: Critical Fixes (Change Password functional, Plans real state, Integration real test), High-Priority Gaps (member removal, revoke all sessions, API key delete, integration management, audit log coverage), Quality/Polish (avatar to Storage, username uniqueness, unsaved-changes warning, audit pagination, polling reduction, dead component cleanup), i18n Completion (hardcoded strings, gender locale-neutral storage). See `updates/prd3.md`.
 - **Corporate simplification PRD next order**: validate role-scoped RLS with real multi-role accounts, then deepen Rise Insider production hardening and operational audit UX.
 - **Billing next order**: configure Supabase secrets `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_BUSINESS_PRICE_ID`, `STRIPE_CORPORATE_PRICE_ID`; create the Stripe webhook endpoint pointing to `/functions/v1/billing-webhook`; then run a live checkout/webhook smoke.
+- **Agents next order**: run authenticated provider smoke with an Admin session and real provider credentials; browser/headless OpenAI profiles currently validate runtime selection, not full ChatGPT account automation.
 - Execute the future auth visual update in `updates/update1.4_colors.md` if approved.
 - Finish Update 2.0 deep-copy pass for remaining auxiliary blocks, wizards, menus, and placeholders not covered by the current PRD2 test-bundle pass.
 - Add Stripe checkout Edge Function and webhook.

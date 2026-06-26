@@ -3,6 +3,7 @@
 ## Active PRD
 
 - Source: `PRD + Roadmap - Redrise Corporate simplificado e orientado ao graph.html` shared on 2026-06-24.
+- Current implementation addendum: `docs/product/agent-provider-wizard-prd.md` for New Agent provider connection and Agent board actions.
 - Scope: post-MVP Business/Corporate roadmap, operational notifications, Flow approval, deterministic execution, external LLM builder, Redrise Support label, Corporate analytics, and Rise Insider.
 - Status: active planning and implementation reference.
 
@@ -27,6 +28,7 @@
 - Eleventh implementation slice: Settings > Integration Setup now opens on a configured setups overview before the wizard; Admin/Owner/Board can see team setup summaries, and Admin can inspect safe parameters for a selected team user's setup without exposing secrets.
 - Twelfth implementation slice: backend/RLS permission enforcement and Settings PRD3 polish added role-scoped operational RLS, real Change Password with Sign Up password rules, revoke-all-other sessions, API key delete, integration status/delete/secret rotation, and initial Rise Insider token hardening.
 - Thirteenth implementation slice: real Billing foundation adds persisted `billing_subscriptions`, Stripe checkout/webhook Edge Functions, Plans UI backed by Supabase billing state, public Auth i18n coverage, clickable cursor defaults, and subtle spotlight/glow microinteractions on Plans/Analytics cards.
+- Fourteenth implementation slice: Agent Provider Wizard and Agent board actions from `docs/product/agent-provider-wizard-prd.md`.
 - Validation for this slice: `corepack yarn lint` and `corepack yarn build` only; E2E, commit, and push are deferred until product validation.
 
 ## Next Ordered Slices

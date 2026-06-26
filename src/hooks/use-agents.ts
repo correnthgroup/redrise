@@ -7,31 +7,46 @@ import {
   updateAgent as persistUpdate,
 } from '@/lib/agents'
 
-export function useAgents() {
+export function useAgents(ownerUserId?: string, canUseAgents = true) {
   const [agents, setAgents] = useState<Agent[]>([])
   const [loading, setLoading] = useState(true)
   const mountedRef = useRef(true)
 
   useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
+
+  useEffect(() => {
     let cancelled = false
-    loadAgents().then((data) => {
+    void (async () => {
+      if (!canUseAgents) {
+        if (!cancelled && mountedRef.current) {
+          setAgents([])
+          setLoading(false)
+        }
+        return
+      }
+
+      setLoading(true)
+      const data = await loadAgents(ownerUserId)
       if (!cancelled && mountedRef.current) {
         setAgents(data)
         setLoading(false)
       }
-    })
+    })()
     return () => { cancelled = true }
-  }, [])
+  }, [ownerUserId, canUseAgents])
 
   const addAgent = useCallback(
     async (input: CreateAgentInput): Promise<Agent | null> => {
-      const agent = await persistCreate(input)
+      const agent = await persistCreate({ ...input, ownerUserId: input.ownerUserId ?? ownerUserId })
       if (agent && mountedRef.current) {
         setAgents((prev) => [agent, ...prev])
       }
       return agent
     },
-    [],
+    [ownerUserId],
   )
 
   const removeAgent = useCallback(async (id: string): Promise<boolean> => {
@@ -43,7 +58,7 @@ export function useAgents() {
   }, [])
 
   const updateAgent = useCallback(
-    async (id: string, updates: Partial<Pick<Agent, 'name' | 'brief' | 'status' | 'model'>>): Promise<Agent | null> => {
+    async (id: string, updates: Partial<Pick<Agent, 'name' | 'brief' | 'status' | 'model' | 'provider_connection_status'>>): Promise<Agent | null> => {
       const updated = await persistUpdate(id, updates)
       if (updated && mountedRef.current) {
         setAgents((prev) => prev.map((a) => (a.id === id ? updated : a)))
@@ -55,12 +70,12 @@ export function useAgents() {
 
   const refresh = useCallback(async () => {
     setLoading(true)
-    const data = await loadAgents()
+    const data = canUseAgents ? await loadAgents(ownerUserId) : []
     if (mountedRef.current) {
       setAgents(data)
       setLoading(false)
     }
-  }, [])
+  }, [ownerUserId, canUseAgents])
 
   return {
     agents,
