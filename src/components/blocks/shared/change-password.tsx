@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+﻿import { useState, type FormEvent } from 'react'
 import { CheckCircle2, Eye, EyeOff, Lock, Shield, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useI18n } from '@/hooks/use-i18n'
+import { supabase } from '@/lib/supabase'
 
 function PasswordField({ id, label, value, onChange }: { id: string; label: string; value?: string; onChange?: (value: string) => void }) {
   const { t } = useI18n()
@@ -30,15 +31,42 @@ function PasswordField({ id, label, value, onChange }: { id: string; label: stri
 
 const PASSWORD_REQUIREMENTS = [
   { labelKey: 'settings.passwordMin8', regex: /.{8,}/ },
-  { labelKey: 'settings.passwordUpper', regex: /[A-Z]/ },
-  { labelKey: 'settings.passwordLower', regex: /[a-z]/ },
+  { labelKey: 'settings.passwordLetter', regex: /[A-Za-z]/ },
   { labelKey: 'settings.passwordNumber', regex: /[0-9]/ },
-  { labelKey: 'settings.passwordSpecial', regex: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/ },
 ]
 
 export function ChangePassword({ onBack }: { onBack?: () => void }) {
   const { t } = useI18n()
+  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const allRulesMet = PASSWORD_REQUIREMENTS.every((req) => req.regex.test(newPassword))
+  const canSubmit = currentPassword.length > 0 && allRulesMet && newPassword === confirmPassword && !saving
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault()
+    setMessage(null)
+    if (!canSubmit) return
+    setSaving(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user?.email) throw new Error(t('settings.passwordUpdateFailed'))
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPassword })
+      if (signInError) throw new Error(t('settings.currentPasswordInvalid'))
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) throw error
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+      setMessage({ type: 'success', text: t('settings.passwordUpdated') })
+    } catch (error) {
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : t('settings.passwordUpdateFailed') })
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <Card className="border p-8">
@@ -56,13 +84,15 @@ export function ChangePassword({ onBack }: { onBack?: () => void }) {
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         <div>
-          <form onSubmit={(event) => event.preventDefault()}>
-            <PasswordField id="current-password" label={t('settings.currentPassword')} />
+          <form onSubmit={handleSubmit}>
+            <PasswordField id="current-password" label={t('settings.currentPassword')} value={currentPassword} onChange={setCurrentPassword} />
             <PasswordField id="new-password" label={t('settings.newPassword')} value={newPassword} onChange={setNewPassword} />
-            <PasswordField id="confirm-password" label={t('settings.confirmNewPassword')} />
+            <PasswordField id="confirm-password" label={t('settings.confirmNewPassword')} value={confirmPassword} onChange={setConfirmPassword} />
+            {confirmPassword && confirmPassword !== newPassword ? <p className="text-sm text-primary">{t('settings.passwordsDoNotMatch')}</p> : null}
+            {message ? <p className={message.type === 'success' ? 'text-sm text-emerald-600' : 'text-sm text-primary'}>{message.text}</p> : null}
             <div className="mt-8 flex gap-3">
               <BackButton onClick={onBack} className="flex-1" />
-              <Button type="submit" className="flex-1">{t('settings.updatePassword')}</Button>
+              <Button type="submit" className="flex-1" disabled={!canSubmit}>{saving ? t('common.saving') : t('settings.updatePassword')}</Button>
             </div>
           </form>
         </div>

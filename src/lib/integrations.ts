@@ -18,12 +18,29 @@ export type Integration = {
   updated_at: string
 }
 
+export type IntegrationSetupSummary = Omit<Integration, 'config' | 'user_id'> & {
+  user_id: string
+  user_email: string
+  user_name: string
+  can_view_details: boolean
+}
+
+export type IntegrationSetupDetail = IntegrationSetupSummary & {
+  can_manage: boolean
+  safe_config: {
+    secret_present?: boolean
+    paired_at?: string
+    config_keys?: string[]
+  }
+}
+
 export type CreateIntegrationInput = {
   name: string
   provider: string
   category: string
   endpoint?: string
   config?: Record<string, unknown>
+  status?: IntegrationStatus
   workspace_id?: string
 }
 
@@ -39,11 +56,41 @@ function generateShortId(): string {
 export async function loadIntegrations(): Promise<Integration[]> {
   const { data, error } = await supabase
     .from('integrations')
-    .select('*')
+    .select('id,user_id,workspace_id,name,provider,category,endpoint,status,last_tested_at,created_at,updated_at')
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return data ?? []
+  return (data ?? []).map((integration) => ({ ...integration, config: {} }))
+}
+
+export async function loadIntegrationSetupOverview(ownerUserId: string): Promise<IntegrationSetupSummary[]> {
+  const { data, error } = await supabase.rpc('load_integration_setup_overview', { target_owner_user_id: ownerUserId })
+  if (error) throw error
+  return (data ?? []) as IntegrationSetupSummary[]
+}
+
+export async function loadIntegrationSetupDetail(ownerUserId: string, integrationId: string): Promise<IntegrationSetupDetail | null> {
+  const { data, error } = await supabase.rpc('load_integration_setup_detail', { target_owner_user_id: ownerUserId, integration_id: integrationId })
+  if (error) throw error
+  return ((data ?? []) as IntegrationSetupDetail[])[0] ?? null
+}
+
+export async function updateIntegrationSetupStatus(ownerUserId: string, integrationId: string, status: IntegrationStatus): Promise<boolean> {
+  const { data, error } = await supabase.rpc('update_integration_setup_status', { target_owner_user_id: ownerUserId, integration_id: integrationId, next_status: status })
+  if (error) throw error
+  return Boolean(data)
+}
+
+export async function deleteIntegrationSetup(ownerUserId: string, integrationId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('delete_integration_setup', { target_owner_user_id: ownerUserId, integration_id: integrationId })
+  if (error) throw error
+  return Boolean(data)
+}
+
+export async function rotateIntegrationSetupSecret(ownerUserId: string, integrationId: string, token: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('rotate_integration_setup_secret', { target_owner_user_id: ownerUserId, integration_id: integrationId, next_token: token })
+  if (error) throw error
+  return Boolean(data)
 }
 
 export async function createIntegration(input: CreateIntegrationInput): Promise<Integration> {
@@ -63,7 +110,7 @@ export async function createIntegration(input: CreateIntegrationInput): Promise<
       category: input.category,
       endpoint: input.endpoint || null,
       config: input.config || {},
-      status: 'inactive',
+      status: input.status ?? 'inactive',
     })
     .select()
     .single()

@@ -4,10 +4,11 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
 import { Card } from '@/components/ui/card'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { createApiKey, loadApiKeys, revokeApiKey, type ApiKey } from '@/lib/api-keys'
+import { createApiKey, deleteApiKey, loadApiKeys, revokeApiKey, type ApiKey } from '@/lib/api-keys'
 import { useI18n } from '@/hooks/use-i18n'
 
 const SCOPE_OPTIONS = ['agents:read', 'agents:write', 'tasks:read', 'tasks:write', 'analytics:read', 'integrations:manage'] as const
@@ -51,6 +52,11 @@ export function ApiKeysManager({ onBack, ownerUserId }: { onBack?: () => void; o
 
   async function handleRevoke(id: string) {
     await revokeApiKey(id)
+    setKeys((current) => current.filter((k) => k.id !== id))
+  }
+
+  async function handleDelete(id: string) {
+    await deleteApiKey(id)
     setKeys((current) => current.filter((k) => k.id !== id))
   }
 
@@ -141,15 +147,32 @@ export function ApiKeysManager({ onBack, ownerUserId }: { onBack?: () => void; o
                       </div>
                       <p className="text-xs text-muted-foreground">{t('settings.createdDate', { date: formatDate(key.created_at) })}{key.last_used_at ? ` · ${t('settings.lastUsedDate', { date: formatDate(key.last_used_at) })}` : ` · ${t('settings.neverUsed')}`}</p>
                     </div>
-                    <Button type="button" variant="outline" size="sm" onClick={() => handleRevoke(key.id)}>
-                      <Trash2 className="h-4 w-4" />
-                      {t('sessions.revoke')}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={() => handleRevoke(key.id)}>{t('sessions.revoke')}</Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button type="button" variant="outline" size="sm">
+                            <Trash2 className="h-4 w-4" />
+                            {t('common.delete')}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>{t('settings.deleteApiKeyTitle')}</AlertDialogTitle>
+                            <AlertDialogDescription>{t('settings.deleteApiKeyDesc')}</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(key.id)}>{t('common.delete')}</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2 font-mono text-xs">
                     <span className="flex-1 truncate text-foreground/80">{revealed ? `${key.prefix}${key.secret_hash}` : `${key.prefix}${'•'.repeat(40)}`}</span>
-                    <button type="button" onClick={() => setShowSecrets((current) => ({ ...current, [key.id]: !current[key.id] }))} className="text-muted-foreground hover:text-foreground" aria-label={revealed ? 'Hide secret' : 'Reveal secret'}>
+                    <button type="button" onClick={() => setShowSecrets((current) => ({ ...current, [key.id]: !current[key.id] }))} className="text-muted-foreground hover:text-foreground" aria-label={revealed ? t('settings.hideSecret') : t('settings.revealSecret')}>
                       {revealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                     <button type="button" onClick={async () => {
@@ -160,7 +183,7 @@ export function ApiKeysManager({ onBack, ownerUserId }: { onBack?: () => void; o
                       } catch {
                         setCopiedId(null)
                       }
-                    }} className="text-muted-foreground hover:text-foreground" aria-label="Copy secret">
+                    }} className="text-muted-foreground hover:text-foreground" aria-label={t('settings.copySecret')}>
                       <Copy className="h-4 w-4" />
                     </button>
                   </div>

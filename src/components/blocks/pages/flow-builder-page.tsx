@@ -19,8 +19,8 @@ import {
 import '@xyflow/react/dist/style.css'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Plus, Trash2, ClipboardPaste, Undo2, Redo2, MousePointer2, Crosshair } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Plus, Trash2, ClipboardPaste, Undo2, Redo2, MousePointer2, Crosshair, Sparkles } from 'lucide-react'
 import { useFlowCards } from '@/hooks/use-flow-cards'
 import { useI18n } from '@/hooks/use-i18n'
 import { useTeamMemberOptions } from '@/hooks/use-team-member-options'
@@ -29,6 +29,7 @@ import { loadAgents } from '@/lib/agents'
 import { loadTasksByCard } from '@/lib/tasks'
 import { Label } from '@/components/ui/label'
 import { RequiredLabel } from '@/components/ui/required-label'
+import { Textarea } from '@/components/ui/textarea'
 import type { Agent } from '@/types/agent'
 import type { Task } from '@/types/task'
 
@@ -80,7 +81,24 @@ function FlowCardWithEdit({ data, selected, id }: NodeProps<FlowNode>) {
 const defaultNodes: FlowNode[] = []
 const defaultEdges: Edge[] = []
 
-function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | null; onSave?: () => void; onSaveRef?: React.MutableRefObject<(() => Promise<void>) | null> }) {
+function parseExternalOutline(input: string): string[] {
+  return input
+    .split(/\r?\n/)
+    .map((line) => line.trim().replace(/^(?:[-*]|\d+[.)]|step\s+\d+[:.)-]?)\s*/i, '').trim())
+    .filter(Boolean)
+}
+
+function FlowBuilderContent({
+  flowId,
+  onSave,
+  onSaveRef,
+  onMarkExternalLlm,
+}: {
+  flowId?: string | null
+  onSave?: () => void
+  onSaveRef?: React.MutableRefObject<(() => Promise<void>) | null>
+  onMarkExternalLlm?: (flowId: string, sourceLabel: string) => Promise<unknown>
+}) {
   const { t } = useI18n()
   const { cards, edges: dbEdges, load, save } = useFlowCards(flowId ?? null)
   const [nodes, setNodes, onNodesChange] = useNodesState<FlowNode>(defaultNodes)
@@ -96,8 +114,13 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
   const [cardTasks, setCardTasks] = useState<Task[]>([])
   const [cardTasksLoading, setCardTasksLoading] = useState(false)
   const [validationError, setValidationError] = useState<string[]>([])
+  const [aiImportOpen, setAiImportOpen] = useState(false)
+  const [aiImportSource, setAiImportSource] = useState('External LLM')
+  const [aiImportText, setAiImportText] = useState('')
+  const [aiImportError, setAiImportError] = useState('')
+  const [pendingExternalSourceLabel, setPendingExternalSourceLabel] = useState<string | null>(null)
   const fabRef = useRef<HTMLDivElement>(null)
-  const { screenToFlowPosition, getNodes, setNodes: setReactFlowNodes, setEdges: setReactFlowEdges, fitView, setCenter } = useReactFlow()
+  const { screenToFlowPosition, getNodes, fitView, setCenter } = useReactFlow()
   const containerRef = useRef<HTMLDivElement>(null)
   const loadedFlowIdRef = useRef<string | null>(null)
 
@@ -137,35 +160,28 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
 
   // Populate React Flow when cards/edges load
   useEffect(() => {
-    if (cards.length === 0 && dbEdges.length === 0 && nodes.length > 0) return
+    const flowNodes: FlowNode[] = cards.map((c) => ({
+      id: c.node_id,
+      type: 'flowCard',
+      position: { x: c.position_x, y: c.position_y },
+      data: { label: c.label, instructions: c.instructions, members: c.members, agents: c.agents, approvers: (c as Record<string, unknown>).approvers as string[] ?? [] },
+    }))
+    const flowEdges: Edge[] = dbEdges.map((e) => ({
+      id: e.edge_id,
+      source: e.source,
+      target: e.target,
+      animated: e.animated,
+    }))
 
-    if (cards.length > 0) {
-      const flowNodes: FlowNode[] = cards.map((c) => ({
-        id: c.node_id,
-        type: 'flowCard',
-        position: { x: c.position_x, y: c.position_y },
-        data: { label: c.label, instructions: c.instructions, members: c.members, agents: c.agents, approvers: (c as Record<string, unknown>).approvers as string[] ?? [] },
-      }))
-      setReactFlowNodes(flowNodes)
+    setNodes(flowNodes)
+    setEdges(flowEdges)
 
-      // Update nodeIdCounter
-      const maxNum = flowNodes.reduce((max, n) => {
-        const num = parseInt(n.id.replace(/\D/g, ''), 10)
-        return num > max ? num : max
-      }, 0)
-      nodeIdCounter = maxNum + 1
-    }
-
-    if (dbEdges.length > 0) {
-      const flowEdges: Edge[] = dbEdges.map((e) => ({
-        id: e.edge_id,
-        source: e.source,
-        target: e.target,
-        animated: e.animated,
-      }))
-      setReactFlowEdges(flowEdges)
-    }
-  }, [cards, dbEdges, nodes.length, setReactFlowNodes, setReactFlowEdges])
+    const maxNum = flowNodes.reduce((max, n) => {
+      const num = parseInt(n.id.replace(/\D/g, ''), 10)
+      return num > max ? num : max
+    }, 0)
+    nodeIdCounter = maxNum + 1
+  }, [cards, dbEdges, setEdges, setNodes])
 
   const openCardEditor = useCallback(async (nodeId: string) => {
     const node = nodes.find((n) => n.id === nodeId)
@@ -267,17 +283,17 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
     if (historyIndexRef.current <= 0) return
     historyIndexRef.current--
     const prev = historyRef.current[historyIndexRef.current]
-    setReactFlowNodes(prev.nodes)
-    setReactFlowEdges(prev.edges)
-  }, [setReactFlowNodes, setReactFlowEdges])
+    setNodes(prev.nodes)
+    setEdges(prev.edges)
+  }, [setNodes, setEdges])
 
   const redo = useCallback(() => {
     if (historyIndexRef.current >= historyRef.current.length - 1) return
     historyIndexRef.current++
     const next = historyRef.current[historyIndexRef.current]
-    setReactFlowNodes(next.nodes)
-    setReactFlowEdges(next.edges)
-  }, [setReactFlowNodes, setReactFlowEdges])
+    setNodes(next.nodes)
+    setEdges(next.edges)
+  }, [setNodes, setEdges])
 
   const centralize = useCallback(() => {
     const currentNodes = getNodes()
@@ -288,7 +304,50 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
     }
   }, [getNodes, fitView, setCenter])
 
+  const importExternalOutline = useCallback(() => {
+    const labels = parseExternalOutline(aiImportText)
+    if (labels.length === 0) {
+      setAiImportError(t('flowBuilder.importAiEmpty'))
+      return
+    }
+
+    saveHistory()
+    const defaultAgent = agentOptions[0]?.value
+    const defaultApprover = teamMembers[0]?.id
+    const generatedNodes: FlowNode[] = labels.map((label, index) => {
+      const nodeId = `n${nodeIdCounter++}`
+      return {
+        id: nodeId,
+        type: 'flowCard',
+        position: { x: index * 240, y: 0 },
+        data: {
+          label,
+          instructions: label,
+          members: [],
+          agents: defaultAgent ? [defaultAgent] : [],
+          approvers: defaultApprover ? [defaultApprover] : [],
+        },
+      }
+    })
+    const generatedEdges: Edge[] = generatedNodes.slice(1).map((node, index) => ({
+      id: `e${generatedNodes[index].id}-${node.id}`,
+      source: generatedNodes[index].id,
+      target: node.id,
+      animated: true,
+    }))
+
+    setNodes(generatedNodes)
+    setEdges(generatedEdges)
+    setPendingExternalSourceLabel(aiImportSource.trim() || 'External LLM')
+    setAiImportOpen(false)
+    setAiImportError('')
+    setAiImportText('')
+    setFabOpen(false)
+    window.setTimeout(() => fitView({ padding: 0.2 }), 0)
+  }, [agentOptions, aiImportSource, aiImportText, fitView, saveHistory, setEdges, setNodes, t, teamMembers])
+
   const fabMenuItems = [
+    { icon: Sparkles, label: t('flowBuilder.importAiOutline'), kbd: '', action: () => { setAiImportOpen(true); setFabOpen(false) } },
     { icon: Plus, label: t('flowBuilder.newCard'), kbd: 'N', action: () => { addNode(); setFabOpen(false) } },
     { icon: Trash2, label: t('flowBuilder.deleteSelected'), kbd: 'Del', action: () => { deleteSelected(); setFabOpen(false) } },
     { icon: MousePointer2, label: t('flowBuilder.selectAll'), kbd: 'Ctrl+A', action: () => { selectAll(); setFabOpen(false) } },
@@ -381,8 +440,12 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
       animated: e.animated,
     }))
     await save(nodeData, edgeData)
+    if (pendingExternalSourceLabel && onMarkExternalLlm) {
+      await onMarkExternalLlm(flowId, pendingExternalSourceLabel)
+      setPendingExternalSourceLabel(null)
+    }
     onSave?.()
-  }, [flowId, getNodes, edges, save, onSave, t])
+  }, [flowId, getNodes, edges, save, pendingExternalSourceLabel, onMarkExternalLlm, onSave, t])
 
   useEffect(() => {
     if (onSaveRef) onSaveRef.current = handleSave
@@ -530,6 +593,36 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
           </DialogContent>
         </Dialog>
 
+        <Dialog open={aiImportOpen} onOpenChange={(open) => { setAiImportOpen(open); if (!open) setAiImportError('') }}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{t('flowBuilder.importAiOutline')}</DialogTitle>
+              <DialogDescription>{t('flowBuilder.importAiDesc')}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <RequiredLabel>{t('flowBuilder.importAiSource')}</RequiredLabel>
+                <Input value={aiImportSource} onChange={(event) => setAiImportSource(event.target.value)} placeholder={t('flowBuilder.importAiSourcePlaceholder')} />
+              </div>
+              <div className="space-y-2">
+                <RequiredLabel>{t('flowBuilder.importAiOutlineLabel')}</RequiredLabel>
+                <Textarea
+                  value={aiImportText}
+                  onChange={(event) => setAiImportText(event.target.value)}
+                  placeholder={t('flowBuilder.importAiOutlinePlaceholder')}
+                  className="min-h-48"
+                />
+                <p className="text-xs text-muted-foreground">{t('flowBuilder.importAiHint')}</p>
+                {aiImportError ? <p className="text-xs text-destructive">{aiImportError}</p> : null}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setAiImportOpen(false)}>{t('common.cancel')}</Button>
+              <Button onClick={importExternalOutline} disabled={!aiImportSource.trim() || parseExternalOutline(aiImportText).length === 0}>{t('flowBuilder.importAiApply')}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={validationError.length > 0} onOpenChange={(open) => { if (!open) setValidationError([]) }}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -553,10 +646,20 @@ function FlowBuilderContent({ flowId, onSave, onSaveRef }: { flowId?: string | n
   )
 }
 
-export function FlowBuilderPage({ flowId, onSave, onSaveRef }: { flowId?: string | null; onSave?: () => void; onSaveRef?: React.MutableRefObject<(() => Promise<void>) | null> }) {
+export function FlowBuilderPage({
+  flowId,
+  onSave,
+  onSaveRef,
+  onMarkExternalLlm,
+}: {
+  flowId?: string | null
+  onSave?: () => void
+  onSaveRef?: React.MutableRefObject<(() => Promise<void>) | null>
+  onMarkExternalLlm?: (flowId: string, sourceLabel: string) => Promise<unknown>
+}) {
   return (
     <ReactFlowProvider>
-      <FlowBuilderContent flowId={flowId} onSave={onSave} onSaveRef={onSaveRef} />
+      <FlowBuilderContent flowId={flowId} onSave={onSave} onSaveRef={onSaveRef} onMarkExternalLlm={onMarkExternalLlm} />
     </ReactFlowProvider>
   )
 }

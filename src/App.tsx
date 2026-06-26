@@ -133,30 +133,34 @@ export default function App() {
 
   if (authCheckError) {
     return (
-      <LoadingScreen
-        message="Unable to verify your session."
-        state="error"
-        onRetry={() => {
-          setShowLoading(true)
-          void checkSession().catch(() => {
-            setAuthCheckError(true)
-            setLoading(false)
-          })
-        }}
-        onGoToSignIn={() => { setAuthCheckError(false); setUser(null); setProfile(null); setLoading(false) }}
-      />
+      <I18nProvider locale={loadingLang}>
+        <LoadingScreen
+          message={translate(loadingLang, 'app.loading.unableToVerify')}
+          state="error"
+          onRetry={() => {
+            setShowLoading(true)
+            void checkSession().catch(() => {
+              setAuthCheckError(true)
+              setLoading(false)
+            })
+          }}
+          onGoToSignIn={() => { setAuthCheckError(false); setUser(null); setProfile(null); setLoading(false) }}
+        />
+      </I18nProvider>
     )
   }
 
   if (loading && showLoading) {
-    return <LoadingScreen message={loadingMessage} />
+    return <I18nProvider locale={loadingLang}><LoadingScreen message={loadingMessage} /></I18nProvider>
   }
 
   if (!user) {
     return (
-      <AppFrame>
-        <AuthFlow onAccountCreationStart={() => { suppressNextAuthSessionRef.current = true }} />
-      </AppFrame>
+      <I18nProvider locale={loadingLang}>
+        <AppFrame>
+          <AuthFlow onAccountCreationStart={() => { suppressNextAuthSessionRef.current = true }} />
+        </AppFrame>
+      </I18nProvider>
     )
   }
 

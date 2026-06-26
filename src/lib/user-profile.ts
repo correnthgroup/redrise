@@ -460,12 +460,17 @@ export async function touchCurrentActiveSession() {
 }
 
 export async function revokeOtherRememberedSessions(userId: string) {
-  const { error } = await supabase
+  const { data: { session } } = await supabase.auth.getSession()
+  const currentSupabaseSessionId = getSupabaseSessionId(session)
+  let query = supabase
     .from('active_sessions')
     .update({ revoked_at: new Date().toISOString(), current: false })
     .eq('user_id', userId)
-    .eq('remembered', true)
-    .eq('current', false)
+    .is('revoked_at', null)
 
+  if (currentSupabaseSessionId) query = query.neq('supabase_session_id', currentSupabaseSessionId)
+  else query = query.eq('current', false)
+
+  const { error } = await query
   return !error
 }

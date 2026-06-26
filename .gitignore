@@ -9,6 +9,8 @@ lerna-debug.log*
 
 # Dependencies and build output
 node_modules
+.venv
+.tools
 dist
 dist-ssr
 coverage

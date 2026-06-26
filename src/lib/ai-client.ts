@@ -65,12 +65,22 @@ export type TaskExecuteResult = {
   model: string
 }
 
+export type TaskExecuteContext = {
+  taskId?: string
+  taskTitle?: string
+  workspaceId?: string | null
+  flowId?: string | null
+  executionId?: string
+  executionPath?: string | null
+}
+
 export async function taskExecute(
   objective: string,
   prompt: string,
   upstreamContext: string | null,
   model?: string,
   language?: string,
+  context?: TaskExecuteContext,
 ): Promise<TaskExecuteResult> {
   const { data: { session } } = await supabase.auth.getSession()
 
@@ -93,6 +103,14 @@ export async function taskExecute(
         upstreamContext,
         model: model ?? 'openai/gpt-oss-120b:free',
         language: language ?? 'en-US',
+        executionPath: context?.executionPath ?? 'api_gateway',
+        task: context ? {
+          id: context.taskId,
+          title: context.taskTitle,
+          workspace_id: context.workspaceId,
+          flow_id: context.flowId,
+        } : undefined,
+        executionId: context?.executionId,
       }),
     },
   )

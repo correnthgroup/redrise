@@ -327,6 +327,42 @@
   }
 }
 
+button:not(:disabled),
+a[href],
+[role="button"]:not([aria-disabled="true"]),
+[role="menuitem"]:not([data-disabled]),
+[role="option"]:not([data-disabled]),
+[data-clickable="true"] {
+  cursor: pointer;
+}
+
+.spotlight-card {
+  --spotlight-x: 50%;
+  --spotlight-y: 0%;
+  position: relative;
+  overflow: hidden;
+}
+
+.spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--spotlight-x) var(--spotlight-y), rgba(252, 175, 45, 0.2), rgba(160, 77, 31, 0.08) 24%, transparent 52%);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.spotlight-card:hover::before,
+.spotlight-card:focus-within::before {
+  opacity: 1;
+}
+
+.spotlight-card > * {
+  position: relative;
+  z-index: 1;
+}
+
 .animate-app-rise {
   animation: app-rise 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }

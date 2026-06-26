@@ -4,6 +4,7 @@ import {
   ChevronsLeft,
   Cog,
   LayoutDashboard,
+  Lightbulb,
   ListChecks,
   LogOut,
   Network,
@@ -31,6 +32,7 @@ export type SidebarKey =
   | 'tasks'
   | 'agents'
   | 'analytics'
+  | 'notifications'
   | 'settings'
 
 type SidebarUser = { name: string; email: string; avatarUrl?: string | null }
@@ -45,11 +47,14 @@ type SidebarProps = {
   tasks?: Task[]
   agents?: SidebarAgent[]
   analytics?: AnalyticsData
+  pendingNotificationsCount?: number
 }
 
 const COLLAPSED_KEY = 'app:sidebar:collapsed'
 
-const NAV_ITEMS: { key: SidebarKey; labelKey: string; icon: React.ComponentType<{ className?: string }> }[] = [
+type MainSidebarKey = Exclude<SidebarKey, 'notifications'>
+
+const NAV_ITEMS: { key: MainSidebarKey; labelKey: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { key: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard },
   { key: 'flow', labelKey: 'nav.flow', icon: Network },
   { key: 'tasks', labelKey: 'nav.tasks', icon: ListChecks },
@@ -64,6 +69,7 @@ const CONTEXT_BY_KEY: Record<SidebarKey, { titleKey: string; rows: { key: string
   tasks: null,
   agents: null,
   analytics: null,
+  notifications: null,
   settings: null,
 }
 
@@ -95,7 +101,7 @@ function initials(name: string) {
     .toUpperCase()
 }
 
-export function Sidebar({ active, onSelect, user, onSignOut, workspaces = [], flows = [], tasks = [], agents = [], analytics }: SidebarProps) {
+export function Sidebar({ active, onSelect, user, onSignOut, workspaces = [], flows = [], tasks = [], agents = [], analytics, pendingNotificationsCount = 0 }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(() => loadCollapsed())
   const { t } = useI18n()
   const showLabels = !collapsed
@@ -220,7 +226,7 @@ export function Sidebar({ active, onSelect, user, onSignOut, workspaces = [], fl
             variant="ghost"
             size="icon"
             onClick={toggle}
-            aria-label="Collapse sidebar"
+            aria-label={t('sidebar.collapse')}
               className={cn(
                 'h-8 w-8 shrink-0 text-header-foreground transition-opacity duration-150 ease-out hover:bg-muted hover:text-foreground',
                 showLabels ? 'opacity-100' : 'pointer-events-none opacity-0',
@@ -269,6 +275,45 @@ export function Sidebar({ active, onSelect, user, onSignOut, workspaces = [], fl
             })}
           </ul>
 
+          <div className="my-3 border-t border-border/70 pt-3">
+            <button
+              type="button"
+              data-testid="sidebar-nav-notifications"
+              onClick={() => onSelect('notifications')}
+              className={cn(
+                'grid h-9 w-full items-center rounded-md text-sm transition-colors',
+                iconLaneClassName,
+                'text-muted-foreground hover:bg-muted hover:text-foreground',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                active === 'notifications' && 'bg-primary text-primary-foreground font-medium',
+              )}
+              aria-current={active === 'notifications' ? 'page' : undefined}
+              aria-label={t('notifications.title')}
+            >
+              <span className="relative flex h-4 w-4 justify-self-center">
+                <Lightbulb className="h-4 w-4 shrink-0" />
+                {pendingNotificationsCount > 0 && (
+                  <span className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-header" />
+                )}
+              </span>
+              <span
+                className={cn(
+                  'min-w-0 overflow-hidden whitespace-nowrap transition-opacity duration-200 ease-out',
+                  showLabels ? 'opacity-100' : 'opacity-0',
+                )}
+              >
+                <span className="flex min-w-0 items-center justify-between gap-2 pl-2 pr-2 text-left">
+                  <span className="truncate">{t('notifications.title')}</span>
+                  {pendingNotificationsCount > 0 && (
+                    <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-medium leading-none text-white">
+                      {pendingNotificationsCount > 99 ? '99+' : pendingNotificationsCount}
+                    </span>
+                  )}
+                </span>
+              </span>
+            </button>
+          </div>
+
           {activeContext && showLabels && (
             <div className="mt-4 rounded-lg border border-border bg-muted p-3 text-xs">
               <div className="mb-1.5 font-medium text-foreground">{t(activeContext.titleKey)}</div>
@@ -304,7 +349,7 @@ export function Sidebar({ active, onSelect, user, onSignOut, workspaces = [], fl
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Open settings"
+              aria-label={t('sidebar.openSettings')}
               onClick={() => onSelect('settings')}
               className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground"
               tabIndex={showLabels ? 0 : -1}
@@ -314,7 +359,7 @@ export function Sidebar({ active, onSelect, user, onSignOut, workspaces = [], fl
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Sign out"
+              aria-label={t('sidebar.signOut')}
               onClick={onSignOut}
               className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground"
               tabIndex={showLabels ? 0 : -1}

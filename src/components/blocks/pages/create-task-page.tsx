@@ -10,8 +10,9 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Upload, X, FileText, ChevronDown, Check, ArrowDown, ArrowUp, Minus, LayoutGrid, Calendar, Clock, AlertTriangle } from 'lucide-react'
 import { loadAgents } from '@/lib/agents'
+import { loadCardsByFlowOrdered } from '@/lib/flow-cards'
 import type { Agent } from '@/types/agent'
-import type { TaskPriority, TaskStatus, RecurrenceType } from '@/types/task'
+import type { TaskPriority, TaskStatus, RecurrenceType, ExecutionPath } from '@/types/task'
 import type { FlowCard } from '@/types/flow-card'
 import { useWorkspaces } from '@/hooks/use-workspaces'
 import { useFlows } from '@/hooks/use-flows'
@@ -42,6 +43,17 @@ const RECURRENCES: { value: RecurrenceType; labelKey: string }[] = [
   { value: 'monthly', labelKey: 'tasks.recurrenceMonthly' },
 ]
 
+const EXECUTION_PATHS: { value: ExecutionPath; labelKey: string }[] = [
+  { value: 'api_gateway', labelKey: 'tasks.executionPath.apiGateway' },
+  { value: 'integration_gateway', labelKey: 'tasks.executionPath.integrationGateway' },
+  { value: 'rise_insider_terminal', labelKey: 'tasks.executionPath.riseInsiderTerminal' },
+  { value: 'rise_insider_filesystem', labelKey: 'tasks.executionPath.riseInsiderFilesystem' },
+  { value: 'browser_automation', labelKey: 'tasks.executionPath.browserAutomation' },
+  { value: 'ui_control', labelKey: 'tasks.executionPath.uiControl' },
+  { value: 'mock_integration', labelKey: 'tasks.executionPath.mockIntegration' },
+  { value: 'manual_step', labelKey: 'tasks.executionPath.manualStep' },
+]
+
 const WEEK_DAYS = [
   { id: 0, labelKey: 'common.weekday.sun' },
   { id: 1, labelKey: 'common.weekday.mon' },
@@ -69,6 +81,7 @@ export function CreateTaskPage({
     agent_id: string | null
     priority: TaskPriority
     status: TaskStatus
+    execution_path: ExecutionPath
     schedule_start: string | null
     schedule_end: string | null
     schedule_time: string | null
@@ -93,6 +106,7 @@ export function CreateTaskPage({
   const [selectedCardId, setSelectedCardId] = useState('')
   const [queuePosition, setQueuePosition] = useState<number>(1)
   const [priority, setPriority] = useState<TaskPriority>('medium')
+  const [executionPath, setExecutionPath] = useState<ExecutionPath>('api_gateway')
   const [kanbanColumn, setKanbanColumn] = useState<TaskStatus>('backlog')
   const [hasSchedule, setHasSchedule] = useState(false)
   const [scheduleStart, setScheduleStart] = useState('')
@@ -135,14 +149,13 @@ export function CreateTaskPage({
   useEffect(() => {
     if (!selectedFlowId) return
     let cancelled = false
-    import('@/lib/flow-cards').then(({ loadCardsByFlowOrdered }) => {
-      loadCardsByFlowOrdered(selectedFlowId).then((cards) => {
-        if (!cancelled) {
-          setFlowCards(cards)
-          setSelectedCardId('')
-          setLoadingCards(false)
-        }
-      })
+    loadCardsByFlowOrdered(selectedFlowId).then((cards) => {
+      if (!cancelled) {
+        setFlowCards(cards)
+        setSelectedCardId('')
+      }
+    }).finally(() => {
+      if (!cancelled) setLoadingCards(false)
     })
     return () => { cancelled = true }
   }, [selectedFlowId])
@@ -228,6 +241,7 @@ export function CreateTaskPage({
                       agent_id: cardAgent?.id ?? null,
                       priority,
                       status: kanbanColumn,
+                      execution_path: executionPath,
                       schedule_start: hasSchedule ? (scheduleStart || null) : null,
                       schedule_end: hasSchedule ? (scheduleEnd || null) : null,
                       schedule_time: hasSchedule ? (scheduleTime || null) : null,
@@ -337,7 +351,7 @@ export function CreateTaskPage({
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <RequiredLabel>{t('tasks.workspace')}</RequiredLabel>
-                  <Select value={selectedWorkspaceId} onValueChange={(value) => { setSelectedWorkspaceId(value); setSelectedFlowId('') }} disabled={loadingWorkspaces}>
+                  <Select value={selectedWorkspaceId} onValueChange={(value) => { setSelectedWorkspaceId(value); setSelectedFlowId(''); setFlowCards([]); setSelectedCardId(''); setLoadingCards(false) }} disabled={loadingWorkspaces}>
                     <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES}>
                       <SelectValue placeholder={loadingWorkspaces ? t('common.loading') : t('flow.selectWorkspace')} />
                     </SelectTrigger>
@@ -502,6 +516,21 @@ export function CreateTaskPage({
                     <span className="text-muted-foreground">{t('tasks.selectCardFirst')}</span>
                   )}
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <RequiredLabel>{t('tasks.executionPath')}</RequiredLabel>
+                <Select value={executionPath} onValueChange={(value) => setExecutionPath(value as ExecutionPath)}>
+                  <SelectTrigger className={DROPDOWN_TRIGGER_CLASSES}>
+                    <SelectValue placeholder={t('tasks.selectExecutionPath')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EXECUTION_PATHS.map((path) => (
+                      <SelectItem key={path.value} value={path.value}>{t(path.labelKey)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">{t('tasks.executionPathDesc')}</p>
               </div>
 
               {/* Schedule Section */}

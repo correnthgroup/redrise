@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { invalidateFlowOfficialStatus } from './flows'
 import type { FlowCard, FlowEdge, CreateFlowCardInput, CreateFlowEdgeInput } from '@/types/flow-card'
 
 function generateShortId(): string {
@@ -227,5 +228,6 @@ export async function syncFlowEditor(
   }
 
   console.log('[syncFlowEditor] Success')
+  await invalidateFlowOfficialStatus(flowId)
   return true
 }

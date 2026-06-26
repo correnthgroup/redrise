@@ -1,5 +1,6 @@
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useI18n } from '@/hooks/use-i18n'
 
 type LoadingScreenProps = {
   message: string
@@ -9,6 +10,7 @@ type LoadingScreenProps = {
 }
 
 export function LoadingScreen({ message, state = 'loading', onRetry, onGoToSignIn }: LoadingScreenProps) {
+  const { t } = useI18n()
   const isError = state === 'error'
 
   return (
@@ -27,8 +29,8 @@ export function LoadingScreen({ message, state = 'loading', onRetry, onGoToSignI
               This can happen because of network instability or a temporary service outage.
             </p>
             <div className="flex flex-col justify-center gap-2 sm:flex-row">
-              <Button type="button" onClick={onRetry}>Try again</Button>
-              <Button type="button" variant="outline" onClick={onGoToSignIn}>Go to sign in</Button>
+              <Button type="button" onClick={onRetry}>{t('auth.tryAgain')}</Button>
+              <Button type="button" variant="outline" onClick={onGoToSignIn}>{t('auth.goToSignIn')}</Button>
             </div>
           </div>
         ) : null}

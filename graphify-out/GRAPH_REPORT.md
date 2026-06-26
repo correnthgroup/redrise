@@ -1,16 +1,16 @@
-# Graph Report - redrise  (2026-06-24)
+# Graph Report - redrise  (2026-06-26)
 
 ## Corpus Check
-- 212 files · ~104,557 words
+- 237 files · ~126,299 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1111 nodes · 1318 edges · 138 communities (121 shown, 17 thin omitted)
-- Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 116 edges (avg confidence: 0.8)
+- 1230 nodes · 1497 edges · 145 communities (127 shown, 18 thin omitted)
+- Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 134 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `04938bb4`
+- Built from commit: `09e90764`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -100,9 +100,7 @@
 - [[_COMMUNITY_Community 82|Community 82]]
 - [[_COMMUNITY_Community 83|Community 83]]
 - [[_COMMUNITY_Community 84|Community 84]]
-- [[_COMMUNITY_Community 85|Community 85]]
 - [[_COMMUNITY_Community 86|Community 86]]
-- [[_COMMUNITY_Community 87|Community 87]]
 - [[_COMMUNITY_Community 88|Community 88]]
 - [[_COMMUNITY_Community 89|Community 89]]
 - [[_COMMUNITY_Community 90|Community 90]]
@@ -130,37 +128,44 @@
 - [[_COMMUNITY_Community 135|Community 135]]
 - [[_COMMUNITY_Community 136|Community 136]]
 - [[_COMMUNITY_Community 137|Community 137]]
+- [[_COMMUNITY_Community 139|Community 139]]
+- [[_COMMUNITY_Community 140|Community 140]]
+- [[_COMMUNITY_Community 143|Community 143]]
+- [[_COMMUNITY_Community 144|Community 144]]
+- [[_COMMUNITY_Community 146|Community 146]]
+- [[_COMMUNITY_Community 150|Community 150]]
+- [[_COMMUNITY_Community 152|Community 152]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `t()` - 43 edges
-2. `TECHNICAL` - 43 edges
-3. `useI18n()` - 42 edges
-4. `logAuditEvent()` - 22 edges
+1. `t()` - 50 edges
+2. `useI18n()` - 49 edges
+3. `TECHNICAL` - 45 edges
+4. `logAuditEvent()` - 28 edges
 5. `compilerOptions` - 22 edges
-6. `supabase` - 18 edges
+6. `supabase` - 20 edges
 7. `compilerOptions` - 18 edges
 8. `cn()` - 14 edges
-9. `AGENTS` - 12 edges
+9. `AGENTS` - 13 edges
 10. `Scope For This Update` - 12 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `AccountBasicInfoPage()` --calls--> `useI18n()`  [INFERRED]
-  src/components/blocks/pages/account-basic-info-page.tsx → src/hooks/use-i18n.ts
-- `AccountBasicInfoPage()` --calls--> `t()`  [INFERRED]
-  src/components/blocks/pages/account-basic-info-page.tsx → src/lib/i18n.ts
-- `AgentCreatePage()` --calls--> `useI18n()`  [INFERRED]
-  src/components/blocks/pages/agent-create-page.tsx → src/hooks/use-i18n.ts
-- `AgentCreatePage()` --calls--> `t()`  [INFERRED]
-  src/components/blocks/pages/agent-create-page.tsx → src/lib/i18n.ts
-- `AgentDetailPage()` --calls--> `useI18n()`  [INFERRED]
-  src/components/blocks/pages/agent-detail-page.tsx → src/hooks/use-i18n.ts
+- `PlansPage()` --calls--> `effectiveBillingPlan()`  [INFERRED]
+  src/components/blocks/pages/plans-page.tsx → src/lib/billing.ts
+- `formatLastActive()` --calls--> `t()`  [INFERRED]
+  src/components/blocks/shared/sessions-list.tsx → src/lib/i18n.ts
+- `AppShell()` --calls--> `useAgents()`  [INFERRED]
+  src/components/layout/app-shell.tsx → src/hooks/use-agents.ts
+- `AuthFlow()` --calls--> `useI18n()`  [INFERRED]
+  src/components/auth/auth-flow.tsx → src/hooks/use-i18n.ts
+- `AuthFlow()` --calls--> `t()`  [INFERRED]
+  src/components/auth/auth-flow.tsx → src/lib/i18n.ts
 
 ## Import Cycles
 - 1-file cycle: `src/app/analytics/page.tsx -> src/app/analytics/page.tsx`
 - 1-file cycle: `src/app/dashboard/page.tsx -> src/app/dashboard/page.tsx`
 - 1-file cycle: `src/app/settings/page.tsx -> src/app/settings/page.tsx`
 
-## Communities (138 total, 17 thin omitted)
+## Communities (145 total, 18 thin omitted)
 
 ### Community 0 - "UI Components"
 Cohesion: 0.05
@@ -168,7 +173,7 @@ Nodes (36): CardList(), CardListProps, cn(), AlertDialogAction, AlertDialogCance
 
 ### Community 1 - "User Profile & Auth"
 Cohesion: 0.09
-Nodes (25): createDefaultProfile(), decodeJwtPayload(), ensureCurrentUserTeamMember(), fromSupabaseProfile(), getSessionLocation(), getSupabaseSessionId(), loadRememberedSessions(), loadUserProfile() (+17 more)
+Nodes (26): createDefaultProfile(), decodeJwtPayload(), ensureCurrentUserTeamMember(), fromSupabaseProfile(), getSessionLocation(), getSupabaseSessionId(), loadRememberedSessions(), loadUserProfile() (+18 more)
 
 ### Community 2 - "Dev Dependencies"
 Cohesion: 0.10
@@ -179,24 +184,24 @@ Cohesion: 0.04
 Nodes (44): dependencies, class-variance-authority, clsx, date-fns, lucide-react, @radix-ui/react-alert-dialog, @radix-ui/react-avatar, @radix-ui/react-checkbox (+36 more)
 
 ### Community 4 - "React Hooks"
-Cohesion: 0.16
-Nodes (9): useFlowCards(), useI18n(), useTeamMemberOptions(), CreateWorkspacePage(), FlowBuilderContent(), FlowListPage(), RunStep, TaskRunDialog() (+1 more)
+Cohesion: 0.22
+Nodes (5): PipelineNode, PLACEHOLDER_NODES, STATUS_STYLES, WorkflowPipeline(), WorkflowPipelineProps
 
 ### Community 5 - "Settings & Plans"
-Cohesion: 0.11
-Nodes (15): Plan, PLANS, PlansPage(), ADMIN_ONLY_SETTINGS, SettingKey, SettingShortcut, SettingsPage(), SettingsUser (+7 more)
+Cohesion: 0.08
+Nodes (19): Plan, PLANS, PlansPage(), ADMIN_ONLY_SETTINGS, SettingKey, SettingShortcut, SettingsPage(), SettingsUser (+11 more)
 
 ### Community 6 - "TypeScript Config"
 Cohesion: 0.08
 Nodes (24): compilerOptions, allowImportingTsExtensions, baseUrl, erasableSyntaxOnly, ignoreDeprecations, jsx, lib, module (+16 more)
 
 ### Community 7 - "App Shell & Navigation"
-Cohesion: 0.05
-Nodes (31): AGENTS, Architecture blocks (modular), Commands, Deploy, Entry points, Invariants, Language, localStorage Keys (+23 more)
+Cohesion: 0.11
+Nodes (13): AppShellProps, PAGE_TITLE_KEYS, CONTEXT_BY_KEY, initials(), MainSidebarKey, NAV_ITEMS, Sidebar(), SidebarAgent (+5 more)
 
 ### Community 8 - "Analytics & Dashboard"
-Cohesion: 0.09
-Nodes (23): STATUS_BADGE, DashboardPage(), ActivityFeed(), ActivityFeedProps, latest(), areaPath(), ChartTabs(), ChartTabsProps (+15 more)
+Cohesion: 0.17
+Nodes (11): DashboardPage(), ActivityFeed(), ActivityFeedProps, latest(), areaPath(), ChartTabs(), ChartTabsProps, SimpleAreaChart() (+3 more)
 
 ### Community 9 - "Node Config"
 Cohesion: 0.10
@@ -207,12 +212,12 @@ Cohesion: 0.13
 Nodes (8): addMessage(), addOutput(), createExecution(), generateMessageId(), generateOutputId(), generateShortExecId(), loadLatestApprovedOutput(), resolveUpstreamContext()
 
 ### Community 11 - "Flow Builder"
-Cohesion: 0.05
-Nodes (17): createFlowCard(), createFlowEdge(), generateEdgeShortId(), generateShortId(), addFlowRunStep(), createFlowRun(), generateShortId(), generateStepId() (+9 more)
+Cohesion: 0.11
+Nodes (9): AccessRole, loadCurrentTeamAssignment(), normalizeTeamName(), ProfileRow, SettingsAdminContext, TeamAssignmentTeamRow, TeamMember, TeamMemberRole (+1 more)
 
 ### Community 12 - "Team Management"
-Cohesion: 0.11
-Nodes (14): Locale, LOCALES, t(), translations, formatLastActive(), SessionsList(), ROLE_BADGE, TeamMembersCard() (+6 more)
+Cohesion: 0.08
+Nodes (29): LoadingScreen(), LoadingScreenProps, ErrorFallback(), useFlowCards(), useI18n(), useTeamMemberOptions(), Topbar(), Locale (+21 more)
 
 ### Community 13 - "Workspace Management"
 Cohesion: 0.24
@@ -222,17 +227,13 @@ Nodes (6): openAuthenticatedApp(), openSidebarModule(), openTopbarAction(), Side
 Cohesion: 0.12
 Nodes (15): aliases, components, hooks, lib, ui, utils, rsc, $schema (+7 more)
 
-### Community 15 - "Supabase Schema"
-Cohesion: 0.25
-Nodes (6): AnalyticsData, useAnalytics(), AnalyticsForKpi, buildKpis(), Kpi, AnalyticsPage()
-
 ### Community 16 - "Edge Functions"
-Cohesion: 0.05
-Nodes (43): Agents, Analytics, Autenticação, Aviso De Acesso Em Personal Information, Banco Supabase Atual, Blocos Compartilhados, Checklist Para Agentes Antes De Editar, Como A Member List Alimenta Outros Menus (+35 more)
+Cohesion: 0.04
+Nodes (45): Agents, Analytics, Autenticação, Aviso De Acesso Em Personal Information, Backend/RLS De Permissões Operacionais, Banco Supabase Atual, Blocos Compartilhados, Checklist Para Agentes Antes De Editar (+37 more)
 
 ### Community 17 - "i18n Translations"
-Cohesion: 0.13
-Nodes (13): AgentCreatePage(), STEP_KEYS, CreateFlowPage(), STEP_KEYS, IntegrationOption, INTEGRATIONS, IntegrationSetupWizard(), STEPS (+5 more)
+Cohesion: 0.33
+Nodes (5): CreateNotificationInput, Notification, NotificationActionStatus, NotificationReadStatus, NotificationType
 
 ### Community 18 - "UI Primitives"
 Cohesion: 0.19
@@ -243,48 +244,48 @@ Cohesion: 0.19
 Nodes (7): __dirname, handle(), processMessage(), projectRoot, toolList(), tools, writeResponse()
 
 ### Community 20 - "Community 20"
-Cohesion: 0.40
-Nodes (4): AgentDetailPage(), BenchmarkData, EXEC_STATUS_ICON, STATUS_BADGE
+Cohesion: 0.20
+Nodes (6): ALLOWED_EXTENSIONS, DEFAULT_ALLOWED_ORIGINS, extensionOf(), getAllowedOrigins(), getCorsHeaders(), safePath()
 
 ### Community 21 - "Community 21"
 Cohesion: 0.05
 Nodes (36): Agent Detail Page (`agent-detail-page.tsx`), App Shell (`app-shell.tsx`), Approvers Dropdown, Card Editor — Required Fields, Card Editor — Tasks Table, Edit Button, Files Changed (Complete List), i18n (`src/lib/i18n.ts`) (+28 more)
 
 ### Community 22 - "Community 22"
-Cohesion: 0.31
-Nodes (8): createWorkspace(), deleteWorkspace(), generateShortId(), generateUniqueId(), getWorkspace(), isIdUnique(), loadWorkspaces(), mockFrom
+Cohesion: 0.23
+Nodes (11): supabase, supabaseAnonKey, supabaseUrl, createWorkspace(), deleteWorkspace(), generateShortId(), generateUniqueId(), getWorkspace() (+3 more)
 
 ### Community 23 - "Community 23"
 Cohesion: 0.27
 Nodes (5): createTask(), deleteTask(), generateShortId(), generateUniqueId(), isIdUnique()
 
 ### Community 24 - "Community 24"
-Cohesion: 0.11
-Nodes (16): COLUMNS, MONTH_DAYS, PRIORITIES, RECURRENCES, STEP_KEYS, WEEK_DAYS, STEP_KEYS, defaultEdges (+8 more)
+Cohesion: 0.18
+Nodes (7): useDropdownClose(), useFlows(), useNotifications(), useTasks(), useWorkspaces(), AppShell(), CreateTaskPage()
 
 ### Community 25 - "Community 25"
 Cohesion: 0.31
 Nodes (5): createAgent(), deleteAgent(), generateShortId(), generateUniqueId(), isIdUnique()
 
 ### Community 26 - "Community 26"
-Cohesion: 0.22
-Nodes (6): ChatCompletionResponse, ChatMessage, TaskExecuteResult, supabase, supabaseAnonKey, supabaseUrl
+Cohesion: 0.25
+Nodes (3): InviteRow, ProfileRow, TeamInviteNotification
 
 ### Community 27 - "Community 27"
-Cohesion: 0.31
-Nodes (8): ApiKey, createApiKey(), CreateApiKeyInput, deleteApiKey(), generateApiKeySecret(), generateShortId(), revokeApiKey(), logAuditEvent()
+Cohesion: 0.28
+Nodes (7): ApiKey, createApiKey(), CreateApiKeyInput, deleteApiKey(), generateApiKeySecret(), generateShortId(), revokeApiKey()
 
 ### Community 28 - "Community 28"
-Cohesion: 0.31
-Nodes (6): createFlow(), deleteFlow(), generateShortId(), generateUniqueId(), isIdUnique(), updateFlow()
+Cohesion: 0.22
+Nodes (16): logAuditEvent(), syncFlowEditor(), approveFlow(), createFlow(), deleteFlow(), generateShortId(), generateUniqueId(), invalidateFlowOfficialStatus() (+8 more)
 
 ### Community 29 - "Community 29"
-Cohesion: 0.25
-Nodes (6): createIntegration(), CreateIntegrationInput, deleteIntegration(), generateShortId(), Integration, IntegrationStatus
+Cohesion: 0.13
+Nodes (8): createIntegration(), CreateIntegrationInput, deleteIntegration(), generateShortId(), Integration, IntegrationSetupDetail, IntegrationSetupSummary, IntegrationStatus
 
 ### Community 30 - "Community 30"
-Cohesion: 0.22
-Nodes (8): ExecutionStatus, MessageKind, MessageRole, OutputType, StructuredOutput, TaskExecution, TaskExecutionMessage, TaskExecutionOutput
+Cohesion: 0.20
+Nodes (9): ExecutionStatus, FailureReason, MessageKind, MessageRole, OutputType, StructuredOutput, TaskExecution, TaskExecutionMessage (+1 more)
 
 ### Community 31 - "Community 31"
 Cohesion: 0.22
@@ -299,16 +300,16 @@ Cohesion: 0.25
 Nodes (5): AuditAction, AuditEntityType, AuditLog, generateShortId(), LogInput
 
 ### Community 34 - "Community 34"
-Cohesion: 0.25
-Nodes (3): InviteRow, ProfileRow, TeamInviteNotification
+Cohesion: 0.15
+Nodes (13): AGENTS, Architecture blocks (modular), Commands, Deploy, Entry points, Invariants, Language, localStorage Keys (+5 more)
 
 ### Community 35 - "Community 35"
-Cohesion: 0.13
-Nodes (9): getMemberFunctionLabelKey(), MEMBER_FUNCTIONS, MemberFunction, ACCESS_COPY_KEYS, accessLabelKey(), AccountBasicInfoPage(), AccountUser, COUNTRIES (+1 more)
+Cohesion: 0.38
+Nodes (4): STEP_KEYS, STEP_KEYS, MultiSelectDropdown(), MultiSelectOption
 
 ### Community 36 - "Community 36"
 Cohesion: 0.29
-Nodes (5): CurrentUser, MemberListTable(), ROLE_MAP, PaginationFooter(), PaginationFooterProps
+Nodes (4): EXEC_STATUS_ICON, STATUS_BADGE, COLUMNS, STATUS_TONE
 
 ### Community 37 - "Community 37"
 Cohesion: 0.33
@@ -316,7 +317,7 @@ Nodes (5): ART_QUOTES, AuthFlow(), AuthMode, isValidEmail(), PASSWORD_RULES
 
 ### Community 38 - "Community 38"
 Cohesion: 0.29
-Nodes (6): admin, en-US, pt-BR, first name, en-US, pt-BR
+Nodes (10): activeStatus(), auditId(), handleCheckoutCompleted(), planFromMetadata(), StripeObject, timingSafeEqual(), toHex(), unixToIso() (+2 more)
 
 ### Community 40 - "Community 40"
 Cohesion: 0.10
@@ -327,24 +328,24 @@ Cohesion: 0.29
 Nodes (6): CreateFlowRunInput, CreateFlowRunStepInput, FlowRun, FlowRunStatus, FlowRunStep, FlowRunStepStatus
 
 ### Community 42 - "Community 42"
-Cohesion: 0.29
-Nodes (6): CreateTaskInput, RecurrenceType, Task, TaskFlow, TaskPriority, TaskStatus
+Cohesion: 0.25
+Nodes (7): CreateTaskInput, ExecutionPath, RecurrenceType, Task, TaskFlow, TaskPriority, TaskStatus
 
 ### Community 43 - "Community 43"
 Cohesion: 0.29
 Nodes (6): Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle
 
 ### Community 44 - "Community 44"
-Cohesion: 0.29
-Nodes (6): AgentFlow, AgentListPage(), FLOW_STATUS_BADGE, PLACEHOLDER_AGENT_FLOWS, STATUS_BADGE, STATUS_COLOR
+Cohesion: 0.13
+Nodes (9): getMemberFunctionLabelKey(), MEMBER_FUNCTIONS, MemberFunction, ACCESS_COPY_KEYS, accessLabelKey(), AccountBasicInfoPage(), AccountUser, COUNTRIES (+1 more)
 
 ### Community 45 - "Community 45"
 Cohesion: 0.11
 Nodes (18): Agents Menu Translation, Analytics Cards Translation, Current Target, Deep Copy Pass (Auxiliary / Wizard / Sidebar), Problem, Remaining Before Production, Required Name Field, Scope For This Update (+10 more)
 
 ### Community 46 - "Community 46"
-Cohesion: 0.40
-Nodes (3): DEFAULT_ALLOWED_ORIGINS, getAllowedOrigins(), getCorsHeaders()
+Cohesion: 0.23
+Nodes (10): adapterResponse(), buildStructuredResult(), DEFAULT_ALLOWED_ORIGINS, endpointLabel(), generateAdapterRunId(), getAllowedOrigins(), getCorsHeaders(), providerCandidates() (+2 more)
 
 ### Community 47 - "Community 47"
 Cohesion: 0.33
@@ -363,8 +364,8 @@ Cohesion: 0.20
 Nodes (9): 1. Sales Qualification Workspace, 2. Customer Onboarding Workspace, 3. Support Triage Workspace, 4. Finance Operations Workspace, 5. HR Hiring Workspace, 6. Marketing Campaign Workspace, 7. Compliance Review Workspace, Operational Pattern (+1 more)
 
 ### Community 52 - "Community 52"
-Cohesion: 0.33
-Nodes (4): CITIES, CityData, searchCities(), CitySearch()
+Cohesion: 0.25
+Nodes (7): COLUMNS, EXECUTION_PATHS, MONTH_DAYS, PRIORITIES, RECURRENCES, STEP_KEYS, WEEK_DAYS
 
 ### Community 53 - "Community 53"
 Cohesion: 0.22
@@ -383,8 +384,8 @@ Cohesion: 0.50
 Nodes (3): distDir, fallbackPath, indexPath
 
 ### Community 57 - "Community 57"
-Cohesion: 0.50
-Nodes (3): CommandPalette(), CommandPaletteProps, PaletteItem
+Cohesion: 0.12
+Nodes (14): AnalyticsData, useAnalytics(), AnalyticsForKpi, buildKpis(), Kpi, AnalyticsContent(), AnalyticsPage(), AnalyticsPageProps (+6 more)
 
 ### Community 58 - "Community 58"
 Cohesion: 0.29
@@ -395,8 +396,8 @@ Cohesion: 0.50
 Nodes (3): Agent, AgentStatus, CreateAgentInput
 
 ### Community 60 - "Community 60"
-Cohesion: 0.50
-Nodes (3): CreateFlowInput, Flow, FlowStatus
+Cohesion: 0.33
+Nodes (5): CreateFlowInput, Flow, FlowApprovalStatus, FlowSourceType, FlowStatus
 
 ### Community 61 - "Community 61"
 Cohesion: 0.50
@@ -414,21 +415,25 @@ Nodes (3): TabsContent, TabsList, TabsTrigger
 Cohesion: 0.67
 Nodes (3): DEFAULT_ALLOWED_ORIGINS, getAllowedOrigins(), getCorsHeaders()
 
+### Community 65 - "Community 65"
+Cohesion: 0.24
+Nodes (8): BillingPlan, BillingStatus, BillingSubscription, BillingSubscriptionRow, defaultBillingSubscription(), effectiveBillingPlan(), fromRow(), loadBillingSubscription()
+
 ### Community 66 - "Community 66"
-Cohesion: 0.67
-Nodes (3): agent, en-US, pt-BR
+Cohesion: 0.15
+Nodes (4): addFlowRunStep(), createFlowRun(), generateShortId(), generateStepId()
 
 ### Community 67 - "Community 67"
-Cohesion: 0.67
-Nodes (3): analytics, en-US, pt-BR
+Cohesion: 0.33
+Nodes (3): DEFAULT_ALLOWED_ORIGINS, getAllowedOrigins(), getCorsHeaders()
 
 ### Community 68 - "Community 68"
 Cohesion: 0.67
 Nodes (3): audit log, en-US, pt-BR
 
 ### Community 69 - "Community 69"
-Cohesion: 0.67
-Nodes (3): biological gender, en-US, pt-BR
+Cohesion: 0.10
+Nodes (15): AvatarUpload(), AvatarUploadProps, initials(), CommandPalette(), CommandPaletteProps, PaletteItem, DropdownFilterByPriority(), PRIORITIES (+7 more)
 
 ### Community 70 - "Community 70"
 Cohesion: 0.67
@@ -439,8 +444,8 @@ Cohesion: 0.67
 Nodes (3): dashboard, en-US, pt-BR
 
 ### Community 72 - "Community 72"
-Cohesion: 0.67
-Nodes (3): email address, en-US, pt-BR
+Cohesion: 0.33
+Nodes (4): defaultEdges, defaultNodes, FlowNode, parseExternalOutline()
 
 ### Community 73 - "Community 73"
 Cohesion: 0.33
@@ -455,52 +460,44 @@ Cohesion: 0.67
 Nodes (3): health check, en-US, pt-BR
 
 ### Community 76 - "Community 76"
-Cohesion: 0.67
-Nodes (3): language, en-US, pt-BR
+Cohesion: 0.33
+Nodes (4): DEFAULT_ALLOWED_ORIGINS, getAllowedOrigins(), getCorsHeaders(), PLAN_PRICE_ENV
 
 ### Community 77 - "Community 77"
 Cohesion: 0.67
 Nodes (3): last name, en-US, pt-BR
 
 ### Community 78 - "Community 78"
-Cohesion: 0.67
-Nodes (3): location, en-US, pt-BR
+Cohesion: 0.40
+Nodes (5): location, en-US, pt-BR, workspace, en-US
 
 ### Community 79 - "Community 79"
-Cohesion: 0.67
-Nodes (3): member, en-US, pt-BR
+Cohesion: 0.50
+Nodes (3): ROLE_BADGE, TeamMembersCard(), TeamMembersCardProps
 
 ### Community 80 - "Community 80"
 Cohesion: 0.67
 Nodes (3): middle name, en-US, pt-BR
 
 ### Community 81 - "Community 81"
-Cohesion: 0.67
-Nodes (3): personal information, en-US, pt-BR
+Cohesion: 0.22
+Nodes (9): admin, en-US, API keys, pt-BR, personal information, en-US, pt-BR, session (+1 more)
 
 ### Community 82 - "Community 82"
-Cohesion: 0.67
-Nodes (3): phone, en-US, pt-BR
+Cohesion: 0.40
+Nodes (5): language, pt-BR, phone, en-US, pt-BR
 
 ### Community 83 - "Community 83"
-Cohesion: 0.67
-Nodes (3): plan, en-US, pt-BR
+Cohesion: 0.29
+Nodes (4): ChatCompletionResponse, ChatMessage, TaskExecuteContext, TaskExecuteResult
 
 ### Community 84 - "Community 84"
-Cohesion: 0.67
-Nodes (3): select all, en-US, pt-BR
-
-### Community 85 - "Community 85"
-Cohesion: 0.67
-Nodes (3): session, en-US, pt-BR
+Cohesion: 0.29
+Nodes (5): CurrentUser, MemberListTable(), ROLE_MAP, PaginationFooter(), PaginationFooterProps
 
 ### Community 86 - "Community 86"
 Cohesion: 0.67
 Nodes (3): staff, en-US, pt-BR
-
-### Community 87 - "Community 87"
-Cohesion: 0.67
-Nodes (3): task, en-US, pt-BR
 
 ### Community 88 - "Community 88"
 Cohesion: 0.67
@@ -515,12 +512,16 @@ Cohesion: 0.67
 Nodes (3): username, en-US, pt-BR
 
 ### Community 91 - "Community 91"
-Cohesion: 0.67
-Nodes (3): viewer, en-US, pt-BR
+Cohesion: 0.40
+Nodes (5): analytics, en-US, viewer, en-US, pt-BR
 
 ### Community 92 - "Community 92"
 Cohesion: 0.67
-Nodes (3): workspace, en-US, pt-BR
+Nodes (3): biological gender, en-US, pt-BR
+
+### Community 94 - "Community 94"
+Cohesion: 0.67
+Nodes (3): agent, en-US, pt-BR
 
 ### Community 130 - "Community 130"
 Cohesion: 0.33
@@ -539,40 +540,60 @@ Cohesion: 0.50
 Nodes (3): Conventions, memory/AGENTS.md, Scope of memory
 
 ### Community 134 - "Community 134"
-Cohesion: 0.50
-Nodes (3): COLUMNS, STATUS_TONE, TaskBoardPage()
+Cohesion: 0.33
+Nodes (5): AgentFlow, FLOW_STATUS_BADGE, PLACEHOLDER_AGENT_FLOWS, STATUS_BADGE, STATUS_COLOR
 
 ### Community 135 - "Community 135"
-Cohesion: 0.67
-Nodes (3): AvatarUpload(), AvatarUploadProps, initials()
+Cohesion: 0.22
+Nodes (4): createFlowCard(), createFlowEdge(), generateEdgeShortId(), generateShortId()
 
 ### Community 136 - "Community 136"
-Cohesion: 0.50
-Nodes (3): DropdownFilterByPriority(), PRIORITIES, PRIORITY_KEYS
+Cohesion: 0.19
+Nodes (8): STEP_KEYS, IntegrationOption, INTEGRATIONS, STEPS, CurrentUser, WizardStep, WizardShell(), WizardShellProps
 
 ### Community 137 - "Community 137"
+Cohesion: 0.33
+Nodes (4): CITIES, CityData, searchCities(), CitySearch()
+
+### Community 139 - "Community 139"
+Cohesion: 0.29
+Nodes (4): useAgents(), BenchmarkData, EXEC_STATUS_ICON, STATUS_BADGE
+
+### Community 140 - "Community 140"
+Cohesion: 0.33
+Nodes (5): Active PRD, Current Product Source Of Truth, Immediate Slice, Implementation Rule, Next Ordered Slices
+
+### Community 143 - "Community 143"
+Cohesion: 0.18
+Nodes (11): first name, en-US, member, en-US, pt-BR, plan, en-US, select all (+3 more)
+
+### Community 146 - "Community 146"
 Cohesion: 0.67
-Nodes (3): API keys, en-US, pt-BR
+Nodes (3): NotificationDetailDialog(), NotificationDetailDialogProps, statusClass()
+
+### Community 150 - "Community 150"
+Cohesion: 0.67
+Nodes (3): email address, en-US, pt-BR
 
 ## Knowledge Gaps
-- **570 isolated node(s):** `$schema`, `style`, `rsc`, `tsx`, `css` (+565 more)
+- **588 isolated node(s):** `$schema`, `style`, `rsc`, `tsx`, `css` (+583 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **17 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **18 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `UI Components` to `User Profile & Auth`, `Community 36`, `App Shell & Navigation`, `Analytics & Dashboard`, `i18n Translations`?**
-  _High betweenness centrality (0.109) - this node is a cross-community bridge._
-- **Why does `supabase` connect `Community 26` to `Community 33`, `Community 34`, `User Profile & Auth`, `Task Execution`, `Flow Builder`, `UI Primitives`, `Community 22`, `Community 23`, `Community 25`, `Community 27`, `Community 28`, `Community 29`?**
-  _High betweenness centrality (0.039) - this node is a cross-community bridge._
-- **Why does `t()` connect `Team Management` to `Community 35`, `React Hooks`, `Settings & Plans`, `Community 134`, `App Shell & Navigation`, `Analytics & Dashboard`, `Community 135`, `Community 136`, `Community 36`, `Community 44`, `Supabase Schema`, `i18n Translations`, `Community 20`, `Community 52`, `Community 24`, `Community 57`, `Community 94`?**
-  _High betweenness centrality (0.036) - this node is a cross-community bridge._
-- **Are the 42 inferred relationships involving `t()` (e.g. with `AppShell()` and `Sidebar()`) actually correct?**
-  _`t()` has 42 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 41 inferred relationships involving `useI18n()` (e.g. with `AppShell()` and `Sidebar()`) actually correct?**
-  _`useI18n()` has 41 INFERRED edges - model-reasoned connections that need verification._
+- **Why does `cn()` connect `UI Components` to `User Profile & Auth`, `App Shell & Navigation`, `Community 136`, `Community 84`, `Community 57`?**
+  _High betweenness centrality (0.064) - this node is a cross-community bridge._
+- **Why does `PlansPage()` connect `Settings & Plans` to `Community 65`, `Team Management`?**
+  _High betweenness centrality (0.057) - this node is a cross-community bridge._
+- **Why does `effectiveBillingPlan()` connect `Community 65` to `Settings & Plans`?**
+  _High betweenness centrality (0.056) - this node is a cross-community bridge._
+- **Are the 49 inferred relationships involving `t()` (e.g. with `AuthFlow()` and `LoadingScreen()`) actually correct?**
+  _`t()` has 49 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 48 inferred relationships involving `useI18n()` (e.g. with `AuthFlow()` and `LoadingScreen()`) actually correct?**
+  _`useI18n()` has 48 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `$schema`, `style`, `rsc` to the rest of the system?**
-  _570 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _588 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `UI Components` be split into smaller, more focused modules?**
   _Cohesion score 0.0507399577167019 - nodes in this community are weakly interconnected._

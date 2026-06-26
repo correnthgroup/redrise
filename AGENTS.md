@@ -142,7 +142,16 @@ corepack yarn test:e2e     # playwright test
 corepack yarn preview      # vite preview (serve dist/)
 corepack yarn mcp:redrise-ops
 corepack yarn mcp:redrise-ops:self-test
+.\.tools\uv\uv.exe sync  # install local Python 3.12 tooling
+.\.tools\uv\uv.exe run python -m graphify update . --force  # refresh graphify
 ```
+
+## Python Tooling
+
+- Python tooling is local to this repository through `uv`, pinned by `.python-version` to Python 3.12.
+- Use `.\.tools\uv\uv.exe` in this workspace; do not call a global `python.exe`, `python`, or `graphify` for project operations.
+- Python dependencies are declared in `pyproject.toml` and locked in `uv.lock`.
+- `.venv/` and `.tools/` are local-only and ignored by git.
 
 ## Deploy
 

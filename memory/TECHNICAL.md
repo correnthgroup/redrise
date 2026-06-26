@@ -31,6 +31,7 @@
 - O conteúdo principal fica no centro, dentro do `main` do AppShell.
 - A navegação atual é uma máquina de estados em React, não uma URL real por página.
 - Máquina de estados significa que o app troca a tela exibida guardando um valor interno, como `dashboard`, `flow`, `tasks`, `agents`, `analytics` ou `settings`.
+- O breadcrumb global autenticado é renderizado pela `Topbar` e deriva dessa máquina de estados do `AppShell`, sem router novo e sem histórico customizado.
 
 ## Jornada Principal Do Usuário
 
@@ -57,6 +58,9 @@
 - Flows: Supabase via `src/lib/flows.ts`.
 - Tasks: Supabase via `src/lib/tasks.ts`.
 - Agents: Supabase via `src/lib/agents.ts`.
+- Notificações operacionais: Supabase via `src/lib/notifications.ts` e hook `useNotifications()`.
+- Sandbox do `rise-insider-filesystem`: tabela Supabase `rise_insider_files`, usada pela Edge Function homônima com service role.
+- Estado de billing/plano: tabela Supabase `billing_subscriptions`, lida por `src/lib/billing.ts` e atualizada por Edge Functions Stripe.
 - Preferência visual da Sidebar colapsada: `localStorage`.
 - Não recriar `localStorage` para perfil, sessões ou membros; esses dados já usam Supabase.
 
@@ -66,8 +70,9 @@
 - Se não houver usuário logado, `src/App.tsx` mostra `AuthFlow`.
 - Se houver usuário logado, `src/App.tsx` carrega `profiles` e mostra `AppShell`.
 - `AppShell` controla a navegação principal e as subvisões internas.
-- `Sidebar` recebe o usuário atual e permite trocar entre Dashboard, Flow, Tasks, Agents, Analytics e Settings.
+- `Sidebar` recebe o usuário atual e permite trocar entre Dashboard, Flow, Tasks, Agents, Analytics e Settings; a página global Notifications é aberta por uma lâmpada secundária com badge, sem entrar na lista principal de 6 itens.
 - `Topbar` mostra o título e, em algumas telas, o botão de ação principal.
+- `Topbar` mostra breadcrumb global nas telas autenticadas depois do bloco de título/subtítulo; segmentos anteriores podem chamar callbacks do `AppShell`, e o segmento atual não é clicável.
 - Cada página recebe dados e callbacks do `AppShell`; não deve buscar tudo sozinha se o dado já vem do shell.
 - `AppFrame` é o painel visual externo com área arredondada e controle de viewport.
 - `AppShell` é a estrutura autenticada com Sidebar, Topbar e área de conteúdo.
@@ -105,6 +110,7 @@
 - Ao criar workspace com sucesso, `AppShell` volta para a visão principal do Dashboard.
 - Ao abrir um workspace, `AppShell` guarda `selectedWorkspaceId` e muda `dashboardView` para `review-workspace`.
 - `ReviewWorkspacePage` recebe o workspace selecionado e pode voltar para o Dashboard.
+- `ReviewWorkspacePage` também recebe notificações pendentes filtradas por `workspace_id` e exibe a seção `Pending Notifications` / `Notificacoes Pendentes`.
 - Deletar workspace chama `removeWorkspace()` vindo do hook de workspaces.
 - `KpiCards`, `ChartTabs`, `OperationsGrid` e `ActivityFeed` aparecem no Dashboard como blocos de leitura operacional.
 - `KpiCards` no Dashboard usa contagens vivas de workspaces, flows, tasks e agents carregadas pelo `AppShell`.
@@ -134,6 +140,14 @@
 - `AppShell` chama `addFlow()` e volta para a lista se criar com sucesso.
 - `FlowListPage` lista flows e permite busca por nome.
 - `FlowListPage` mostra o nome do flow, membros associados e ID.
+- `FlowListPage` mostra status operacional e aprovação/oficialidade como texto limpo com ícones, sem badge de fundo; valores técnicos como `paused` aparecem traduzidos como `Paused` / `Pausado` conforme idioma.
+- `FlowListPage` possui um botão `+` por Flow, no estilo do FAB do Flow Builder, com ações mínimas: `Open`, `Rename`, `Responsible`, `Request approval`, `Approve` ou `Request adjustments` conforme estado.
+- O menu `+` da Flow List também pode marcar um Flow como `Redrise Support`; isso salva `source_type = redrise_support`, `source_label = Redrise Support`, coloca o Flow em aprovação pendente e cria notificação.
+- Deletar o Flow selecionado limpa a seleção local e o bloco Flow Pipeline para evitar cards órfãos de um Flow já removido.
+- Solicitar aprovação marca `approval_status = approval_requested`, define `published_at` e cria audit log/notificação.
+- Aprovar marca `approval_status = approved`, `is_official = true`, `approved_at`, `approved_by_user_id`, limpa invalidação e cria audit log/notificação.
+- Solicitar ajustes marca `approval_status = adjustments_requested`, `is_official = false` e cria audit log/notificação.
+- Alterar apenas nome ou responsáveis na Flow List não remove oficialidade.
 - O botão de abrir flow com ícone externo chama `onOpen(id)` e leva para `FlowBuilderPage`.
 - O botão de lápis em FlowListPage persiste renomeação via `updateFlow()` em `src/lib/flows.ts`.
 - O dropdown com ícone de usuários em FlowListPage usa `useTeamMemberOptions()` e persiste responsáveis do flow via `updateFlow()`.
@@ -148,11 +162,16 @@
 - `FlowBuilderPage` passou a carregar agentes reais via `loadAgents()` para o editor de cards, substituindo a lista placeholder anterior.
 - O editor de cards do Flow Builder não permite mais selecionar membros por card; responsáveis ficam no Flow List/board no nível do flow.
 - `FlowBuilderPage` possui um FAB (Floating Action Button) que abre menu animado com opções: New Card, Delete Selected, Select All, Paste, Undo e Redo.
+- O FAB do Flow Builder também possui `Import AI outline` / `Importar outline de IA`: o usuário cola um outline gerado por LLM externa, cada linha vira um card sequencial, e os cards atuais do canvas são substituídos somente após confirmação.
+- Ao salvar um Flow importado por outline externo, o app marca `flows.source_type = external_llm`, salva `source_label`, move `approval_status` para `approval_requested`, cria audit log `import_external_llm` e cria notificação de aprovação pendente.
+- A importação de outline externo não chama LLM pelo backend e não armazena segredo de provedor no frontend; ela apenas transforma texto colado pelo usuário em cards editáveis.
 - O FAB fica no canto inferior direito do canvas; ao clicar, o ícone Plus gira 45° e o menu expande para cima com animação.
 - O menu fecha ao clicar fora dele (handler de `mousedown` com `useEffect`).
 - O botão voltar em `FlowBuilderPage` retorna para a lista.
 - O botão salvar em `FlowBuilderPage` retorna para a lista conforme callback do `AppShell`.
+- Quando o Flow Builder salva uma alteração estrutural em cards/edges de um Flow oficial, `syncFlowEditor()` chama `invalidateFlowOfficialStatus()`: o Flow deixa de ser oficial, volta para `approval_requested`, registra audit log e cria notificação.
 - `FlowBuilderPage` usa `@xyflow/react`, também conhecido como React Flow, para canvas visual.
+- Flows existentes carregam cards e conexões pelo estado controlado do React Flow (`setNodes`/`setEdges`), então atalhos de canvas como delete, selecionar, copiar, colar, desfazer e refazer devem funcionar tanto em Flows antigos quanto em Flows recém-criados.
 - `@xyflow/react` é a biblioteca que permite arrastar nós, conectar linhas e navegar no canvas de fluxo.
 - Cards do Flow Builder devem preservar título, agentes, aprovadores e ID visível.
 - O botão de edição do card no canvas agora mostra o texto 'Edit'/'Editar' em vez de um ícone.
@@ -173,6 +192,13 @@
 - Quando o checkbox está desmarcado, os campos de agendamento são enviados como null e recurrence como 'occasionally'.
 - A animação de alternância usa `@keyframes fadeIn` definido em `index.css`.
 - Na etapa Flow & Card, Workspace é obrigatório, Flow é obrigatório, Card é obrigatório e Queue Position é obrigatório.
+- Na etapa Flow & Card, Execution Path também é obrigatório e persiste em `tasks.execution_path`.
+- O caminho de execução configurado é determinístico: a Task executa apenas por esse caminho e não tenta fallback.
+- No estado atual, `task-execute` executa deterministicamente por `execution_path`: `api_gateway` chama OpenRouter; `mock_integration` e `manual_step` geram outputs estruturados internos; `integration_gateway`, `rise_insider_terminal`, `rise_insider_filesystem`, `browser_automation` e `ui_control` chamam um endpoint HTTPS ativo configurado em Settings > Integrations para o provider correspondente.
+- Se um caminho externo não tiver integração ativa com endpoint HTTPS, a execução falha explicitamente como `integration_unavailable`; nenhum fallback automático é tentado.
+- `rise-insider-terminal` é uma Edge Function de runtime autorizado com comandos controlados: `status`, `echo`, `date` e `inspect`; ela não executa shell arbitrário.
+- `rise-insider-filesystem` é uma Edge Function de runtime autorizado com operações controladas: `status`, `list`, `read`, `write`, `append` e `delete`; ela grava apenas no sandbox persistente `rise_insider_files` e bloqueia caminhos absolutos, traversal e extensões fora da allowlist.
+- `adapter-staging` é uma Edge Function de staging para validar `integration_gateway` ponta a ponta antes de conectar um adapter externo real.
 - Workspace em New Task usa `useWorkspaces()` e persiste em `tasks.workspace_id`.
 - Flow em New Task usa `useFlows()` filtrado pelo workspace selecionado e persiste em `tasks.flow_id`.
 - Card em New Task usa `loadCardsByFlowOrdered()` filtrado pelo flow selecionado e persiste em `tasks.flow_card_id`.
@@ -203,6 +229,8 @@
 ## Task Executions (PRD Architecture)
 
 - **task_executions**: uma task pode ter múltiplas execuções (runs). Cada execução tem status (pending, running, completed, failed), model, tokens_used, error_message.
+- **task_executions.execution_path**: guarda o caminho usado ou tentado para a execução.
+- **task_executions.failure_reason**: guarda motivo determinístico de falha/bloqueio, como `execution_path_unavailable` ou `integration_unavailable`.
 - **task_execution_messages**: cada execução tem mensagens (user, system, assistant). Cada mensagem tem role, content, token_count.
 - **task_execution_outputs**: cada execução pode ter outputs estruturados. Schema: final_answer, decision_summary, steps_summary, evidence_used, open_questions, confidence, handoff_notes.
 - **flow_runs/flow_run_steps**: execução de um flow inteiro. Cada step é uma task. `run_order` define a ordem de execução.
@@ -210,6 +238,9 @@
 - **Execution Policy**: flow_cards têm campo `execution_policy` (auto | manual | on-demand) que define como as tasks são executadas.
 - **Frontend**: TaskRunDialog usa `taskExecute()` (Edge Function) em vez de `chatCompletion()`. A função resolve contexto upstream, injeta no prompt, persiste mensagens e outputs.
 - **Backend**: Edge Function `task-execute` faz parsing estruturado do output JSON da IA e persiste no Supabase.
+- **Adapters**: `task-execute` também normaliza respostas de adapters externos. O endpoint pode retornar o contrato completo (`raw_output`, `parsed_output`, `parse_error`, `tokens_used`, `model`) ou uma resposta simples; respostas simples são embrulhadas em output estruturado para revisão humana.
+- **adapter_runs**: tabela de observabilidade dos adapters. Guarda usuário, task/execução opcionais, integração opcional, caminho de execução, provider, endpoint seguro sem query string, status, status code, latência, erro e data. Não guarda tokens.
+- **rise_insider_files**: tabela de sandbox persistente do adapter filesystem. Guarda `owner_key`, caminho relativo, conteúdo texto e datas. Não é acessada diretamente pela UI; a Edge Function controla operações e valida paths.
 - **AgentDetailPage**: mostra histórico real de execuções do agente via `loadExecutionsByAgent()`, com métricas (total, success rate, tokens).
 
 ## Agents
@@ -234,9 +265,14 @@
 ## Analytics
 
 - A aba Analytics mostra cards, gráficos e indicadores operacionais.
+- Analytics agora recebe `flows`, `tasks`, `agents`, `notifications` e `analytics` do `AppShell`, evitando fonte paralela para dados que o shell já carrega.
+- Analytics mostra métricas Corporate derivadas de dados reais já existentes: governança de Flow, execuções bloqueadas por caminho determinístico, notificações pendentes, agentes ativos, origem dos Flows e status das Tasks.
+- As execuções recentes em Analytics mostram também `execution_path` e `failure_reason` quando esses campos existem.
+- Analytics mostra Adapter Observability a partir de `adapter_runs`, incluindo path, provider, status, endpoint label, latência e erro recente.
+- Em Analytics, clicar em um adapter run abre detalhes; runs com falha podem ser reexecutados manualmente no mesmo `execution_path`, sem fallback automático e sem replay de payload antigo.
 - `ChartTabs` usa SVG simples, não Recharts.
 - Recharts foi removido do uso do app e da dependência do projeto.
-- Os gráficos atuais são visuais operacionais e devem ser tratados como placeholders até conectarem em métricas reais.
+- Os gráficos atuais continuam SVG simples, mas os blocos Corporate da tela usam dados vivos carregados do app e de `task_executions`.
 - `KpiCards`, `ChartTabs`, `OperationsGrid` e `ActivityFeed` compõem blocos de leitura.
 - Não conectar pagamentos, planos ou permissões em Analytics sem antes definir quais métricas mudam por plano.
 - Analytics existe para tornar a operação observável.
@@ -246,6 +282,7 @@
 
 - Settings começa com uma grade de atalhos.
 - Cada atalho muda o estado interno `active` em `SettingsPage`.
+- Quando `SettingsPage` é usada dentro do `AppShell`, o detalhe ativo também é informado ao shell para o breadcrumb global mostrar `Settings / Nome do detalhe`.
 - Quando `active` está preenchido, Settings mostra uma tela de detalhe com botão Back no topo.
 - O botão Back volta para a grade de atalhos.
 - Atualmente os submenus são Personal Information, Change Password, Active Sessions, API Keys, Integrations, Members List, Team List e Audit Log.
@@ -282,7 +319,9 @@
 - `ChangePassword` é um bloco de UI para troca de senha.
 - O texto com mojibake foi corrigido e não deve voltar.
 - A seção de boas práticas de segurança usa cores definidas pela identidade visual.
-- Antes de conectar troca real de senha, usar Supabase Auth update password e validar sessão ativa.
+- A troca de senha agora usa Supabase Auth para atualizar a senha real do usuário.
+- Antes de alterar, a tela valida a senha atual com `signInWithPassword()`.
+- A nova senha usa as mesmas regras do Sign Up: pelo menos 8 caracteres, uma letra e um número.
 
 ## Settings > Active Sessions
 
@@ -293,6 +332,7 @@
 - Cada sessão mostra browser, OS, país/localização, IP mascarado e última atividade conhecida.
 - O botão `Refresh` refaz a busca manualmente.
 - Sessões remotas têm botão `Revoke` com `AlertDialog` de confirmação.
+- A tela também permite `Revoke all others`, que revoga todas as sessões exceto a sessão atual.
 - Revogar sessão atual não é permitido por essa UI.
 
 ## Settings > API Keys
@@ -300,14 +340,33 @@
 - `ApiKeysManager` existe como bloco de configuração.
 - Antes de salvar chaves reais, garantir que segredo nunca fique exposto no frontend.
 - Para chaves sensíveis, o ideal é backend/Edge Function e armazenamento seguro no Supabase.
+- A tela permite revogar uma chave e também excluir uma chave permanentemente.
 - Não salvar chaves secretas em `localStorage`.
 
 ## Settings > Integrations
 
 - `IntegrationSetupWizard` é o fluxo visual de integração.
-- Ele possui etapas de configuração e campos como endpoint.
+- Ele começa com uma tela de setups configurados antes de entrar no wizard.
+- Usuários Admin, Owner e Board veem resumos das integrações configuradas por usuários da mesma organização/equipe.
+- Owner e Board veem integrações de outros usuários somente como informação; não abrem parâmetros e não interagem com elas.
+- Admin pode abrir detalhes seguros de uma integração configurada por outro usuário; tokens e valores sensíveis continuam mascarados.
+- A visibilidade usa RPCs Supabase `load_integration_setup_overview` e `load_integration_setup_detail`, criados pela migration 041, em vez de liberar SELECT amplo na tabela `integrations`.
+- O wizard possui etapas de configuração e campos como endpoint.
+- Ele também lista providers de execução para adapters determinísticos: Integration Gateway, Rise Insider Terminal, Rise Insider Filesystem, Browser Automation e UI Control.
+- Para adapters Redrise conhecidos, o wizard sugere endpoints de Edge Functions e faz teste POST real antes de permitir finalizar.
+- Integrações criadas após teste HTTPS bem-sucedido ficam `active` e podem ser usadas por `task-execute` quando o `execution_path` da Task corresponder ao provider.
+- `loadIntegrations()` não carrega `config` sensível para a lista visual; tokens digitados são usados para pairing e envio por Authorization header, mas não aparecem depois de salvos.
+- Admin pode ativar/desativar, excluir e rotacionar o segredo de uma integração pelo detalhe seguro; essas ações passam por RPCs Supabase e registram audit log.
 - Antes de ativar integração real, validar URL, autenticação e permissões por plano.
 - Integrações futuras devem respeitar o plano ativo do usuário ou equipe.
+
+## Backend/RLS De Permissões Operacionais
+
+- A migration 042 criou `can_view_user_scoped_data(target_user_id)` e `can_manage_user_scoped_data(target_user_id)`.
+- Admin, Owner e Board conseguem ler dados operacionais de usuários ativos no mesmo owner context.
+- Apenas Admin, além do próprio dono do dado, consegue gerenciar dados operacionais de outro usuário no mesmo owner context.
+- Esse enforcement cobre workspaces, flows, flow cards/edges, tasks, agents, task executions/messages/outputs, flow runs/steps, audit logs e adapter runs.
+- A tabela `integrations` não foi aberta por SELECT amplo para evitar exposição de `config`; visibilidade e gestão cruzada usam RPCs sanitizados.
 
 ## Settings > Team Members
 
@@ -446,6 +505,7 @@
 ## Topbar
 
 - Topbar mostra título e subtítulo com base na aba ativa.
+- Topbar também mostra o breadcrumb global calculado pelo `AppShell`.
 - Dashboard, Flow, Tasks e Agents podem mostrar botão de criação conforme a visão interna.
 - Settings e Analytics não têm CTA na Topbar atualmente.
 - Se adicionar Plans, não colocar CTA global na Topbar sem regra de produto explícita.
@@ -461,6 +521,8 @@
 - Agents list pode abrir AgentCreate ou AgentDetail.
 - Analytics é uma tela de leitura.
 - Settings abre submenus internos com botão Back.
+- Breadcrumbs atuais cobrem Dashboard, New Workspace, Review Workspace, Flow List, New Flow, Flow Builder, Task Board, New Task, Review Task, Agent List, New Agent, Agent Detail, Analytics, Settings e detalhes de Settings.
+- Notifications é uma página global autenticada do `AppShell`; lista notificações pendentes e resolvidas, abre diálogo de detalhe, marca como lida ao abrir, permite marcar como não lida e resolver pendências.
 - Settings > Personal Information pode abrir Settings > Plans via botão Details do aviso de acesso.
 - Settings > Team Members pode abrir AddMemberModal.
 
@@ -477,11 +539,18 @@
 - As migrations `020`, `021` e `022` foram aplicadas no Supabase remoto `vsaropewydcjsvplpugx` via `supabase db push` após confirmação por `supabase migration list`.
 - A migration `023` também foi aplicada no Supabase remoto `vsaropewydcjsvplpugx` via `supabase db push` e adiciona `tasks.flow_id`.
 - `workspaces`: guarda workspaces do usuário.
+- RLS operacional em workspaces, flows, tasks, agents, execuções, audit logs e adapter runs usa os helpers `can_view_user_scoped_data()` e `can_manage_user_scoped_data()` criados pela migration 042.
 - `workspaces.flows` e `workspaces.status` são recalculados pelos triggers da migration 021 quando flows/tasks mudam.
 - `flows`: guarda flows associados a workspace.
+- `flows.approval_status`: guarda `not_requested`, `approval_requested`, `adjustments_requested` ou `approved`.
+- `flows.published_at`, `flows.approved_at`, `flows.approved_by_user_id`, `flows.is_official`, `flows.official_invalidated_at` e `flows.official_invalidated_reason`: sustentam a governança simples de Flow oficial/aprovado.
+- `flows.source_type` e `flows.source_label`: preparam origem `user`, `external_llm`, `redrise_support` ou `system` sem criar versionamento.
 - `tasks`: guarda tasks.
 - `tasks.flow_id`: vincula uma task opcionalmente a um flow; foi adicionado pela migration 023.
+- `tasks.execution_path`: define o caminho único permitido para a execução da Task; foi adicionado pela migration 038.
 - `agents`: guarda agents.
+- `notifications`: guarda notificações operacionais por destinatário, workspace/flow/task/execução opcionais, `read_status` separado de `action_status`, ação primária opcional e detalhes resumidos em JSON.
+- `notifications.owner_user_id`: representa o contexto organizacional atual enquanto não existe tabela dedicada de organizações.
 - Triggers de criação de usuário criam perfil, linha de owner em team_members e Default Agent.
 - As migrations 017 e 018 endurecem triggers com `public.` e `search_path` para evitar falha no Auth API.
 - `workspace_members`, `audit_logs`, `integrations`, `api_keys`, `task_executions`, `flow_cards` e `flow_edges` aparecem no histórico de migrations e devem ser revisados antes de alterações nesses domínios.
@@ -502,31 +571,36 @@
 
 ## Settings > Plans
 
-- O submenu `Plans` existe em Settings, mas fica acionável apenas em ambiente de desenvolvimento local (`import.meta.env.DEV`).
-- Em produção, o atalho Plans aparece como `Under Construction` e o botão fica desabilitado.
-- O botão `Details` do aviso de acesso em Personal Information só abre Plans quando Plans está habilitado no ambiente.
-- Enquanto Plans estiver desabilitado, o usuário não acessa a página de planos em produção.
+- O submenu `Plans` existe em Settings e fica acessível em produção.
+- A página lê `billing_subscriptions` pelo `owner_user_id` ativo e mostra o status real do billing.
+- O botão `Details` do aviso de acesso em Personal Information abre Settings > Plans.
 - O submenu aparece na grade de atalhos de Settings.
 - O submenu tem três colunas: Free, Business e Corporate.
-- Cada coluna destaca vantagens, limites e recursos com placeholders.
-- Free mostra estado de plano atual placeholder.
+- Cada coluna destaca vantagens, limites e recursos.
+- O plano ativo vem do estado persistido no Supabase; se a assinatura não estiver `active` ou `trialing`, o plano efetivo é Free.
 - Business tem CTA `Join Now`.
 - Corporate tem CTA `Join Now`.
-- O CTA de Business e Corporate ainda não inicia checkout real; ele mostra mensagem de placeholder até Stripe ser configurado.
+- O CTA de Business e Corporate chama a Edge Function `billing-checkout` e redireciona para a URL de Checkout da Stripe quando os secrets e price IDs estão configurados.
 - Stripe é a plataforma de pagamento; checkout é a página segura de pagamento.
-- O checkout deve ser iniciado pelo backend, não diretamente só pelo frontend.
-- Backend recomendado: Supabase Edge Function para criar sessão de checkout Stripe.
-- Após pagamento aprovado, Stripe deve chamar webhook backend.
+- O checkout é iniciado pelo backend, não diretamente pelo frontend.
+- Backend atual: Supabase Edge Function `billing-checkout` cria sessão de checkout Stripe.
+- Após pagamento aprovado, Stripe deve chamar `billing-webhook`.
 - Webhook é uma chamada automática da Stripe para informar que o pagamento foi concluído.
-- O webhook deve atualizar no Supabase o plano ativo do usuário ou da equipe.
+- O webhook verifica assinatura Stripe e atualiza `billing_subscriptions` com customer, subscription, price, status e fim do período.
 - Ao voltar para o app depois do pagamento, a UI deve detectar sucesso e mostrar aviso.
-- Aviso planejado: `Restart the app for the new features to take effect.`
+- Aviso atual: `Restart the app for the new features to take effect.`
 - Abaixo do aviso existe botão `Restart Now`.
 - Ao clicar em `Restart Now`, o app recarrega na origem atual.
-- Após reiniciar, o app deve mostrar recursos conforme o plano pago.
-- O plano deve ser armazenado no Supabase, não apenas no frontend.
+- Após reiniciar, o app lê novamente o estado persistido do plano.
+- O plano é armazenado no Supabase, não apenas no frontend.
 - A UI deve evitar liberar recurso pago só por estado local.
-- A tabela futura sugerida é `subscriptions` ou `billing_accounts`; nome final `[PENDENTE]`.
+- Secrets necessários no Supabase: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_BUSINESS_PRICE_ID`, `STRIPE_CORPORATE_PRICE_ID`.
+
+## UI Microinteractions E Cursor
+
+- Cards de Plans e Analytics usam um efeito sutil de spotlight/glow follow inspirado em ReactBits.
+- O efeito é intencionalmente restrito a cards de alto sinal para preservar a linguagem corporativa do app.
+- Elementos clicáveis globais usam cursor de mãozinha quando habilitados; elementos desabilitados não devem indicar clique.
 
 ## Planejado: Conteúdo Dos Planos
 
@@ -659,10 +733,14 @@
 - O grafo detalhado do app fica em `graphify-out/` dentro deste repositório.
 - Artefatos consultáveis versionáveis: `graphify-out/GRAPH_REPORT.md`, `graphify-out/graph.json` e `graphify-out/graph.html`.
 - Caches, backups datados, manifestos internos e arquivos `.graphify_*` ficam locais e não devem ser tratados como documentação canônica.
-- A última atualização estrutural foi feita com `C:\Python314\python.exe -m graphify update . --force`.
-- Resultado da última atualização estrutural limpa: 1012 nós, 1199 relações e 142 comunidades.
+- O Python operacional do projeto é local via `uv`, não Python global.
+- `.python-version` fixa Python 3.12 e `.\.tools\uv\uv.exe sync` recria `.venv` local com as dependências de `pyproject.toml` e `uv.lock`.
+- O pacote Python versionado para graphify é `graphifyy[gemini]`, permitindo grafo estrutural e extração semântica futura quando houver `GEMINI_API_KEY` ou `GOOGLE_API_KEY`.
+- A última atualização estrutural foi feita com `.\.tools\uv\uv.exe run python -m graphify update . --force`.
+- Resultado da última atualização estrutural limpa: 1230 nós, 1497 relações e 145 comunidades.
 - A atualização estrutural cobriu código; reextração semântica de docs/memória segue pendente até existir `GEMINI_API_KEY` ou `GOOGLE_API_KEY` no ambiente.
 - A extração semântica completa depende de chave LLM no ambiente; sem chave, o grafo estrutural AST continua válido para navegação técnica e relações de código.
+- O comando operacional para atualizar o grafo estrutural neste workspace é `.\.tools\uv\uv.exe run python -m graphify update . --force`.
 - A matriz em `D:\graphify\repos\redrise\` mantém apenas catálogo macro e deve apontar para este grafo local quando for necessário investigar detalhes.
 
 ## Convenções De IDs

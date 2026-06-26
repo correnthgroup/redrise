@@ -10,6 +10,7 @@ export type AnalyticsData = {
   completedExecutions: number
   failedExecutions: number
   rejectedExecutions: number
+  blockedExecutions: number
   approvalRate: number
   errorRate: number
   recentExecutions: {
@@ -18,6 +19,8 @@ export type AnalyticsData = {
     agent_id: string | null
     status: string
     model: string
+    execution_path: string | null
+    failure_reason: string | null
     tokens_used: number | null
     created_at: string
   }[]
@@ -30,6 +33,20 @@ export type AnalyticsData = {
     avgTokens: number
   }[]
   executionsByDay: { date: string; count: number }[]
+  adapterRuns: {
+    id: string
+    task_id: string | null
+    execution_id: string | null
+    integration_id: string | null
+    execution_path: string
+    provider: string
+    endpoint_label: string | null
+    status: 'success' | 'failed'
+    status_code: number | null
+    latency_ms: number | null
+    error_message: string | null
+    created_at: string
+  }[]
   loading: boolean
 }
 
@@ -43,11 +60,13 @@ export function useAnalytics() {
     completedExecutions: 0,
     failedExecutions: 0,
     rejectedExecutions: 0,
+    blockedExecutions: 0,
     approvalRate: 0,
     errorRate: 0,
     recentExecutions: [],
     agentBreakdown: [],
     executionsByDay: [],
+    adapterRuns: [],
     loading: true,
   })
 
@@ -64,18 +83,21 @@ export function useAnalytics() {
           tasksRes,
           agentsRes,
           executionsRes,
+          adapterRunsRes,
         ] = await Promise.all([
           supabase.from('workspaces').select('id', { count: 'exact', head: true }),
           supabase.from('flows').select('id', { count: 'exact', head: true }),
           supabase.from('tasks').select('id', { count: 'exact', head: true }),
           supabase.from('agents').select('id', { count: 'exact', head: true }),
           supabase.from('task_executions').select('*').order('created_at', { ascending: false }).limit(100),
+          supabase.from('adapter_runs').select('*').order('created_at', { ascending: false }).limit(20),
         ])
 
         const executions = executionsRes.data ?? []
         const completed = executions.filter((e) => e.status === 'completed').length
         const failed = executions.filter((e) => e.status === 'failed').length
         const rejected = executions.filter((e) => e.status === 'rejected').length
+        const blocked = executions.filter((e) => e.failure_reason === 'execution_path_unavailable' || e.failure_reason === 'execution_path_not_configured').length
         const total = executions.length
 
         // Agent breakdown
@@ -133,11 +155,13 @@ export function useAnalytics() {
           completedExecutions: completed,
           failedExecutions: failed,
           rejectedExecutions: rejected,
+          blockedExecutions: blocked,
           approvalRate: total > 0 ? Math.round(((completed + rejected) / total) * 100) : 0,
           errorRate: total > 0 ? Math.round((failed / total) * 100 * 10) / 10 : 0,
           recentExecutions: executions.slice(0, 10),
           agentBreakdown,
           executionsByDay,
+          adapterRuns: adapterRunsRes.data ?? [],
           loading: false,
         })
       } catch {

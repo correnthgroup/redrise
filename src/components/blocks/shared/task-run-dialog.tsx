@@ -11,8 +11,10 @@ import { Badge } from '@/components/ui/badge'
 import { Loader2, Check, X, AlertTriangle, Send, Link2 } from 'lucide-react'
 import type { Task } from '@/types/task'
 import type { Agent } from '@/types/agent'
-import type { TaskExecution } from '@/types/task-execution'
+import type { FailureReason, TaskExecution } from '@/types/task-execution'
 import { taskExecute } from '@/lib/ai-client'
+import { createNotification } from '@/lib/notifications'
+import { supabase } from '@/lib/supabase'
 import {
   createExecution,
   completeExecution,
@@ -54,6 +56,33 @@ export function TaskRunDialog({
   const [hasUpstream, setHasUpstream] = useState(false)
   const { t } = useI18n()
 
+  async function notifyExecutionFailure(reason: FailureReason, message: string, executionId?: string) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    await createNotification({
+      owner_user_id: user.id,
+      workspace_id: task.workspace_id,
+      flow_id: task.flow_id,
+      task_id: task.id,
+      execution_id: executionId ?? null,
+      recipient_user_id: user.id,
+      type: 'task_execution_failed',
+      title: t('taskRun.executionBlocked'),
+      summary: message,
+      details_json: { failure_reason: reason, execution_path: task.execution_path ?? null },
+      primary_action_type: 'review_task',
+      primary_action_payload: { taskId: task.id },
+    })
+  }
+
+  function executionPathFailure(): { reason: FailureReason; message: string } | null {
+    if (!task.execution_path) {
+      return { reason: 'execution_path_not_configured', message: t('taskRun.executionPathMissing') }
+    }
+    return null
+  }
+
   // Reset state when dialog opens
   const [prevOpen, setPrevOpen] = useState(open)
   if (open && !prevOpen) {
@@ -78,6 +107,7 @@ export function TaskRunDialog({
 
     setStep('running')
     setError(null)
+    let currentExecution: TaskExecution | null = null
 
     try {
       // Create execution record
@@ -86,8 +116,19 @@ export function TaskRunDialog({
         task.agent_id || agent?.id || null,
         task.prompt || task.objective,
         agent?.model || 'openai/gpt-oss-120b:free',
+        task.execution_path ?? null,
       )
+      currentExecution = exec
       setExecution(exec)
+
+      const routeFailure = executionPathFailure()
+      if (routeFailure) {
+        setError(routeFailure.message)
+        await failExecution(exec.id, routeFailure.message, routeFailure.reason).catch(() => {})
+        await notifyExecutionFailure(routeFailure.reason, routeFailure.message, exec.id)
+        setStep('response')
+        return
+      }
 
       // Persist system message
       await addMessage(exec.id, 0, 'system', 'system', `Task: ${task.title}\nObjective: ${task.objective || 'N/A'}`)
@@ -111,6 +152,14 @@ export function TaskRunDialog({
         upstreamContext,
         agent?.model,
         language,
+        {
+          taskId: task.id,
+          taskTitle: task.title,
+          workspaceId: task.workspace_id,
+          flowId: task.flow_id,
+          executionId: exec.id,
+          executionPath: task.execution_path,
+        },
       )
 
       setResponse(result.raw_output)
@@ -144,8 +193,9 @@ export function TaskRunDialog({
       const msg = err instanceof Error ? err.message : 'Unknown error occurred'
       setError(msg)
 
-      if (execution) {
-        await failExecution(execution.id, msg).catch(() => {})
+      if (currentExecution) {
+        await failExecution(currentExecution.id, msg, 'integration_unavailable').catch(() => {})
+        await notifyExecutionFailure('integration_unavailable', msg, currentExecution.id).catch(() => {})
       }
 
       setStep('response')

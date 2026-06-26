@@ -7,21 +7,22 @@ import { RequiredLabel } from '@/components/ui/required-label'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import { registerActiveSession } from '@/lib/user-profile'
+import { useI18n } from '@/hooks/use-i18n'
 import { PasswordInput } from './password-input'
 import styles from './auth-flow.module.css'
 
 type AuthMode = 'sign-in' | 'sign-up'
 
 const PASSWORD_RULES = [
-  { id: 'len', label: 'At least 8 characters', test: (value: string) => value.length >= 8 },
-  { id: 'letter', label: 'One letter', test: (value: string) => /[A-Za-z]/.test(value) },
-  { id: 'digit', label: 'One number', test: (value: string) => /\d/.test(value) },
+  { id: 'len', labelKey: 'auth.passwordRuleLength', test: (value: string) => value.length >= 8 },
+  { id: 'letter', labelKey: 'auth.passwordRuleLetter', test: (value: string) => /[A-Za-z]/.test(value) },
+  { id: 'digit', labelKey: 'auth.passwordRuleNumber', test: (value: string) => /\d/.test(value) },
 ]
 
 const ART_QUOTES = [
-  'Art is the lie that enables us to realize the truth.',
-  'Every artist was first an amateur.',
-  'Creativity takes courage.',
+  'auth.quote.truth',
+  'auth.quote.amateur',
+  'auth.quote.courage',
 ]
 
 const SIGNUP_NOTICE_KEY = 'redrise:signup-notice'
@@ -32,14 +33,15 @@ function isValidEmail(value: string) {
 
 function mapAuthError(message: string) {
   const lower = message.toLowerCase()
-  if (lower.includes('email not confirmed') || lower.includes('confirm')) return 'This account is not ready yet. Try signing in again in a moment.'
-  if (lower.includes('invalid login') || lower.includes('invalid credentials')) return 'Invalid email or password.'
-  if (lower.includes('rate limit') || lower.includes('too many')) return 'Too many attempts. Try again in a few minutes.'
-  if (lower.includes('network') || lower.includes('fetch')) return 'Check your connection and try again.'
-  return 'Unable to complete the action right now. Try again.'
+  if (lower.includes('email not confirmed') || lower.includes('confirm')) return 'auth.error.accountNotReady'
+  if (lower.includes('invalid login') || lower.includes('invalid credentials')) return 'auth.error.invalidCredentials'
+  if (lower.includes('rate limit') || lower.includes('too many')) return 'auth.error.rateLimit'
+  if (lower.includes('network') || lower.includes('fetch')) return 'auth.error.network'
+  return 'auth.error.generic'
 }
 
 export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: () => void }) {
+  const { t } = useI18n()
   const inviteParams = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search)
   const invitedEmail = inviteParams?.get('email') ?? ''
   const inviteToken = inviteParams?.get('invite_token') ?? ''
@@ -54,7 +56,7 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
   const [lastName, setLastName] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [notice, setNotice] = useState<string | null>(initialSignupNotice ?? (inviteParams?.get('invited') ? 'You were invited to Redrise. Create your account to accept the invite.' : null))
+  const [notice, setNotice] = useState<string | null>(initialSignupNotice ? t(initialSignupNotice) : (inviteParams?.get('invited') ? t('auth.notice.invited') : null))
   const [loading, setLoading] = useState(false)
 
   const [quote] = useState(() => ART_QUOTES[Math.floor(Math.random() * ART_QUOTES.length)])
@@ -75,13 +77,13 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
     event.preventDefault()
     resetMessages()
     if (!isValidEmail(email) || !password) {
-      setError('Email and password are required.')
+      setError(t('auth.error.emailPasswordRequired'))
       return
     }
     setLoading(true)
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
     if (authError) {
-      setError(mapAuthError(authError.message))
+      setError(t(mapAuthError(authError.message)))
       setLoading(false)
       return
     }
@@ -95,28 +97,28 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
     event.preventDefault()
     resetMessages()
     if (firstName.trim().length < 2) {
-      setError('First Name must have at least 2 characters.')
+      setError(t('auth.error.firstNameLength'))
       return
     }
     if (!lastName.trim()) {
-      setError('Last Name is required.')
+      setError(t('auth.error.lastNameRequired'))
       return
     }
     if (!isValidEmail(email)) {
-      setError('Please enter a valid email address.')
+      setError(t('auth.error.validEmail'))
       return
     }
     if (!allRulesMet) {
-      setError('Password does not meet all requirements.')
+      setError(t('auth.error.passwordRequirements'))
       return
     }
     if (confirmPassword !== password) {
-      setError('Passwords do not match.')
+      setError(t('auth.error.passwordMismatch'))
       return
     }
 
     setLoading(true)
-    window.sessionStorage.setItem(SIGNUP_NOTICE_KEY, 'Account created. Sign in with the credentials you just created.')
+    window.sessionStorage.setItem(SIGNUP_NOTICE_KEY, 'auth.notice.accountCreated')
     onAccountCreationStart?.()
     const { error: authError } = await supabase.auth.signUp({
       email: email.trim(),
@@ -135,15 +137,15 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
       window.sessionStorage.removeItem(SIGNUP_NOTICE_KEY)
       setLoading(false)
       setError(authError.message.toLowerCase().includes('rate limit') || authError.message.toLowerCase().includes('too many')
-        ? 'Too many attempts. Try again in a few minutes.'
-        : 'Unable to create the account right now. Try again.')
+        ? t('auth.error.rateLimit')
+        : t('auth.error.createAccount'))
       return
     }
 
     await supabase.auth.signOut()
     setLoading(false)
     setMode('sign-in')
-    setNotice('Account created. Sign in with the credentials you just created.')
+    setNotice(t('auth.notice.accountCreated'))
     setEmail(email.trim())
     setPassword('')
     setConfirmPassword('')
@@ -157,84 +159,84 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
             <div className={styles.brandMark}><img src="/logo-32.png" alt="Redrise" /></div>
             <div>
               <div className={styles.brandName}>Redrise</div>
-              <div className={styles.brandTag}>Add AI. Enhance Value.</div>
+              <div className={styles.brandTag}>{t('auth.brandTag')}</div>
             </div>
           </div>
 
           {mode === 'sign-in' ? (
             <>
-              <h1 className={styles.heading}>Sign in</h1>
-              <p className={styles.subheading}>Welcome back. Enter your credentials to continue.</p>
+              <h1 className={styles.heading}>{t('auth.signIn')}</h1>
+              <p className={styles.subheading}>{t('auth.signInSubtitle')}</p>
 
               <div className={styles.fieldGroup}>
-                <RequiredLabel htmlFor="email">Email</RequiredLabel>
+                <RequiredLabel htmlFor="email">{t('auth.email')}</RequiredLabel>
                 <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" />
               </div>
               <div className={styles.fieldGroup}>
-                <RequiredLabel htmlFor="password">Password</RequiredLabel>
-                <PasswordInput id="password" placeholder="Your password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" />
+                <RequiredLabel htmlFor="password">{t('auth.password')}</RequiredLabel>
+                <PasswordInput id="password" toggleLabel={t('auth.togglePassword')} placeholder={t('auth.passwordPlaceholder')} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" />
               </div>
               <label className={styles.checkRow}>
                 <input type="checkbox" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} />
-                Remember Me
+                {t('auth.rememberMe')}
               </label>
               {notice && <div className={styles.noticeText}>{notice}</div>}
               {error && <div className={styles.errorText}>{error}</div>}
               <Button type="submit" disabled={loading}>
-                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Signing in...</> : 'Sign in'}
+                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('auth.signingIn')}</> : t('auth.signIn')}
               </Button>
-              <p className={styles.centerLink}>Don&apos;t have an account? <a href="#" onClick={(event) => { event.preventDefault(); setMode('sign-up'); resetMessages() }}>Create account</a></p>
+              <p className={styles.centerLink}>{t('auth.noAccount')} <a href="#" onClick={(event) => { event.preventDefault(); setMode('sign-up'); resetMessages() }}>{t('auth.createAccount')}</a></p>
             </>
           ) : null}
 
           {mode === 'sign-up' ? (
             <>
-              <h1 className={styles.heading}>Create account</h1>
-              <p className={styles.subheading}>Create your account, then sign in with the same credentials.</p>
+              <h1 className={styles.heading}>{t('auth.createAccount')}</h1>
+              <p className={styles.subheading}>{t('auth.createAccountSubtitle')}</p>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className={styles.fieldGroup}>
-                  <RequiredLabel htmlFor="first-name">First Name</RequiredLabel>
-                  <Input id="first-name" required value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="First" autoComplete="given-name" />
+                  <RequiredLabel htmlFor="first-name">{t('auth.firstName')}</RequiredLabel>
+                  <Input id="first-name" required value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder={t('auth.firstNamePlaceholder')} autoComplete="given-name" />
                 </div>
                 <div className={styles.fieldGroup}>
-                  <Label htmlFor="middle-name">Middle Name</Label>
-                  <Input id="middle-name" value={middleName} onChange={(event) => setMiddleName(event.target.value)} placeholder="Middle" autoComplete="additional-name" />
+                  <Label htmlFor="middle-name">{t('auth.middleName')}</Label>
+                  <Input id="middle-name" value={middleName} onChange={(event) => setMiddleName(event.target.value)} placeholder={t('auth.middleNamePlaceholder')} autoComplete="additional-name" />
                 </div>
                 <div className={styles.fieldGroup}>
-                  <RequiredLabel htmlFor="last-name">Last Name</RequiredLabel>
-                  <Input id="last-name" required value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Last" autoComplete="family-name" />
+                  <RequiredLabel htmlFor="last-name">{t('auth.lastName')}</RequiredLabel>
+                  <Input id="last-name" required value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder={t('auth.lastNamePlaceholder')} autoComplete="family-name" />
                 </div>
               </div>
               <div className={styles.fieldGroup}>
-                <RequiredLabel htmlFor="email-su">Email</RequiredLabel>
+                <RequiredLabel htmlFor="email-su">{t('auth.email')}</RequiredLabel>
                 <Input id="email-su" required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" autoComplete="email" />
               </div>
               <div className={styles.fieldGroup}>
-                <RequiredLabel htmlFor="password-su">Password</RequiredLabel>
-                <PasswordInput id="password-su" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Choose a password" autoComplete="new-password" />
+                <RequiredLabel htmlFor="password-su">{t('auth.password')}</RequiredLabel>
+                <PasswordInput id="password-su" toggleLabel={t('auth.togglePassword')} required value={password} onChange={(event) => setPassword(event.target.value)} placeholder={t('auth.choosePassword')} autoComplete="new-password" />
               </div>
               {password ? (
                 <div className={styles.requirements}>
                   {passwordState.map((rule) => (
                     <div key={rule.id} className={cn(styles.requirement, rule.met && styles.requirementMet)}>
                       {rule.met ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5 opacity-40" />}
-                      <span>{rule.label}</span>
+                      <span>{t(rule.labelKey)}</span>
                     </div>
                   ))}
                 </div>
               ) : null}
               <div className={styles.fieldGroup}>
-                <RequiredLabel htmlFor="confirm-password">Confirm Password</RequiredLabel>
-                <PasswordInput id="confirm-password" required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Confirm password" autoComplete="new-password" />
-                {confirmPassword && confirmPassword !== password ? <p className={styles.errorText}>Passwords do not match.</p> : null}
+                <RequiredLabel htmlFor="confirm-password">{t('auth.confirmPassword')}</RequiredLabel>
+                <PasswordInput id="confirm-password" toggleLabel={t('auth.togglePassword')} required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder={t('auth.confirmPasswordPlaceholder')} autoComplete="new-password" />
+                {confirmPassword && confirmPassword !== password ? <p className={styles.errorText}>{t('auth.error.passwordMismatch')}</p> : null}
               </div>
               {notice && <div className={styles.noticeText}>{notice}</div>}
               {error && <div className={styles.errorText}>{error}</div>}
               <Button type="submit" disabled={!signUpReady || loading}>
-                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating account...</> : 'Create account'}
+                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('auth.creatingAccount')}</> : t('auth.createAccount')}
               </Button>
-              <p className={styles.centerLink}>Already have an account? <a href="#" onClick={(event) => { event.preventDefault(); setMode('sign-in'); resetMessages() }}>Sign in</a></p>
+              <p className={styles.centerLink}>{t('auth.hasAccount')} <a href="#" onClick={(event) => { event.preventDefault(); setMode('sign-in'); resetMessages() }}>{t('auth.signIn')}</a></p>
             </>
           ) : null}
 
@@ -243,7 +245,7 @@ export function AuthFlow({ onAccountCreationStart }: { onAccountCreationStart?: 
 
       <aside className={styles.artPanel} aria-hidden>
         <div className={styles.artOverlay}>
-          <p className={styles.artQuote}>{quote}</p>
+          <p className={styles.artQuote}>{t(quote)}</p>
         </div>
       </aside>
     </div>

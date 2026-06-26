@@ -5,6 +5,31 @@
 ## Current State
 
 - Settings diferencia Role/Cargo de membro da Function/Função dentro de uma equipe: Role usa lista oficial; Function em Team List é texto livre por associação de equipe.
+- Slice atual do PRD Corporate simplificado: breadcrumb global autenticado foi adicionado ao `Topbar` e é derivado do estado do `AppShell`; Settings expõe o detalhe ativo ao shell para mostrar `Settings / Detalhe`.
+- Slice atual do PRD Corporate simplificado: Notifications foundation foi adicionada com migration `036_create_notifications.sql`, hook `useNotifications()`, página global Notifications, lâmpada com badge na Sidebar e seção de pendências no detalhe do Workspace.
+- Slice atual do PRD Corporate simplificado: Flow approval / official status foi adicionado com migration `037_flow_approval_status.sql`, badges e ações na Flow List, audit logs, notificações e invalidação automática em saves estruturais do Flow Builder.
+- Flow List agora usa menu `+` por Flow, no estilo FAB, com ações Abrir/Renomear/Responsável/Solicitar Aprovação; status ficam como texto limpo com ícones e tradução.
+- Slice atual do PRD Corporate simplificado: deterministic Task execution path foi adicionado com migration `038_task_execution_path.sql`, campo `execution_path` em New Task, bloqueio sem fallback e `failure_reason` em `task_executions`.
+- Slice atual do PRD Corporate simplificado: External LLM Builder foi adicionado no Flow Builder como importação por outline colado, criando cards sequenciais e marcando o Flow salvo como `external_llm` aguardando aprovação.
+- Correção Flow Board: ao deletar o Flow selecionado, o bloco Flow Pipeline deixa de mostrar cards antigos; Flows existentes agora carregam cards/edges no estado controlado do React Flow para que atalhos de canvas também funcionem neles.
+- Slice atual do PRD Corporate simplificado: Redrise Support source handling foi adicionado como ação simples na Flow List para marcar `source_type = redrise_support` e deixar o Flow aguardando aprovação.
+- Slice atual do PRD Corporate simplificado: Corporate Analytics foi adicionado à tela Analytics com métricas de governança de Flow, execuções bloqueadas, notificações pendentes, agentes ativos, origem de Flows e status de Tasks usando dados já carregados pelo AppShell e `useAnalytics()`.
+- Slice atual do PRD Corporate simplificado: Rise Insider / deterministic adapters foram adicionados ao `task-execute`; `mock_integration` e `manual_step` executam internamente, e `integration_gateway`, `rise_insider_terminal`, `rise_insider_filesystem`, `browser_automation` e `ui_control` chamam endpoints HTTPS ativos cadastrados em Settings > Integrations.
+- Supabase Edge Function `task-execute` foi redeployada no remoto `vsaropewydcjsvplpugx` após adicionar adapters determinísticos.
+- Adapter runtime hardening/observability foi adicionado: migration `039_create_adapter_runs.sql`, Analytics mostra Adapter Observability, `rise-insider-terminal` e `adapter-staging` foram publicados com `--no-verify-jwt`, e o smoke do test account passou por `mock_integration`, `manual_step`, `integration_gateway` e `rise_insider_terminal`.
+- Adapter pairing/retry/filesystem foi adicionado: Settings > Integrations faz teste POST real e mascara config carregada no frontend; Analytics abre detalhe de `adapter_runs` e permite retry manual sem fallback; migration `040_create_rise_insider_files.sql` cria sandbox persistente para `rise-insider-filesystem`.
+- Edge Functions redeployadas no remoto `vsaropewydcjsvplpugx`: `task-execute` e `rise-insider-filesystem --no-verify-jwt`; smoke com `teste@teste.com` passou por write/read/delete via `task-execute` e registrou adapter run `success`.
+- Settings > Integration Setup agora abre em uma tela de setups configurados antes do wizard; Admin/Owner/Board veem resumos da equipe e apenas Admin abre parâmetros seguros de setups de outros usuários.
+- Remote Supabase migration 041 is applied on `vsaropewydcjsvplpugx`; it adds safe integration setup overview/detail RPCs.
+- Backend/RLS enforcement e Settings PRD3 polish foram aplicados: remote migrations 042 e 043 criam helpers de permissão, políticas role-scoped, Change Password real, revoke-all-other sessions, API key delete, integration status/delete/secret rotation e auditoria desses eventos.
+- Edge Functions redeployadas no remoto `vsaropewydcjsvplpugx`: `rise-insider-terminal --no-verify-jwt` e `rise-insider-filesystem --no-verify-jwt` após hardening inicial por bearer token opcional/obrigatório via secrets.
+- Billing real foundation foi aplicado: remote migration 044 cria `billing_subscriptions`, `billing-checkout` inicia checkout Stripe autenticado, `billing-webhook --no-verify-jwt` persiste eventos Stripe, e Plans lê estado real do Supabase.
+- UI polish aplicado: cards de Plans e Analytics usam spotlight/glow follow sutil, controles clicáveis recebem cursor de mãozinha, e Auth/Loading/Error/Dialog/aria labels relevantes usam i18n.
+- Remote Supabase migration 040 is applied on `vsaropewydcjsvplpugx`.
+- Remote Supabase migration 039 is applied on `vsaropewydcjsvplpugx`.
+- Remote Supabase migrations 036, 037, and 038 are applied on `vsaropewydcjsvplpugx`.
+- `corepack yarn build` now completes without the previous Vite dynamic-import and chunk-size warnings after manual vendor chunking.
+- Fonte viva do PRD Corporate simplificado: `docs/product/current-source-of-truth.md`.
 - Campos obrigatórios agora devem usar `RequiredLabel`; não reintroduzir asterisco manual nem classes locais para obrigatoriedade.
 - Wizards dedicados agora devem usar `WizardShell`; não recriar header/progress/card/footer localmente em novos wizards, mas manter campos e regras específicas no componente do fluxo.
 - Slogan atual: EN `Add AI. Enhance Value.`; PT-BR `Add AI. Agregue Valor.`.
@@ -48,7 +73,8 @@
 - Team Members use Supabase `team_members`; Flow/Tasks member dropdowns must read that source.
 - Settings > Plans is not billing yet; it is a future-plan surface.
 - `redrise-ops` MCP exists for validation, build/status checks, Supabase function deploy, graph status, and memory notes.
-- Detailed local Graphify output is in `graphify-out/`; the latest clean structural update produced 1031 nodes, 1225 edges, and 138 communities after the external invite token/template changes.
+- Python/Graphify tooling is local to the repo: use `.\.tools\uv\uv.exe sync` and `.\.tools\uv\uv.exe run python -m graphify update . --force`; do not use global Python for project operations.
+- Detailed local Graphify output is in `graphify-out/`; the latest clean structural update produced 1230 nodes, 1497 edges, and 145 communities after the billing, spotlight, i18n, cursor polish, and breadcrumb accessibility fix.
 - Workspace root is now `D:\studio\redrise`; old briefing/framework/backlog folders are not active guidance.
 - Update 2.0 test bundle now covers Create Task, Flow Builder, Agent Detail, Create Workspace, Create Flow, Personal Information field locks/search, and auxiliary `team-members-card` copy.
 - Previous deployment targets are legacy and are no longer active targets for this project reset.
@@ -59,7 +85,7 @@
 - `corepack yarn typecheck` passes.
 - `corepack yarn test` passes.
 - `corepack yarn build` passes.
-- `corepack yarn test:e2e` passed with 27/27 tests after the shared WizardShell refactor and slogan update; it has not been rerun for the current PRD by instruction.
+- `corepack yarn test:e2e` passed with 27/27 tests after billing, spotlight, i18n, cursor polish, and breadcrumb accessibility fix.
 - External invite smoke test through deployed `invite-member` passed with `delivered@resend.dev`: Resend accepted template alias `invite`, returned `emailSent: true`, and the returned link included `invite_token`; temporary rows were cleaned.
 - Final PRD validation passed with `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, `corepack yarn build`, and `corepack yarn test:e2e` 27/27.
 - E2E is modularized by Playwright project: `auth-public`, `auth-session`, `navigation`, `dashboard`, `flow`, `tasks`, `agents`, `analytics`, `workspaces`, and `settings`.
@@ -68,6 +94,8 @@
 ## Open Work
 
 - **PRD3 (Update 3.0)**: Resolve Settings menu definitively. Covers 4 phases: Critical Fixes (Change Password functional, Plans real state, Integration real test), High-Priority Gaps (member removal, revoke all sessions, API key delete, integration management, audit log coverage), Quality/Polish (avatar to Storage, username uniqueness, unsaved-changes warning, audit pagination, polling reduction, dead component cleanup), i18n Completion (hardcoded strings, gender locale-neutral storage). See `updates/prd3.md`.
+- **Corporate simplification PRD next order**: validate role-scoped RLS with real multi-role accounts, then deepen Rise Insider production hardening and operational audit UX.
+- **Billing next order**: configure Supabase secrets `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_BUSINESS_PRICE_ID`, `STRIPE_CORPORATE_PRICE_ID`; create the Stripe webhook endpoint pointing to `/functions/v1/billing-webhook`; then run a live checkout/webhook smoke.
 - Execute the future auth visual update in `updates/update1.4_colors.md` if approved.
 - Finish Update 2.0 deep-copy pass for remaining auxiliary blocks, wizards, menus, and placeholders not covered by the current PRD2 test-bundle pass.
 - Add Stripe checkout Edge Function and webhook.
@@ -82,11 +110,12 @@
 - Keep Supabase Auth redirects and edge-function origins aligned with the final Render URL.
 - Re-enable OAuth after official provider credentials are configured and tested.
 - Re-enable e-mail confirmation after official SMTP/sender/template policy is configured.
-- After relevant code, architecture, or behavior changes, refresh the structural graph with `C:\Python314\python.exe -m graphify update .` and update memory if counts or architecture changed; semantic doc extraction needs Gemini env keys.
+- After relevant code, architecture, or behavior changes, refresh the structural graph with `.\.tools\uv\uv.exe run python -m graphify update . --force` and update memory if counts or architecture changed; semantic doc extraction needs Gemini env keys.
 
 ## Operational Rules
 
 - Use Yarn/Corepack only.
+- Use repository-local `uv` for Python/Graphify operations; global Python is not the operational path for this repo.
 - Do not add npm lockfiles.
 - Do not deploy to or document previous deployment aliases as the official URL.
 - Use Render auto-deploy as primary deploy path.

@@ -140,6 +140,175 @@ function parseStructuredOutput(raw: string): {
   }
 }
 
+function buildStructuredResult(
+  finalAnswer: string,
+  decisionSummary: string,
+  steps: string[],
+  evidence: string[],
+  openQuestions: string[],
+  confidence = 0.8,
+  handoffNotes = '',
+): Record<string, unknown> {
+  return {
+    final_answer: finalAnswer,
+    decision_summary: decisionSummary,
+    steps_summary: steps,
+    evidence_used: evidence,
+    open_questions: openQuestions,
+    confidence,
+    handoff_notes: handoffNotes,
+  }
+}
+
+function adapterResponse(parsed: Record<string, unknown>, model: string) {
+  const raw = JSON.stringify(parsed, null, 2)
+  return {
+    raw_output: raw,
+    parsed_output: parsed,
+    parse_error: null,
+    tokens_used: 0,
+    model,
+  }
+}
+
+function providerCandidates(executionPath: string): string[] {
+  if (executionPath === 'integration_gateway') return ['integration_gateway', 'webhook']
+  return [executionPath]
+}
+
+function generateAdapterRunId(): string {
+  return `ar${crypto.randomUUID().replace(/-/g, '').slice(0, 10)}`
+}
+
+function endpointLabel(endpoint: string | null | undefined): string | null {
+  if (!endpoint) return null
+  try {
+    const url = new URL(endpoint)
+    return `${url.origin}${url.pathname}`
+  } catch {
+    return null
+  }
+}
+
+async function recordAdapterRun(
+  supabase: ReturnType<typeof createClient>,
+  input: {
+    userId: string
+    taskId?: string | null
+    executionId?: string | null
+    integrationId?: string | null
+    executionPath: string
+    provider: string
+    endpoint?: string | null
+    status: 'success' | 'failed'
+    statusCode?: number | null
+    latencyMs?: number | null
+    errorMessage?: string | null
+  },
+) {
+  const { error } = await supabase.from('adapter_runs').insert({
+    id: generateAdapterRunId(),
+    user_id: input.userId,
+    task_id: input.taskId ?? null,
+    execution_id: input.executionId ?? null,
+    integration_id: input.integrationId ?? null,
+    execution_path: input.executionPath,
+    provider: input.provider,
+    endpoint_label: endpointLabel(input.endpoint),
+    status: input.status,
+    status_code: input.statusCode ?? null,
+    latency_ms: input.latencyMs ?? null,
+    error_message: input.errorMessage ?? null,
+  })
+  if (error) console.error('[task-execute] adapter_runs insert error:', error.message)
+}
+
+async function runWebhookAdapter(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  executionPath: string,
+  body: Record<string, unknown>,
+) {
+  const started = performance.now()
+  const task = body.task as Record<string, unknown> | undefined
+  const workspaceId = typeof task?.workspace_id === 'string' ? task.workspace_id : null
+  const providers = providerCandidates(executionPath)
+
+  const { data: integrations, error } = await supabase
+    .from('integrations')
+    .select('*')
+    .eq('user_id', userId)
+    .in('provider', providers)
+    .eq('status', 'active')
+    .order('updated_at', { ascending: false })
+
+  if (error) {
+    console.error('[task-execute] Integration query error:', error.message)
+    return { error: 'Integration lookup failed', status: 500, provider: executionPath, latencyMs: Math.round(performance.now() - started) }
+  }
+
+  const integration = (integrations ?? []).find((item) => !item.workspace_id || !workspaceId || item.workspace_id === workspaceId)
+  if (!integration?.endpoint || !String(integration.endpoint).startsWith('https://')) {
+    return { error: `No active HTTPS adapter configured for ${executionPath}`, status: 424, provider: executionPath, integration: null, latencyMs: Math.round(performance.now() - started) }
+  }
+
+  const config = (integration.config ?? {}) as Record<string, unknown>
+  const token = typeof config.token === 'string' ? config.token : ''
+  const response = await fetch(integration.endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({
+      execution_path: executionPath,
+      execution_id: body.executionId ?? null,
+      task: task ?? null,
+      owner_user_id: userId,
+      objective: body.objective ?? '',
+      prompt: body.prompt ?? body.objective ?? '',
+      upstream_context: body.upstreamContext ?? null,
+      requested_at: new Date().toISOString(),
+    }),
+  })
+
+  const contentType = response.headers.get('content-type') ?? ''
+  const payload = contentType.includes('application/json') ? await response.json().catch(() => null) : await response.text()
+  if (!response.ok) {
+    console.error('[task-execute] Adapter error:', response.status, payload)
+    return { error: `Adapter ${integration.name} failed: ${response.status}`, status: response.status, provider: integration.provider, integration, latencyMs: Math.round(performance.now() - started) }
+  }
+
+  if (payload && typeof payload === 'object' && 'raw_output' in payload) {
+    const adapterPayload = payload as Record<string, unknown>
+    return {
+      result: {
+        raw_output: String(adapterPayload.raw_output ?? ''),
+        parsed_output: adapterPayload.parsed_output ?? null,
+        parse_error: adapterPayload.parse_error ?? null,
+        tokens_used: typeof adapterPayload.tokens_used === 'number' ? adapterPayload.tokens_used : 0,
+        model: typeof adapterPayload.model === 'string' ? adapterPayload.model : `adapter:${integration.provider}`,
+      },
+      provider: integration.provider,
+      integration,
+      statusCode: response.status,
+      latencyMs: Math.round(performance.now() - started),
+    }
+  }
+
+  const finalAnswer = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2)
+  const parsed = buildStructuredResult(
+    finalAnswer,
+    `Adapter ${integration.name} executed through ${executionPath}.`,
+    [`Posted execution request to ${integration.endpoint}.`, 'Received adapter response.'],
+    [`Integration: ${integration.name}`, `Execution path: ${executionPath}`],
+    [],
+    0.75,
+    'Review adapter output before approving downstream use.',
+  )
+  return { result: adapterResponse(parsed, `adapter:${integration.provider}`), provider: integration.provider, integration, statusCode: response.status, latencyMs: Math.round(performance.now() - started) }
+}
+
 serve(async (req) => {
   const origin = req.headers.get('Origin')
   const corsHeaders = getCorsHeaders(origin)
@@ -171,20 +340,127 @@ serve(async (req) => {
       )
     }
 
-    const openrouterApiKey = Deno.env.get("OPENROUTER_API_KEY")
-    if (!openrouterApiKey) {
-      return new Response(
-        JSON.stringify({ error: "API key not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      )
-    }
-
-    const { objective, prompt, upstreamContext, model = "openai/gpt-oss-120b:free", language = "en-US" } = await req.json()
+    const body = await req.json()
+    const { objective, prompt, upstreamContext, model = "openai/gpt-oss-120b:free", language = "en-US", executionPath = "api_gateway" } = body
+    const taskPayload = body.task && typeof body.task === 'object' ? body.task as Record<string, unknown> : null
+    const taskId = typeof taskPayload?.id === 'string' ? taskPayload.id : null
+    const executionId = typeof body.executionId === 'string' ? body.executionId : null
 
     if (!prompt && !objective) {
       return new Response(
         JSON.stringify({ error: "prompt or objective is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    }
+
+    if (executionPath === 'mock_integration') {
+      const started = performance.now()
+      const parsed = buildStructuredResult(
+        `Mock integration executed for: ${objective || prompt}`,
+        'Mock adapter completed deterministically without external side effects.',
+        ['Validated task input.', 'Generated deterministic mock adapter output.'],
+        ['Task prompt/objective', 'Execution path: mock_integration'],
+        [],
+        0.9,
+        'Use this output for controlled adapter testing only.',
+      )
+      await recordAdapterRun(supabase, {
+        userId: user.id,
+        taskId,
+        executionId,
+        executionPath,
+        provider: 'mock_integration',
+        status: 'success',
+        statusCode: 200,
+        latencyMs: Math.round(performance.now() - started),
+      })
+      return new Response(
+        JSON.stringify(adapterResponse(parsed, 'adapter:mock_integration')),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    }
+
+    if (executionPath === 'manual_step') {
+      const started = performance.now()
+      const parsed = buildStructuredResult(
+        `Manual execution required for: ${objective || prompt}`,
+        'Manual step captured as an execution artifact for human follow-up.',
+        ['Created manual execution artifact.', 'Awaiting human review and approval.'],
+        ['Task prompt/objective', 'Execution path: manual_step'],
+        ['A human operator must complete the described work outside the automated adapter.'],
+        0.6,
+        'Approve only after the manual work has been completed or delegated.',
+      )
+      await recordAdapterRun(supabase, {
+        userId: user.id,
+        taskId,
+        executionId,
+        executionPath,
+        provider: 'manual_step',
+        status: 'success',
+        statusCode: 200,
+        latencyMs: Math.round(performance.now() - started),
+      })
+      return new Response(
+        JSON.stringify(adapterResponse(parsed, 'adapter:manual_step')),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    }
+
+    if (executionPath !== 'api_gateway') {
+      const adapter = await runWebhookAdapter(supabase, user.id, executionPath, body)
+      if ('error' in adapter) {
+        await recordAdapterRun(supabase, {
+          userId: user.id,
+          taskId,
+          executionId,
+          integrationId: 'integration' in adapter && adapter.integration?.id ? adapter.integration.id : null,
+          executionPath,
+          provider: 'provider' in adapter ? adapter.provider : executionPath,
+          endpoint: 'integration' in adapter ? adapter.integration?.endpoint : null,
+          status: 'failed',
+          statusCode: adapter.status,
+          latencyMs: 'latencyMs' in adapter ? adapter.latencyMs : null,
+          errorMessage: adapter.error,
+        })
+        return new Response(
+          JSON.stringify({ error: adapter.error }),
+          { status: adapter.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        )
+      }
+      await recordAdapterRun(supabase, {
+        userId: user.id,
+        taskId,
+        executionId,
+        integrationId: adapter.integration?.id ?? null,
+        executionPath,
+        provider: adapter.provider,
+        endpoint: adapter.integration?.endpoint ?? null,
+        status: 'success',
+        statusCode: adapter.statusCode ?? 200,
+        latencyMs: adapter.latencyMs ?? null,
+      })
+      return new Response(
+        JSON.stringify(adapter.result),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    }
+
+    const openrouterApiKey = Deno.env.get("OPENROUTER_API_KEY")
+    if (!openrouterApiKey) {
+      await recordAdapterRun(supabase, {
+        userId: user.id,
+        taskId,
+        executionId,
+        executionPath,
+        provider: 'api_gateway',
+        status: 'failed',
+        statusCode: 500,
+        errorMessage: 'API key not configured',
+      })
+      return new Response(
+        JSON.stringify({ error: "API key not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
 
@@ -197,6 +473,7 @@ serve(async (req) => {
     )
 
     // Call OpenRouter
+    const apiStarted = performance.now()
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -215,6 +492,17 @@ serve(async (req) => {
     if (!response.ok) {
       const errorData = await response.text()
       console.error("[task-execute] OpenRouter error:", response.status, errorData)
+      await recordAdapterRun(supabase, {
+        userId: user.id,
+        taskId,
+        executionId,
+        executionPath,
+        provider: 'api_gateway',
+        status: 'failed',
+        statusCode: response.status,
+        latencyMs: Math.round(performance.now() - apiStarted),
+        errorMessage: `OpenRouter API error: ${response.status}`,
+      })
       return new Response(
         JSON.stringify({ error: `OpenRouter API error: ${response.status}` }),
         { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -229,6 +517,16 @@ serve(async (req) => {
     const { parsed, error: parseError } = parseStructuredOutput(rawOutput)
 
     console.log("[task-execute] User:", user.id, "Model:", model, "Tokens:", tokens, "Parse:", parseError ? "error" : "ok")
+    await recordAdapterRun(supabase, {
+      userId: user.id,
+      taskId,
+      executionId,
+      executionPath,
+      provider: 'api_gateway',
+      status: 'success',
+      statusCode: response.status,
+      latencyMs: Math.round(performance.now() - apiStarted),
+    })
 
     return new Response(
       JSON.stringify({

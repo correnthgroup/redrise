@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 
-export type AuditAction = 'create' | 'update' | 'delete' | 'execute' | 'login' | 'logout' | 'invite' | 'revoke'
+export type AuditAction = 'create' | 'update' | 'delete' | 'execute' | 'login' | 'logout' | 'invite' | 'revoke' | 'request_approval' | 'approve' | 'request_adjustments' | 'invalidate' | 'import_external_llm'
 
 export type AuditEntityType = 'workspace' | 'flow' | 'task' | 'agent' | 'integration' | 'api_key' | 'member' | 'execution' | 'user'
 

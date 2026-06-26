@@ -16,6 +16,8 @@
 ## Current Product Rules
 
 - Supabase is the source of truth for auth, profiles, active sessions, team members, workspaces, flows, tasks, and agents.
+- Supabase is also the source of truth for operational notifications through `notifications`.
+- Flow approval and official status are Supabase-backed fields on `flows`.
 - Browser storage is allowed for UI preferences and short transition notices only.
 - Do not store profile, session, team member, workspace, flow, task, or agent domain data in `localStorage`.
 - Settings > Team Members is the source for member dropdowns in Flow and Tasks.
@@ -24,10 +26,12 @@
 - OAuth remains future work until GitHub, Google, and Microsoft/Azure provider credentials are configured and tested.
 - E-mail confirmation remains future work until official SMTP/sender/template/retry policy exists.
 - `memory/TECHNICAL.md` is the human-readable PT-BR map for current behavior and approved future direction.
+- Current Corporate simplification PRD source pointer is `docs/product/current-source-of-truth.md`.
 
 ## Quality Rules
 
 - Use Yarn through Corepack.
+- Use repository-local Python tooling through `.\.tools\uv\uv.exe`; Python is pinned to 3.12 by `.python-version` and dependencies are locked in `uv.lock`.
 - Do not add `package-lock.json`.
 - Run lint, typecheck, tests, build, and E2E for auth, settings, navigation, deploy, or cross-screen changes.
 - Keep production deploys on Render.

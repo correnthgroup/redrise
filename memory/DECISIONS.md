@@ -4,7 +4,33 @@
 
 - Frontend stack is Vite 8, React 19, TypeScript 6, and Tailwind CSS v4.
 - Package manager is Yarn through Corepack.
+- Python tooling uses repository-local `uv` with Python 3.12 pinned in `.python-version`; project Python dependencies live in `pyproject.toml` and `uv.lock`.
 - Routing is currently an app-shell state machine through `SidebarKey`; route shims may support a future router but are not the active navigation source.
+- Authenticated breadcrumbs are derived from the existing `AppShell` state machine and rendered by `Topbar`; no router or custom navigation history was introduced.
+- Authenticated breadcrumbs render after the title/subtitle block in `Topbar`, separated by a vertical divider.
+- Operational notifications use `notifications.owner_user_id` as the current organization context until a dedicated organizations table is introduced.
+- Notification `read_status` (`unread`/`read`) is independent from `action_status` (`pending`/`resolved`/`archived`).
+- Flow official status is simple and field-based: `published_at` plus `approval_status = approved` plus `is_official = true` represents an official approved Flow.
+- Structural Flow Builder saves invalidate official status; title/member edits in Flow List do not invalidate official status.
+- Vite build warnings were resolved by replacing an ineffective dynamic import with a static import and adding manual vendor chunks in `vite.config.ts`.
+- Flow List status indicators use plain translated text with leading icons instead of badge backgrounds.
+- Task execution is deterministic by `tasks.execution_path`; currently only `api_gateway` executes, and unavailable paths fail explicitly with `failure_reason` and a notification.
+- External LLM Builder is paste/import based for now: users paste an outline from an external LLM into Flow Builder, Redrise creates sequential cards, and the Flow is marked `source_type = external_llm` only when saved.
+- Redrise Support source handling is label-based only: Flow List can mark a Flow as `source_type = redrise_support` and pending approval, without support staging, ticketing, rollback, or versioning.
+- Corporate Analytics uses existing Supabase-backed app data and the existing `useAnalytics()` execution query; no billing analytics, forecast, new schema, or invented metrics were added.
+- Deterministic adapters execute through the deployed `task-execute` Edge Function: `api_gateway` calls OpenRouter, `mock_integration` and `manual_step` return built-in structured outputs, and external runtime paths call active HTTPS integration endpoints with no fallback.
+- Adapter observability is stored in `adapter_runs`; only endpoint origin/path labels are stored, not tokens or query secrets.
+- Rise Insider Terminal execution is intentionally command-set based (`status`, `echo`, `date`, `inspect`) rather than arbitrary shell execution.
+- Rise Insider Filesystem execution uses allowlisted operations (`status`, `list`, `read`, `write`, `append`, `delete`) against the Supabase-backed `rise_insider_files` sandbox; it does not expose arbitrary filesystem access.
+- Manual adapter retry in Analytics reuses the same `execution_path` and records a new adapter run; it does not replay stored payloads or attempt fallback.
+- Settings > Integration Setup starts with a configured-setups overview before the wizard; Admin/Owner/Board can view team setup summaries, while only Admin can inspect safe parameters for another user's setup.
+- Integration setup visibility uses `SECURITY DEFINER` RPCs with sanitized fields instead of broad table SELECT policies, so Owner/Board do not receive raw integration config.
+- Backend/RLS permission enforcement uses `can_view_user_scoped_data()` for Admin/Owner/Board read access in the same owner context and `can_manage_user_scoped_data()` for Admin write access; self-access remains allowed.
+- Change Password uses Supabase Auth and the same password rules as Sign Up: at least 8 characters, one letter, and one number.
+- Rise Insider runtime adapters can require bearer-token authentication through `RISE_INSIDER_REQUIRE_TOKEN=true` and runtime token secrets.
+- Billing state is persisted in Supabase `billing_subscriptions`; Plans UI must read this state and must not unlock paid features from frontend-only state.
+- Stripe checkout starts only through the `billing-checkout` Edge Function; Stripe plan changes are persisted by `billing-webhook`, not by frontend redirects.
+- The ReactBits-inspired visual pattern selected for Redrise is a restrained spotlight/glow follow on high-signal cards, not broad decorative animation.
 - UI primitives follow the local Radix/shadcn-style component pattern under `src/components/ui/`.
 - Sidebar collapse state may persist in `localStorage` because it is a UI preference.
 - Domain data must be Supabase-backed, not browser-storage-backed.
@@ -18,6 +44,10 @@
 - `team_members` stores Settings > Team Members and feeds member pickers in Flow and Tasks.
 - `invite-member` is the allowlisted Supabase Edge Function for team invitations and exact-email existing-account lookup.
 - Migrations are kept because they define and audit the current remote schema.
+- `rise_insider_files` stores persistent sandbox text files for the `rise-insider-filesystem` Edge Function by owner key and relative path.
+- Integration setup overview/detail RPCs are defined by migration 041 and enforce role-aware visibility from `team_members.function`.
+- Migrations 042 and 043 enforce role-scoped operational RLS and Settings PRD3 management helpers.
+- Migration 044 creates persisted billing subscription state and role-scoped billing RLS.
 
 ## Current Auth Decisions
 
@@ -46,3 +76,4 @@
 - Re-enable e-mail confirmation only after official transactional e-mail setup exists.
 - Prefer Render auto-deploy from `https://github.com/correnthgroup/redrise.git` using `render.yaml`.
 - Keep `memory/TECHNICAL.md` as PT-BR operational documentation for humans and deterministic agents.
+- The Corporate simplification PRD is the active source for the post-MVP roadmap; older roadmap details are historical when they conflict with `docs/product/current-source-of-truth.md`.

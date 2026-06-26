@@ -5,6 +5,11 @@ import {
   createFlow as persistCreate,
   updateFlow as persistUpdate,
   deleteFlow as persistDelete,
+  requestFlowApproval as persistRequestApproval,
+  approveFlow as persistApprove,
+  requestFlowAdjustments as persistRequestAdjustments,
+  markFlowExternalLlm as persistMarkExternalLlm,
+  markFlowRedriseSupport as persistMarkRedriseSupport,
 } from '@/lib/flows'
 
 export function useFlows() {
@@ -50,6 +55,46 @@ export function useFlows() {
     return updated
   }, [])
 
+  const requestApproval = useCallback(async (id: string): Promise<Flow | null> => {
+    const updated = await persistRequestApproval(id)
+    if (updated && mountedRef.current) {
+      setFlows((prev) => prev.map((flow) => (flow.id === id ? updated : flow)))
+    }
+    return updated
+  }, [])
+
+  const approve = useCallback(async (id: string): Promise<Flow | null> => {
+    const updated = await persistApprove(id)
+    if (updated && mountedRef.current) {
+      setFlows((prev) => prev.map((flow) => (flow.id === id ? updated : flow)))
+    }
+    return updated
+  }, [])
+
+  const requestAdjustments = useCallback(async (id: string): Promise<Flow | null> => {
+    const updated = await persistRequestAdjustments(id)
+    if (updated && mountedRef.current) {
+      setFlows((prev) => prev.map((flow) => (flow.id === id ? updated : flow)))
+    }
+    return updated
+  }, [])
+
+  const markExternalLlm = useCallback(async (id: string, sourceLabel: string): Promise<Flow | null> => {
+    const updated = await persistMarkExternalLlm(id, sourceLabel)
+    if (updated && mountedRef.current) {
+      setFlows((prev) => prev.map((flow) => (flow.id === id ? updated : flow)))
+    }
+    return updated
+  }, [])
+
+  const markRedriseSupport = useCallback(async (id: string): Promise<Flow | null> => {
+    const updated = await persistMarkRedriseSupport(id)
+    if (updated && mountedRef.current) {
+      setFlows((prev) => prev.map((flow) => (flow.id === id ? updated : flow)))
+    }
+    return updated
+  }, [])
+
   const refresh = useCallback(async () => {
     setLoading(true)
     const data = await loadFlows()
@@ -64,6 +109,11 @@ export function useFlows() {
     loading,
     addFlow,
     updateFlow,
+    requestApproval,
+    approve,
+    requestAdjustments,
+    markExternalLlm,
+    markRedriseSupport,
     removeFlow,
     refresh,
   }

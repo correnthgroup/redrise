@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { loadRememberedSessions, revokeRememberedSession, type RememberedSession } from '@/lib/user-profile'
+import { loadRememberedSessions, revokeOtherRememberedSessions, revokeRememberedSession, type RememberedSession } from '@/lib/user-profile'
 import { useI18n } from '@/hooks/use-i18n'
 
 const PAGE_SIZE = 7
@@ -144,10 +144,30 @@ export function SessionsList({ userId, onBack }: { userId: string; onBack?: () =
 
       <div className="mt-4 flex justify-between border-t pt-4">
         <BackButton onClick={onBack} />
-        <Button type="button" variant="outline" size="sm" onClick={refreshSessions} disabled={loading}>
-          <RefreshCcw className="h-4 w-4" />
-          {t('sessions.refresh')}
-        </Button>
+        <div className="flex gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button type="button" variant="outline" size="sm" disabled={loading || remoteSessions.length === 0}>
+                <LogOut className="h-4 w-4" />
+                {t('sessions.revokeAll')}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('sessions.revokeAllTitle')}</AlertDialogTitle>
+                <AlertDialogDescription>{t('sessions.revokeAllDesc')}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={async () => { await revokeOtherRememberedSessions(userId); await refreshSessions() }}>{t('sessions.revokeAll')}</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Button type="button" variant="outline" size="sm" onClick={refreshSessions} disabled={loading}>
+            <RefreshCcw className="h-4 w-4" />
+            {t('sessions.refresh')}
+          </Button>
+        </div>
       </div>
     </Card>
   )

@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { TaskExecution, TaskExecutionMessage, TaskExecutionOutput, MessageRole, MessageKind, OutputType } from '@/types/task-execution'
+import type { TaskExecution, TaskExecutionMessage, TaskExecutionOutput, MessageRole, MessageKind, OutputType, FailureReason } from '@/types/task-execution'
 
 function generateShortExecId(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -15,6 +15,7 @@ export async function createExecution(
   agentId: string | null,
   prompt: string,
   model: string,
+  executionPath?: string | null,
 ): Promise<TaskExecution> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
@@ -31,6 +32,7 @@ export async function createExecution(
       prompt_sent: prompt,
       status: 'running',
       model,
+      execution_path: executionPath ?? null,
     })
     .select()
     .single()
@@ -80,12 +82,14 @@ export async function rejectExecution(executionId: string): Promise<TaskExecutio
 export async function failExecution(
   executionId: string,
   errorMsg: string,
+  failureReason?: FailureReason,
 ): Promise<TaskExecution> {
   const { data, error } = await supabase
     .from('task_executions')
     .update({
       status: 'failed',
       error: errorMsg,
+      failure_reason: failureReason ?? null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', executionId)

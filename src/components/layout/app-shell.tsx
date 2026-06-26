@@ -5,6 +5,7 @@ import { useFlows } from '@/hooks/use-flows'
 import { useTasks } from '@/hooks/use-tasks'
 import { useAgents } from '@/hooks/use-agents'
 import { useAnalytics } from '@/hooks/use-analytics'
+import { useNotifications } from '@/hooks/use-notifications'
 import { useI18n } from '@/hooks/use-i18n'
 import { DashboardPage } from '@/components/blocks/pages/dashboard-page'
 import { CreateFlowPage } from '@/components/blocks/pages/create-flow-page'
@@ -17,13 +18,15 @@ import { AgentListPage } from '@/components/blocks/pages/agent-list-page'
 import { AgentCreatePage } from '@/components/blocks/pages/agent-create-page'
 import { AgentDetailPage } from '@/components/blocks/pages/agent-detail-page'
 import { AnalyticsPage } from '@/components/blocks/pages/analytics-page'
+import { NotificationsPage } from '@/components/blocks/pages/notifications-page'
 import { SettingsPage } from '@/components/blocks/pages/settings-page'
+import { SETTING_TITLE_KEYS, type SettingKey } from '@/lib/settings-keys'
 import { CreateWorkspacePage } from '@/components/blocks/pages/create-workspace-page'
 import { ReviewWorkspacePage } from '@/components/blocks/pages/review-workspace-page'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
 import { Sidebar, type SidebarKey } from './sidebar'
-import { Topbar } from './topbar'
+import { Topbar, type TopbarBreadcrumbItem } from './topbar'
 
 type AppShellProps = {
   user: { id: string; name: string; firstName: string; email: string; avatarUrl?: string | null }
@@ -37,6 +40,7 @@ const PAGE_TITLE_KEYS: Record<SidebarKey, { titleKey: string; subtitleKey: strin
   tasks: { titleKey: 'tasks.title', subtitleKey: 'tasks.subtitle' },
   agents: { titleKey: 'agents.title', subtitleKey: 'agents.subtitle' },
   analytics: { titleKey: 'analytics.title', subtitleKey: 'analytics.subtitle' },
+  notifications: { titleKey: 'notifications.title', subtitleKey: 'notifications.subtitle' },
   settings: { titleKey: 'settings.title', subtitleKey: 'settings.subtitle' },
 }
 
@@ -46,6 +50,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const [flowView, setFlowView] = useState<'list' | 'builder' | 'create'>('list')
   const [taskView, setTaskView] = useState<'board' | 'create' | 'review'>('board')
   const [agentView, setAgentView] = useState<'list' | 'create' | 'detail'>('list')
+  const [settingsActive, setSettingsActive] = useState<SettingKey | null>(null)
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null)
   const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null)
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
@@ -53,9 +58,10 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
   const flowBuilderSaveRef = useRef<(() => Promise<void>) | null>(null)
   const [flowBuilderSaving, setFlowBuilderSaving] = useState(false)
   const { workspaces, loading: workspacesLoading, addWorkspace, removeWorkspace } = useWorkspaces()
-  const { flows, loading: flowsLoading, addFlow, updateFlow, removeFlow } = useFlows()
+  const { flows, loading: flowsLoading, addFlow, updateFlow, requestApproval, approve, requestAdjustments, markExternalLlm, markRedriseSupport, removeFlow } = useFlows()
   const { tasks, loading: tasksLoading, addTask, moveTask, removeTask } = useTasks()
   const { agents, loading: agentsLoading, addAgent, removeAgent } = useAgents()
+  const notifications = useNotifications(user.id)
   const analytics = useAnalytics()
   const { t } = useI18n()
   const [taskFiltersOpen, setTaskFiltersOpen] = useState(false)
@@ -81,13 +87,109 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
       setAgentView('list')
       setSelectedAgentId(null)
     }
+    if (next !== 'settings') setSettingsActive(null)
   }
 
   const selectedWorkspace = workspaces.find((workspace) => workspace.id === selectedWorkspaceId)
+  const selectedFlow = flows.find((flow) => flow.id === selectedFlowId)
+  const selectedTask = tasks.find((task) => task.id === selectedTaskId)
+  const selectedAgent = agents.find((agent) => agent.id === selectedAgentId)
+  const selectedWorkspaceNotifications = selectedWorkspaceId
+    ? notifications.notifications.filter((notification) => notification.workspace_id === selectedWorkspaceId && notification.action_status === 'pending')
+    : []
   const pageTitleKeys = PAGE_TITLE_KEYS[active]
   const pageMeta = active === 'dashboard' && dashboardView === 'review-workspace' && selectedWorkspace
     ? { title: selectedWorkspace.name, subtitle: t('workspace.details') }
     : { title: t(pageTitleKeys.titleKey), subtitle: t(pageTitleKeys.subtitleKey) }
+
+  const breadcrumbs: TopbarBreadcrumbItem[] = (() => {
+    if (active === 'dashboard') {
+      if (dashboardView === 'create-workspace') {
+        return [
+          { label: t('dashboard.title'), onClick: () => setDashboardView('board') },
+          { label: t('workspace.new') },
+        ]
+      }
+
+      if (dashboardView === 'review-workspace') {
+        return [
+          { label: t('dashboard.title'), onClick: () => setDashboardView('board') },
+          { label: selectedWorkspace?.name ?? t('workspace.details') },
+        ]
+      }
+
+      return [{ label: t('dashboard.title') }]
+    }
+
+    if (active === 'flow') {
+      if (flowView === 'create') {
+        return [
+          { label: t('flow.title'), onClick: () => setFlowView('list') },
+          { label: t('flow.newFlow') },
+        ]
+      }
+
+      if (flowView === 'builder') {
+        return [
+          { label: t('flow.title'), onClick: () => { setFlowView('list'); setSelectedFlowId(null) } },
+          { label: selectedFlow?.name ?? t('flow.title') },
+        ]
+      }
+
+      return [{ label: t('flow.title') }]
+    }
+
+    if (active === 'tasks') {
+      if (taskView === 'create') {
+        return [
+          { label: t('tasks.title'), onClick: () => setTaskView('board') },
+          { label: t('tasks.newTask') },
+        ]
+      }
+
+      if (taskView === 'review') {
+        return [
+          { label: t('tasks.title'), onClick: () => { setTaskView('board'); setSelectedTaskId(null) } },
+          { label: selectedTask?.title ?? t('tasks.title') },
+        ]
+      }
+
+      return [{ label: t('tasks.title') }]
+    }
+
+    if (active === 'agents') {
+      if (agentView === 'create') {
+        return [
+          { label: t('agents.title'), onClick: () => setAgentView('list') },
+          { label: t('agents.newAgent') },
+        ]
+      }
+
+      if (agentView === 'detail') {
+        return [
+          { label: t('agents.title'), onClick: () => { setAgentView('list'); setSelectedAgentId(null) } },
+          { label: selectedAgent?.name ?? t('agents.title') },
+        ]
+      }
+
+      return [{ label: t('agents.title') }]
+    }
+
+    if (active === 'settings') {
+      if (settingsActive) {
+        return [
+          { label: t('settings.title'), onClick: () => setSettingsActive(null) },
+          { label: t(SETTING_TITLE_KEYS[settingsActive]) },
+        ]
+      }
+
+      return [{ label: t('settings.title') }]
+    }
+
+    if (active === 'notifications') return [{ label: t('notifications.title') }]
+
+    return [{ label: t('analytics.title') }]
+  })()
 
   let body: ReactNode
 
@@ -115,7 +217,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
           />
         )
       : dashboardView === 'review-workspace'
-        ? <ReviewWorkspacePage workspace={selectedWorkspace} onBack={() => setDashboardView('board')} onDelete={async () => {
+        ? <ReviewWorkspacePage workspace={selectedWorkspace} notifications={selectedWorkspaceNotifications} onMarkNotificationRead={notifications.markRead} onMarkNotificationUnread={notifications.markUnread} onResolveNotification={notifications.resolve} onBack={() => setDashboardView('board')} onDelete={async () => {
             if (selectedWorkspace?.id) {
               await removeWorkspace(selectedWorkspace.id)
             }
@@ -137,7 +239,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
           )
   } else if (active === 'flow') {
     body = flowView === 'builder'
-      ? <FlowBuilderPage flowId={selectedFlowId} onSaveRef={flowBuilderSaveRef} onSave={() => { setFlowView('list'); setSelectedFlowId(null) }} />
+      ? <FlowBuilderPage flowId={selectedFlowId} onSaveRef={flowBuilderSaveRef} onSave={() => { setFlowView('list'); setSelectedFlowId(null) }} onMarkExternalLlm={markExternalLlm} />
       : flowView === 'create'
         ? <CreateFlowPage
             onBack={() => setFlowView('list')}
@@ -150,7 +252,7 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
               return result
             }}
           />
-        : <FlowListPage flows={flows} onUpdate={updateFlow} onDelete={removeFlow} onOpen={(id) => { setSelectedFlowId(id); setFlowView('builder') }} />
+        : <FlowListPage flows={flows} onUpdate={updateFlow} onDelete={removeFlow} onRequestApproval={requestApproval} onApprove={approve} onRequestAdjustments={requestAdjustments} onMarkRedriseSupport={markRedriseSupport} onOpen={(id) => { setSelectedFlowId(id); setFlowView('builder') }} />
   } else if (active === 'tasks') {
     body = taskView === 'create'
       ? <CreateTaskPage
@@ -192,9 +294,19 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
             }}
           />
   } else if (active === 'analytics') {
-    body = <AnalyticsPage />
+    body = <AnalyticsPage analytics={analytics} flows={flows} tasks={tasks} agents={agents} notifications={notifications.notifications} />
+  } else if (active === 'notifications') {
+    body = (
+      <NotificationsPage
+        notifications={notifications.notifications}
+        loading={notifications.loading}
+        onMarkRead={notifications.markRead}
+        onMarkUnread={notifications.markUnread}
+        onResolve={notifications.resolve}
+      />
+    )
   } else {
-    body = <SettingsPage user={user} />
+    body = <SettingsPage user={user} activeSetting={settingsActive} onActiveSettingChange={setSettingsActive} />
   }
 
   const topbarActions = active === 'dashboard' && dashboardView === 'board' ? (
@@ -237,9 +349,9 @@ export function AppShell({ user, onSignOut, defaultPage = 'dashboard' }: AppShel
 
   return (
     <div className="flex h-full w-full min-h-0">
-      <Sidebar active={active} onSelect={selectPage} user={user} onSignOut={onSignOut} workspaces={workspaces} flows={flows} tasks={tasks} agents={agents} analytics={analytics} />
+      <Sidebar active={active} onSelect={selectPage} user={user} onSignOut={onSignOut} workspaces={workspaces} flows={flows} tasks={tasks} agents={agents} analytics={analytics} pendingNotificationsCount={notifications.pendingCount} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar title={pageMeta.title} subtitle={pageMeta.subtitle} actions={topbarActions} />
+        <Topbar title={pageMeta.title} subtitle={pageMeta.subtitle} breadcrumbs={breadcrumbs} actions={topbarActions} />
         <main className="min-w-0 flex-1 overflow-hidden">{body}</main>
       </div>
     </div>

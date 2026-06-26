@@ -1,4 +1,16 @@
 export type ExecutionStatus = 'pending' | 'running' | 'completed' | 'rejected' | 'failed'
+export type FailureReason =
+  | 'runtime_offline'
+  | 'runtime_not_paired'
+  | 'default_device_missing'
+  | 'integration_unavailable'
+  | 'workdir_not_authorized'
+  | 'capability_missing'
+  | 'permission_blocked'
+  | 'credential_required'
+  | 'ui_control_unavailable'
+  | 'execution_path_not_configured'
+  | 'execution_path_unavailable'
 
 export type TaskExecution = {
   id: string
@@ -11,6 +23,8 @@ export type TaskExecution = {
   approved_by: string | null
   approved_at: string | null
   error: string | null
+  execution_path: string | null
+  failure_reason: FailureReason | null
   tokens_used: number | null
   model: string
   created_at: string

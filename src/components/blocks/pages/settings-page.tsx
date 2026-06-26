@@ -24,19 +24,9 @@ import { AuditLogCard } from '../shared/audit-log-card'
 import { PlansPage } from './plans-page'
 import { useI18n } from '@/hooks/use-i18n'
 import { loadSettingsAdminContext, type SettingsAdminContext } from '@/lib/team-members'
+import { SETTING_TITLE_KEYS, type SettingKey } from '@/lib/settings-keys'
 
 type SettingsUser = { id: string; name: string; firstName: string; email: string; avatarUrl?: string | null }
-
-type SettingKey =
-  | 'personal-info'
-  | 'change-password'
-  | 'active-sessions'
-  | 'api-keys'
-  | 'integrations'
-  | 'team-members'
-  | 'team-list'
-  | 'plans'
-  | 'audit-log'
 
 type SettingShortcut = {
   key: SettingKey
@@ -61,11 +51,24 @@ function TeamMembersView({ user, ownerUserId, canManageMembers, onBack }: { user
   )
 }
 
-export function SettingsPage({ user }: { user: SettingsUser }) {
-  const [active, setActive] = useState<SettingKey | null>(null)
+export function SettingsPage({
+  user,
+  activeSetting,
+  onActiveSettingChange,
+}: {
+  user: SettingsUser
+  activeSetting?: SettingKey | null
+  onActiveSettingChange?: (setting: SettingKey | null) => void
+}) {
+  const [internalActive, setInternalActive] = useState<SettingKey | null>(null)
   const [adminContext, setAdminContext] = useState<SettingsAdminContext | null>(null)
   const { t } = useI18n()
-  const plansEnabled = import.meta.env.DEV
+  const active = activeSetting !== undefined ? activeSetting : internalActive
+
+  function setActive(setting: SettingKey | null) {
+    if (activeSetting === undefined) setInternalActive(setting)
+    onActiveSettingChange?.(setting)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -82,59 +85,58 @@ export function SettingsPage({ user }: { user: SettingsUser }) {
   const SETTINGS_SHORTCUTS: SettingShortcut[] = [
     {
       key: 'personal-info',
-      titleKey: 'settings.personalInfo',
+      titleKey: SETTING_TITLE_KEYS['personal-info'],
       descKey: 'settings.personalInfoDesc',
       icon: <User className="h-5 w-5" />,
     },
     {
       key: 'change-password',
-      titleKey: 'settings.changePassword',
+      titleKey: SETTING_TITLE_KEYS['change-password'],
       descKey: 'settings.changePasswordDesc',
       icon: <ShieldCheck className="h-5 w-5" />,
     },
     {
       key: 'active-sessions',
-      titleKey: 'settings.activeSessions',
+      titleKey: SETTING_TITLE_KEYS['active-sessions'],
       descKey: 'settings.activeSessionsDesc',
       icon: <Users className="h-5 w-5" />,
     },
     {
       key: 'api-keys',
-      titleKey: 'settings.apiKeys',
+      titleKey: SETTING_TITLE_KEYS['api-keys'],
       descKey: 'settings.apiKeysDesc',
       icon: <KeyRound className="h-5 w-5" />,
       disabled: !canOpenAdminSettings,
     },
     {
       key: 'integrations',
-      titleKey: 'settings.integrations',
+      titleKey: SETTING_TITLE_KEYS.integrations,
       descKey: 'settings.integrationsDesc',
       icon: <PlugZap className="h-5 w-5" />,
     },
     {
       key: 'team-members',
-      titleKey: 'settings.teamMembers',
+      titleKey: SETTING_TITLE_KEYS['team-members'],
       descKey: 'settings.teamMembersDesc',
       icon: <UserPlus className="h-5 w-5" />,
       disabled: !canOpenTeamManagerSettings,
     },
     {
       key: 'team-list',
-      titleKey: 'settings.teamList',
+      titleKey: SETTING_TITLE_KEYS['team-list'],
       descKey: 'settings.teamListDesc',
       icon: <UsersRound className="h-5 w-5" />,
       disabled: !canOpenTeamManagerSettings,
     },
     {
       key: 'plans',
-      titleKey: 'settings.plans',
+      titleKey: SETTING_TITLE_KEYS.plans,
       descKey: 'settings.plansDesc',
       icon: <CreditCard className="h-5 w-5" />,
-      disabled: !plansEnabled,
     },
     {
       key: 'audit-log',
-      titleKey: 'settings.auditLog',
+      titleKey: SETTING_TITLE_KEYS['audit-log'],
       descKey: 'settings.auditLogDesc',
       icon: <Shield className="h-5 w-5" />,
     },
@@ -145,14 +147,14 @@ export function SettingsPage({ user }: { user: SettingsUser }) {
   const safeActive = active && (active === 'api-keys' ? canOpenAdminSettings : !ADMIN_ONLY_SETTINGS.has(active) || canOpenTeamManagerSettings) ? active : null
 
   let detail: ReactNode = null
-  if (safeActive === 'personal-info') detail = <AccountBasicInfoPage user={user} onBack={goBack} onSave={goBack} onOpenPlans={() => { if (plansEnabled) setActive('plans') }} />
+  if (safeActive === 'personal-info') detail = <AccountBasicInfoPage user={user} onBack={goBack} onSave={goBack} onOpenPlans={() => setActive('plans')} />
   else if (safeActive === 'change-password') detail = <ChangePassword onBack={goBack} />
   else if (safeActive === 'active-sessions') detail = <SessionsList userId={user.id} onBack={goBack} />
   else if (safeActive === 'api-keys') detail = <ApiKeysManager onBack={goBack} ownerUserId={settingsOwnerId} />
-  else if (safeActive === 'integrations') detail = <IntegrationSetupWizard onBack={goBack} />
+  else if (safeActive === 'integrations') detail = <IntegrationSetupWizard onBack={goBack} ownerUserId={settingsOwnerId} currentFunction={adminContext?.function ?? ''} />
   else if (safeActive === 'team-members') detail = <TeamMembersView user={user} ownerUserId={settingsOwnerId} canManageMembers={canOpenAdminSettings} onBack={goBack} />
   else if (safeActive === 'team-list') detail = <TeamListTable user={{ ...user, id: settingsOwnerId }} onBack={goBack} />
-  else if (safeActive === 'plans') detail = <PlansPage onBack={goBack} />
+  else if (safeActive === 'plans') detail = <PlansPage ownerUserId={settingsOwnerId} canManageBilling={canOpenAdminSettings} onBack={goBack} />
   else if (safeActive === 'audit-log') detail = <AuditLogCard onBack={goBack} />
 
   if (safeActive) {

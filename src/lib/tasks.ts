@@ -80,6 +80,7 @@ export async function createTask(input: CreateTaskInput): Promise<Task | null> {
       agent_id: input.agent_id ?? null,
       priority: input.priority ?? 'medium',
       status: input.status ?? 'backlog',
+      execution_path: input.execution_path ?? 'api_gateway',
       schedule_start: input.schedule_start ?? null,
       schedule_end: input.schedule_end ?? null,
       schedule_time: input.schedule_time ?? null,
@@ -105,7 +106,7 @@ export async function createTask(input: CreateTaskInput): Promise<Task | null> {
     entityId: id,
     entityName: input.title,
     workspaceId: input.workspace_id,
-    details: { priority: input.priority, agent_id: input.agent_id, flow_id: input.flow_id ?? null },
+    details: { priority: input.priority, agent_id: input.agent_id, flow_id: input.flow_id ?? null, execution_path: input.execution_path },
   })
 
   return data as Task

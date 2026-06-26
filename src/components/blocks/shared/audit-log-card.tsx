@@ -16,6 +16,11 @@ const ACTION_BADGE: Record<AuditAction, string> = {
   logout: 'border-slate-200 bg-slate-50 text-slate-600',
   invite: 'border-[#2F5D5A]/20 bg-[#2F5D5A]/8 text-[#2F5D5A]',
   revoke: 'border-primary/18 bg-primary/8 text-primary',
+  request_approval: 'border-[#B7791F]/18 bg-[#FFF8E1] text-[#7A3E14]',
+  approve: 'border-[#2F5D5A]/20 bg-[#2F5D5A]/8 text-[#2F5D5A]',
+  request_adjustments: 'border-primary/18 bg-primary/8 text-primary',
+  invalidate: 'border-[#B7791F]/18 bg-[#FFF8E1] text-[#7A3E14]',
+  import_external_llm: 'border-[#7A3E14]/18 bg-[#FFF8E1] text-[#7A3E14]',
 }
 
 const ENTITY_ICONS: Record<AuditEntityType, string> = {
