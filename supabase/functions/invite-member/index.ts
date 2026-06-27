@@ -1,9 +1,22 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173']
+
+function getAllowedOrigins(): string[] {
+  const configured = Deno.env.get('APP_ALLOWED_ORIGINS')
+  if (!configured) return DEFAULT_ALLOWED_ORIGINS
+  return [...DEFAULT_ALLOWED_ORIGINS, ...configured.split(',').map((origin) => origin.trim()).filter(Boolean)]
+}
+
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const allowedOrigins = getAllowedOrigins()
+  const fallbackOrigin = allowedOrigins[0] ?? '*'
+  const allowed = allowedOrigins.some((o) => o.includes('*') ? (origin?.startsWith(o.replace('*', '')) ?? false) : origin === o)
+  return {
+    'Access-Control-Allow-Origin': allowed ? (origin ?? '*') : fallbackOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  }
 }
 
 type InvitePayload = {
@@ -74,6 +87,9 @@ function generateShortId(prefix: string) {
 }
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get('Origin')
+  const corsHeaders = getCorsHeaders(origin)
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -128,6 +144,23 @@ Deno.serve(async (req) => {
     })
   }
 
+  // Validate Admin BEFORE any profile lookup to prevent email enumeration
+  const { data: adminRows } = await adminClient
+    .from('team_members')
+    .select('id')
+    .eq('owner_user_id', ownerUserId)
+    .eq('member_user_id', user.id)
+    .eq('status', 'active')
+    .eq('function', 'Admin')
+    .limit(1)
+
+  if ((adminRows ?? []).length === 0) {
+    return new Response(JSON.stringify({ error: 'Admin access is required to invite members' }), {
+      status: 403,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+
   const { data: existingProfile } = await adminClient
     .from('profiles')
     .select('id, email')
@@ -144,22 +177,6 @@ Deno.serve(async (req) => {
   if (payload.checkOnly) {
     return new Response(JSON.stringify({ ok: true, existingAccount: !!existingProfile?.id }), {
       status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
-  }
-
-  const { data: adminRows } = await adminClient
-    .from('team_members')
-    .select('id')
-    .eq('owner_user_id', ownerUserId)
-    .eq('member_user_id', user.id)
-    .eq('status', 'active')
-    .eq('function', 'Admin')
-    .limit(1)
-
-  if ((adminRows ?? []).length === 0) {
-    return new Response(JSON.stringify({ error: 'Admin access is required to invite members' }), {
-      status: 403,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }

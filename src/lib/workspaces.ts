@@ -42,7 +42,8 @@ export async function loadWorkspaces(): Promise<Workspace[]> {
     return []
   }
 
-  console.log('[loadWorkspaces] Loaded:', data?.length ?? 0, 'workspaces')
+
+
   return (data ?? []) as Workspace[]
 }
 
@@ -60,7 +61,8 @@ export async function createWorkspace(input: CreateWorkspaceInput): Promise<Work
   const id = await generateUniqueId()
   const now = new Date().toISOString()
 
-  console.log('[createWorkspace] Inserting:', { id, user_id: user.id, name: input.name })
+
+
 
   const { data, error } = await supabase
     .from('workspaces')
@@ -82,7 +84,6 @@ export async function createWorkspace(input: CreateWorkspaceInput): Promise<Work
     return null
   }
 
-  console.log('[createWorkspace] Success:', data)
 
   await logAuditEvent({
     action: 'create',

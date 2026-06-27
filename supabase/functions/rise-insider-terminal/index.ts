@@ -46,7 +46,8 @@ function structured(finalAnswer: string, summary: string, steps: string[], evide
 function assertAdapterToken(req: Request) {
   const expected = Deno.env.get('RISE_INSIDER_ADAPTER_TOKEN')
   const required = Deno.env.get('RISE_INSIDER_REQUIRE_TOKEN') === 'true'
-  if (!expected) return !required
+  const isDev = Deno.env.get('DENO_DEPLOYMENT_ID') === undefined
+  if (!expected) return isDev && !required
   const auth = req.headers.get('Authorization') ?? ''
   return auth === `Bearer ${expected}`
 }

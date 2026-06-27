@@ -225,7 +225,7 @@ export function CreateTaskPage({
           <div className="ml-auto flex gap-2">
             {error && <span className="self-center text-xs text-destructive">{error}</span>}
             <Button
-              disabled={submitting || (step === 0 && (!objective || !prompt)) || (step === 1 && (!selectedWorkspaceId || !selectedFlowId || !selectedCardId))}
+              disabled={submitting || (step === 0 && (!objective || !prompt)) || (step === 1 && (!selectedWorkspaceId || !selectedFlowId || !selectedCardId)) || (step === 2 && hasSchedule && (!scheduleStart || !scheduleTime))}
               onClick={async () => {
                 if (step === STEP_KEYS.length - 1) {
                   setError(null)

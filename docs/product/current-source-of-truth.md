@@ -4,6 +4,7 @@
 
 - Source: `PRD + Roadmap - Redrise Corporate simplificado e orientado ao graph.html` shared on 2026-06-24.
 - Current implementation addendum: `docs/product/agent-provider-wizard-prd.md` for New Agent provider connection and Agent board actions.
+- Agent behavior source: `docs/product/agent-task-execution-responsibility-prd.md` for Agent task-only execution responsibility.
 - Scope: post-MVP Business/Corporate roadmap, operational notifications, Flow approval, deterministic execution, external LLM builder, Redrise Support label, Corporate analytics, and Rise Insider.
 - Status: active planning and implementation reference.
 

@@ -76,6 +76,9 @@
 - `redrise-ops` MCP exists for validation, build/status checks, Supabase function deploy, graph status, and memory notes.
 - Python/Graphify tooling is local to the repo: use `.\.tools\uv\uv.exe sync` and `.\.tools\uv\uv.exe run python -m graphify update . --force`; do not use global Python for project operations.
 - Detailed local Graphify output is in `graphify-out/`; the latest clean structural update produced 1251 nodes, 1520 edges, and 148 communities after the Agents provider wizard slice.
+- Security hardening applied at commit `8db0e60`: `api-keys.ts` uses `crypto.getRandomValues` + SHA-256; `agents.ts`, `flows.ts`, `tasks.ts`, `workspaces.ts`, `flow-cards.ts` had `console.log` removed; `invite-member` has origin-validated CORS and Admin-before-lookup; `rise-insider-terminal` and `rise-insider-filesystem` are fail-closed in production; `validate-api-key` uses SHA-256 validation; `api-keys-manager.tsx` shows secret only at creation; `create-task-page.tsx` validates schedule fields; `i18n.ts` has `secretHidden` key.
+- New docs created: `docs/product/agent-task-execution-responsibility-prd.md` (Agent task-only execution responsibility), `docs/product/qdrant-execution-context-notes.md` (Qdrant infra notes for future use), and `docs/product/current-source-of-truth.md` updated to reference the Agent PRD.
+- No Builder/Gateway/Governance features exist at this commit; those were in later commits (2d59432, 942bbdd, 77160f0, 1def0fc, fb8c6f0, d7f4a7d, 6f0ca1f) which have been discarded.
 - Workspace root is now `D:\studio\redrise`; old briefing/framework/backlog folders are not active guidance.
 - Update 2.0 test bundle now covers Create Task, Flow Builder, Agent Detail, Create Workspace, Create Flow, Personal Information field locks/search, and auxiliary `team-members-card` copy.
 - Previous deployment targets are legacy and are no longer active targets for this project reset.

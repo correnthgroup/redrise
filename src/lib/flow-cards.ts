@@ -34,7 +34,8 @@ export async function loadFlowCards(flowId: string): Promise<FlowCard[]> {
     return []
   }
 
-  console.log('[loadFlowCards] Loaded:', data?.length ?? 0, 'cards for flow', flowId)
+
+
   return (data ?? []) as FlowCard[]
 }
 
@@ -176,7 +177,6 @@ export async function syncFlowEditor(
   cards: { node_id: string; label: string; instructions?: string; members?: string[]; agents?: string[]; approvers?: string[]; position_x: number; position_y: number }[],
   edges: { edge_id: string; source: string; target: string; animated?: boolean }[]
 ): Promise<boolean> {
-  console.log('[syncFlowEditor] Syncing', cards.length, 'cards and', edges.length, 'edges for flow', flowId)
 
   // Delete all existing cards and edges for this flow
   await supabase.from('flow_cards').delete().eq('flow_id', flowId)
@@ -227,7 +227,7 @@ export async function syncFlowEditor(
     }
   }
 
-  console.log('[syncFlowEditor] Success')
+
   await invalidateFlowOfficialStatus(flowId)
   return true
 }

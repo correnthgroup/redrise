@@ -43,7 +43,8 @@ export async function loadFlows(): Promise<Flow[]> {
     return []
   }
 
-  console.log('[loadFlows] Loaded:', data?.length ?? 0, 'flows')
+
+
   return (data ?? []) as Flow[]
 }
 
@@ -76,7 +77,8 @@ export async function createFlow(input: CreateFlowInput): Promise<Flow | null> {
   const id = await generateUniqueId()
   const now = new Date().toISOString()
 
-  console.log('[createFlow] Inserting:', { id, user_id: user.id, name: input.name, workspace_id: input.workspace_id })
+
+
 
   const { data, error } = await supabase
     .from('flows')
@@ -112,7 +114,6 @@ export async function createFlow(input: CreateFlowInput): Promise<Flow | null> {
     }
   }
 
-  console.log('[createFlow] Success:', data)
 
   await logAuditEvent({
     action: 'create',
@@ -407,13 +408,6 @@ export async function deleteFlow(id: string, workspaceId: string): Promise<boole
     console.error('[deleteFlow] Error:', error.message, error.details, error.hint)
     return false
   }
-
-  // Decrement workspace flows count
-  await supabase.from('workspaces').select('flows').eq('id', workspaceId).single().then(({ data: ws }) => {
-    if (ws && ws.flows > 0) {
-      supabase.from('workspaces').update({ flows: ws.flows - 1 }).eq('id', workspaceId)
-    }
-  })
 
   await logAuditEvent({
     action: 'delete',

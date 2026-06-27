@@ -42,7 +42,8 @@ export async function loadTasks(): Promise<Task[]> {
     return []
   }
 
-  console.log('[loadTasks] Loaded:', data?.length ?? 0, 'tasks')
+
+
   return (data ?? []) as Task[]
 }
 
@@ -60,7 +61,8 @@ export async function createTask(input: CreateTaskInput): Promise<Task | null> {
   const id = await generateUniqueId()
   const now = new Date().toISOString()
 
-  console.log('[createTask] Inserting:', { id, user_id: user.id, title: input.title })
+
+
 
   const { data, error } = await supabase
     .from('tasks')
@@ -98,7 +100,6 @@ export async function createTask(input: CreateTaskInput): Promise<Task | null> {
     return null
   }
 
-  console.log('[createTask] Success:', data)
 
   await logAuditEvent({
     action: 'create',

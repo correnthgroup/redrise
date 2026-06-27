@@ -28,6 +28,12 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
   }
 }
 
+async function sha256Hex(value: string): Promise<string> {
+  const encoded = new TextEncoder().encode(value)
+  const hash = await crypto.subtle.digest('SHA-256', encoded)
+  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
 serve(async (req) => {
   const origin = req.headers.get('Origin')
   const corsHeaders = getCorsHeaders(origin)
@@ -52,10 +58,11 @@ serve(async (req) => {
 
     const apiKey = authHeader.replace('Bearer ', '')
     const prefix = apiKey.slice(0, 11)
+    const secretHash = await sha256Hex(apiKey)
 
     const { data: keys, error: queryError } = await supabase
       .from('api_keys')
-      .select('id, user_id, name, scopes, revoked, expires_at')
+      .select('id, user_id, name, scopes, revoked, expires_at, secret_hash')
       .eq('prefix', prefix)
       .eq('revoked', false)
       .limit(1)
@@ -76,6 +83,13 @@ serve(async (req) => {
     }
 
     const key = keys[0]
+
+    if (key.secret_hash !== secretHash) {
+      return new Response(
+        JSON.stringify({ valid: false, error: 'Invalid API key' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
 
     if (key.expires_at && new Date(key.expires_at) < new Date()) {
       return new Response(

@@ -36,6 +36,13 @@
 - Sidebar collapse state may persist in `localStorage` because it is a UI preference.
 - Domain data must be Supabase-backed, not browser-storage-backed.
 - **All dropdown triggers share a single class constant** `DROPDOWN_TRIGGER_CLASSES` defined in `src/lib/styles.ts`. Both `SelectTrigger` (Radix Select) and `MultiSelectDropdown` (Button + DropdownMenu) use this constant. Button triggers must use `variant="outline"` so CVA hover classes align with the constant.
+- Agent execution responsibility is task-only: Agents execute Tasks and return structured output; they do not create, draft, propose, or alter Workspaces, Flows, Flow cards, Tasks, process definitions, approval rules, branches, retries, loops, or orchestration logic. Source: `docs/product/agent-task-execution-responsibility-prd.md`.
+- `invite-member` CORS is origin-validated using `APP_ALLOWED_ORIGINS` env var plus localhost defaults; `*` is no longer used as the Allow-Origin header.
+- `invite-member` validates Admin status before any profile lookup to prevent email enumeration.
+- `rise-insider-terminal` and `rise-insider-filesystem` are fail-closed in production: when `DENO_DEPLOYMENT_ID` is set and no token env is configured, the function rejects requests instead of allowing unauthenticated access.
+- API key secrets use `crypto.getRandomValues` for generation and SHA-256 hashing for storage; raw secrets are shown once at creation and never again.
+- `validate-api-key` validates incoming keys against SHA-256 hashes, not plaintext.
+- Schedule validation on Create Task requires Start Date and Time when `hasSchedule` is enabled; End Date is optional and defaults to Start Date for one-time schedules.
 
 ## Current Backend Decisions
 

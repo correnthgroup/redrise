@@ -31,7 +31,7 @@ Workspace-first SaaS for flows, tasks, agents, analytics, settings, team operati
 ## Current Auth Behavior
 
 - Sign In uses Supabase e-mail/password.
-- Sign Up uses First Name, optional Middle Name, optional Last Name, e-mail, password, and confirmation password.
+- Sign Up uses First Name, optional Middle Name, Last Name, e-mail, password, and confirmation password.
 - Supabase Auth e-mail confirmation is currently disabled.
 - After Sign Up, the app suppresses the automatic Supabase sign-up session, signs out, and returns to Sign In.
 - OAuth buttons are intentionally not shown until official provider credentials exist.

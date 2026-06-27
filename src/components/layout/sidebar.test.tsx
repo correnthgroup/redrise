@@ -17,9 +17,9 @@ describe('Sidebar', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /collapse sidebar/i }))
+    await user.click(screen.getByRole('button', { name: /sidebar\.collapse/i }))
 
     expect(screen.getByLabelText('Primary navigation')).toHaveAttribute('data-collapsed', 'true')
-    expect(screen.getByRole('button', { name: /expand sidebar/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Expand sidebar' })).toBeInTheDocument()
   })
 })

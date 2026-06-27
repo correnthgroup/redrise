@@ -21,21 +21,21 @@ export type CreateApiKeyInput = {
 }
 
 function generateShortId(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
-  let id = 'ak'
-  for (let i = 0; i < 5; i++) {
-    id += chars[Math.floor(Math.random() * chars.length)]
-  }
-  return id
+  const bytes = new Uint8Array(5)
+  crypto.getRandomValues(bytes)
+  return 'ak' + Array.from(bytes).map((b) => b.toString(36).padStart(2, '0')).join('').slice(0, 5)
 }
 
 function generateApiKeySecret(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  let secret = ''
-  for (let i = 0; i < 48; i++) {
-    secret += chars[Math.floor(Math.random() * chars.length)]
-  }
-  return secret
+  const bytes = new Uint8Array(48)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes).map((b) => b.toString(36).padStart(2, '0')).join('').slice(0, 48)
+}
+
+async function sha256Hex(value: string): Promise<string> {
+  const encoded = new TextEncoder().encode(value)
+  const hash = await crypto.subtle.digest('SHA-256', encoded)
+  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
 export async function loadApiKeys(ownerUserId?: string): Promise<ApiKey[]> {
@@ -60,6 +60,7 @@ export async function createApiKey(input: CreateApiKeyInput, ownerUserId?: strin
   const id = generateShortId()
   const secret = generateApiKeySecret()
   const prefix = `rr_${secret.slice(0, 8)}`
+  const secretHash = await sha256Hex(secret)
 
   const { data, error } = await supabase
     .from('api_keys')
@@ -68,7 +69,7 @@ export async function createApiKey(input: CreateApiKeyInput, ownerUserId?: strin
       user_id: ownerUserId ?? user.id,
       name: input.name,
       prefix,
-      secret_hash: secret,
+      secret_hash: secretHash,
       scopes: input.scopes,
       revoked: false,
     })

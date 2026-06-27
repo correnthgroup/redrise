@@ -46,7 +46,8 @@ export async function loadAgents(ownerUserId?: string): Promise<Agent[]> {
     return []
   }
 
-  console.log('[loadAgents] Loaded:', data?.length ?? 0, 'agents')
+
+
   return (data ?? []) as Agent[]
 }
 
@@ -79,7 +80,8 @@ export async function createAgent(input: CreateAgentInput): Promise<Agent | null
   const id = await generateUniqueId()
   const now = new Date().toISOString()
 
-  console.log('[createAgent] Inserting:', { id, user_id: user.id, name: input.name })
+
+
 
   const { data, error } = await supabase
     .from('agents')
@@ -105,7 +107,6 @@ export async function createAgent(input: CreateAgentInput): Promise<Agent | null
     return null
   }
 
-  console.log('[createAgent] Success:', data)
 
   await logAuditEvent({
     action: 'create',

@@ -197,7 +197,9 @@
 - No estado atual, `task-execute` executa deterministicamente por `execution_path`: `api_gateway` chama OpenRouter; `mock_integration` e `manual_step` geram outputs estruturados internos; `integration_gateway`, `rise_insider_terminal`, `rise_insider_filesystem`, `browser_automation` e `ui_control` chamam um endpoint HTTPS ativo configurado em Settings > Integrations para o provider correspondente.
 - Se um caminho externo não tiver integração ativa com endpoint HTTPS, a execução falha explicitamente como `integration_unavailable`; nenhum fallback automático é tentado.
 - `rise-insider-terminal` é uma Edge Function de runtime autorizado com comandos controlados: `status`, `echo`, `date` e `inspect`; ela não executa shell arbitrário.
+- `rise-insider-terminal` é fail-closed em produção: quando `DENO_DEPLOYMENT_ID` está definido e nenhum token está configurado, a função rejeita requisições em vez de permitir acesso não autenticado.
 - `rise-insider-filesystem` é uma Edge Function de runtime autorizado com operações controladas: `status`, `list`, `read`, `write`, `append` e `delete`; ela grava apenas no sandbox persistente `rise_insider_files` e bloqueia caminhos absolutos, traversal e extensões fora da allowlist.
+- `rise-insider-filesystem` é fail-closed em produção: quando `DENO_DEPLOYMENT_ID` está definido e nenhum token está configurado, a função rejeita requisições em vez de permitir acesso não autenticado.
 - `adapter-staging` é uma Edge Function de staging para validar `integration_gateway` ponta a ponta antes de conectar um adapter externo real.
 - Workspace em New Task usa `useWorkspaces()` e persiste em `tasks.workspace_id`.
 - Flow em New Task usa `useFlows()` filtrado pelo workspace selecionado e persiste em `tasks.flow_id`.
@@ -341,8 +343,7 @@
 ## Settings > API Keys
 
 - `ApiKeysManager` existe como bloco de configuração.
-- Antes de salvar chaves reais, garantir que segredo nunca fique exposto no frontend.
-- Para chaves sensíveis, o ideal é backend/Edge Function e armazenamento seguro no Supabase.
+- Chaves secretas são geradas com `crypto.getRandomValues` e armazenadas como hashes SHA-256 no Supabase; o segredo bruto é exibido apenas uma vez na criação (`secretHidden`).
 - A tela permite revogar uma chave e também excluir uma chave permanentemente.
 - Não salvar chaves secretas em `localStorage`.
 
@@ -563,6 +564,8 @@
 ## Edge Function invite-member
 
 - Recebe e-mail, role, Role/Cargo exibido e equipe inicial opcional.
+- CORS é validado por origem usando `APP_ALLOWED_ORIGINS` (env) mais localhost como fallback; `*` não é mais usado como `Access-Control-Allow-Origin`.
+- Verifica o status de Admin do usuário logado ANTES de qualquer busca de perfil para evitar enumeração de e-mail.
 - Verifica o usuário logado pelo token enviado pelo frontend.
 - Persiste ou atualiza a linha em `team_members`.
 - Para usuário existente, cria convite in-app em `team_invite_notifications` e mantém o membro como `invited` até aceite.
@@ -700,6 +703,22 @@
 - Se mexer em planos, não implemente pagamento sem backend e webhook.
 - Se mexer em permissões, não dependa apenas da UI.
 - Rode validação adequada após mudanças: lint, typecheck, test, build e E2E quando afetar fluxo visual.
+
+## Responsabilidade De Execução Dos Agents
+
+- Agents executam Tasks apenas e retornam saída estruturada.
+- Users modelam Workspaces, Flows, Flow cards, Tasks, regras de aprovação, branches, retries, loops e human gates pela UI do Redrise.
+- Agents não criam, elaboram, propõem ou alteram Workspaces, Flows, Flow cards, Tasks, definições de processo, regras de aprovação, branches, retries, loops ou lógica de orquestração.
+- Agents não decidem a próxima Task.
+- A Execution Engine decide o próximo passo operacional a partir da definição publicada do Flow.
+- Fonte: `docs/product/agent-task-execution-responsibility-prd.md`.
+
+## Qdrant (Infraestrutura Futura)
+
+- Qdrant pode permanecer para recuperação de contexto de execução futuro.
+- Qdrant não deve alimentar Agent Builder, modelador de processo, criador de Workspace, Flow ou Task, ou gerador de propostas.
+- Qualquer uso futuro deve suportar contexto de execução de Task apenas, onde um Agent executa a Task atual e retorna saída estruturada.
+- Fonte: `docs/product/qdrant-execution-context-notes.md`.
 
 ## MCP Redrise Ops
 

@@ -27,6 +27,8 @@
 - E-mail confirmation remains future work until official SMTP/sender/template/retry policy exists.
 - `memory/TECHNICAL.md` is the human-readable PT-BR map for current behavior and approved future direction.
 - Current Corporate simplification PRD source pointer is `docs/product/current-source-of-truth.md`.
+- Agent behavior source: `docs/product/agent-task-execution-responsibility-prd.md` (Agents execute Tasks only; no Builder, no Gateway, no Governance surfaces).
+- Qdrant infra notes: `docs/product/qdrant-execution-context-notes.md` (retained for future execution-context retrieval only).
 
 ## Quality Rules
 
