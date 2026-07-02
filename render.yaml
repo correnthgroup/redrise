@@ -15,9 +15,9 @@ projects:
             envVars:
               - key: NODE_VERSION
                 value: 22
-              - key: VITE_SUPABASE_URL
+              - key: NEXT_PUBLIC_SUPABASE_URL
                 sync: false
-              - key: VITE_SUPABASE_ANON_KEY
+              - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
                 sync: false
             headers:
               - path: /*

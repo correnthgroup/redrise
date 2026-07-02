@@ -1,10 +1,22 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY')
+let _supabase: SupabaseClient | null = null
+
+function getSupabase(): SupabaseClient {
+  if (_supabase) return _supabase
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  }
+  _supabase = createClient(supabaseUrl, supabaseAnonKey)
+  return _supabase
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_, prop) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (getSupabase() as any)[prop]
+  },
+})

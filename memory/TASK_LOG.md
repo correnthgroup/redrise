@@ -9,19 +9,22 @@
 - Production status: Render static site `redrise` is live.
 - Backend: Supabase project `vsaropewydcjsvplpugx`.
 - GitHub repository: `https://github.com/correnthgroup/redrise.git`.
-- Package manager: Yarn through Corepack.
-- Deploy path: Render auto-deploy from GitHub using `render.yaml`; manual deploy was also triggered for commit `6db3eae`.
-- Workspace root is now `D:\studio\redrise`; legacy briefing/framework/backlog folders are not active guidance.
+- Package manager: npm.
+- Deploy path: Render auto-deploy from GitHub using `render.yaml`.
+- Workspace root is `D:\studio\redrise`.
 
 ## Current App Snapshot
 
-- Auth is Supabase e-mail/password.
+- Framework: Next.js 16 (App Router) + React 19.
+- Auth is Supabase e-mail/password with shadcn login-03 pattern.
 - Sign Up suppresses Supabase's automatic session and returns to Sign In.
-- OAuth is archived for future provider setup.
+- OAuth shows "Coming Soon" dialog for Apple/Google.
 - E-mail confirmation is archived for future sender/SMTP/template setup.
-- Profiles, active sessions, and team members are Supabase-backed.
-- Flow/Tasks member dropdowns use Settings > Team Members data.
-- Settings > Plans is not billing yet.
+- 31 routes: auth (2), workstation (7), projects (5), agents (4), documentation (5), settings (5), root (1), not-found (1).
+- 44 shadcn UI components (base-nova style).
+- Sonner toasts (top-center) + Spinner on all action buttons.
+- logAuditEvent() on all CRUD actions.
+- SidebarMenuSkeleton for loading states.
 
 ## Last Verified Baseline
 

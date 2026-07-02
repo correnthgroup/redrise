@@ -2,12 +2,21 @@
 
 ## Current Architecture Decisions
 
-- Frontend stack is Vite 8, React 19, TypeScript 6, and Tailwind CSS v4.
-- Package manager is Yarn through Corepack.
-- Python tooling uses repository-local `uv` with Python 3.12 pinned in `.python-version`; project Python dependencies live in `pyproject.toml` and `uv.lock`.
-- Routing is currently an app-shell state machine through `SidebarKey`; route shims may support a future router but are not the active navigation source.
-- Authenticated breadcrumbs are derived from the existing `AppShell` state machine and rendered by `Topbar`; no router or custom navigation history was introduced.
-- Authenticated breadcrumbs render after the title/subtitle block in `Topbar`, separated by a vertical divider.
+- Frontend stack is Next.js 16 (App Router), React 19, TypeScript ~5.7, and Tailwind CSS v4 (oklch tokens).
+- Package manager is npm.
+- Python tooling uses repository-local Python 3.12; project Python dependencies live in `pyproject.toml`.
+- Routing uses Next.js App Router with route groups `(auth)` and `(dashboard)`.
+- Authenticated breadcrumbs are derived from URL pathname via `app-layout.tsx` using `usePathname()`.
+- Authenticated breadcrumbs render in `SidebarInset` header with `SidebarTrigger` and `Separator`.
+- UI primitives follow shadcn base-nova style under `src/components/ui/` (44 components).
+- Sidebar collapse state persists in `localStorage` because it is a UI preference.
+- Domain data must be Supabase-backed, not browser-storage-backed.
+- All action buttons use Sonner toasts (`position="top-center"`) and Spinner for loading states.
+- `logAuditEvent()` is called on all CRUD actions (create/update/delete) for workspaces and projects.
+- `createNotification()` is available in `lib/notifications.ts` for relevant flows.
+- Supabase client uses lazy Proxy to avoid build-time errors when env vars are missing.
+- Auth pages (login/signup) use shadcn login-03 pattern adapted to Redrise with Supabase Auth.
+- Apple/Google sign-in buttons show "Coming Soon" dialog instead of actual OAuth.
 - Operational notifications use `notifications.owner_user_id` as the current organization context until a dedicated organizations table is introduced.
 - Notification `read_status` (`unread`/`read`) is independent from `action_status` (`pending`/`resolved`/`archived`).
 - Flow official status is simple and field-based: `published_at` plus `approval_status = approved` plus `is_official = true` represents an official approved Flow.

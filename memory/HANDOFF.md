@@ -4,6 +4,18 @@
 
 ## Current State
 
+- **MIGRAÇÃO CONCLUÍDA**: Frontend migrado de Vite 8 para Next.js 16 (App Router).
+- **Package manager**: npm (substituiu Yarn/Corepack).
+- **Stack atual**: Next.js 16 + React 19 + TypeScript ~5.7 + Tailwind CSS v4 (oklch) + shadcn base-nova.
+- **31 rotas** compilando: auth (login/signup), workstation (workspace/workflow/workaction), projects, agents, documentation, settings.
+- **44 componentes UI** shadcn copiados de riseslovecheck (agora deletado).
+- **Sonner + Spinner** implementados em todas as ações CRUD (create/update/delete).
+- **Boas práticas** implementadas: SidebarProvider, SidebarInset, SidebarMenuSkeleton, logAuditEvent() em CRUD, createNotification() disponível.
+- **Auth pages** (login/signup) usam shadcn login-03 adaptado com Supabase Auth + popup "Coming Soon" para Apple/Google.
+- **Supabase client** agora usa Proxy lazy para evitar erros no build time.
+- Render.yaml atualizado para Next.js (env vars NEXT_PUBLIC_*).
+- rGraphify atualizado: 2060 nós, 2984 arestas, 222 comunidades.
+
 - Settings diferencia Role/Cargo de membro da Function/Função dentro de uma equipe: Role usa lista oficial; Function em Team List é texto livre por associação de equipe.
 - Slice atual do PRD Corporate simplificado: breadcrumb global autenticado foi adicionado ao `Topbar` e é derivado do estado do `AppShell`; Settings expõe o detalhe ativo ao shell para mostrar `Settings / Detalhe`.
 - Slice atual do PRD Corporate simplificado: Notifications foundation foi adicionada com migration `036_create_notifications.sql`, hook `useNotifications()`, página global Notifications, lâmpada com badge na Sidebar e seção de pendências no detalhe do Workspace.
@@ -85,15 +97,10 @@
 
 ## Current Validation Baseline
 
-- `corepack yarn lint` passes.
-- `corepack yarn typecheck` passes.
-- `corepack yarn test` passes.
-- `corepack yarn build` passes.
-- `corepack yarn test:e2e` passed with 27/27 tests after billing, spotlight, i18n, cursor polish, and breadcrumb accessibility fix.
-- External invite smoke test through deployed `invite-member` passed with `delivered@resend.dev`: Resend accepted template alias `invite`, returned `emailSent: true`, and the returned link included `invite_token`; temporary rows were cleaned.
-- Final PRD validation passed with `corepack yarn lint`, `corepack yarn typecheck`, `corepack yarn test`, `corepack yarn build`, and `corepack yarn test:e2e` 27/27.
-- E2E is modularized by Playwright project: `auth-public`, `auth-session`, `navigation`, `dashboard`, `flow`, `tasks`, `agents`, `analytics`, `workspaces`, and `settings`.
-- E2E local modular matrix passes with 39 tests across the 10 modules.
+- `npm run lint` passes.
+- `npm run typecheck` passes.
+- `npm run build` passes (31 routes).
+- E2E tests need reconfiguration for Next.js.
 
 ## Open Work
 
@@ -119,11 +126,11 @@
 
 ## Operational Rules
 
-- Use Yarn/Corepack only.
-- Use repository-local `uv` for Python/Graphify operations; global Python is not the operational path for this repo.
-- Do not add npm lockfiles.
+- Use npm as package manager.
+- Use repository-local Python/Graphify tooling; global Python is not the operational path for this repo.
+- Do not add yarn.lock or pnpm-lock.yaml.
 - Do not deploy to or document previous deployment aliases as the official URL.
 - Use Render auto-deploy as primary deploy path.
 - Do not reintroduce `localStorage` persistence for domain data.
 - Do not reintroduce OAuth or e-mail confirmation UI without official credentials/configuration.
-- Keep E2E coverage modular by menu/domain instead of grouping all authenticated flows into one long runner process.
+- After relevant code, architecture, or behavior changes, refresh the structural graph with `python -m graphify update . --force` and update memory if counts or architecture changed.

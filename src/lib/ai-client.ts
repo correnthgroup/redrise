@@ -34,13 +34,13 @@ export async function chatCompletion(
   }
 
   const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openrouter-proxy`,
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/functions/v1/openrouter-proxy`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session.access_token}`,
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       },
       body: JSON.stringify({
         messages,
@@ -89,13 +89,13 @@ export async function taskExecute(
   }
 
   const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/task-execute`,
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/functions/v1/task-execute`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session.access_token}`,
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       },
       body: JSON.stringify({
         objective,
