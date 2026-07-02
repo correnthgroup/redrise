@@ -1,3 +1,5 @@
+"use client"
+
 import { SearchIcon } from "lucide-react"
 import {
   Empty,
@@ -12,14 +14,16 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
+import { useI18n } from "@/hooks/use-i18n"
 
 export default function TeamPage() {
+  const { t } = useI18n()
   return (
     <Empty>
       <EmptyHeader>
-        <EmptyTitle>Team Settings</EmptyTitle>
+        <EmptyTitle>{t("settings.team.header.title")}</EmptyTitle>
         <EmptyDescription>
-          Manage team members, roles, and permissions.
+          {t("settings.team.header.subtitle")}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

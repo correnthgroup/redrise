@@ -1,3 +1,5 @@
+"use client"
+
 import { SearchIcon } from "lucide-react"
 import {
   Empty,
@@ -12,14 +14,16 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
+import { useI18n } from "@/hooks/use-i18n"
 
 export default function AnalyticsPage() {
+  const { t } = useI18n()
   return (
     <Empty>
       <EmptyHeader>
-        <EmptyTitle>Analytics</EmptyTitle>
+        <EmptyTitle>{t("agents.analytics.header.title")}</EmptyTitle>
         <EmptyDescription>
-          View analytics and performance metrics for your AI agents and workflows.
+          {t("agents.analytics.header.subtitle")}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

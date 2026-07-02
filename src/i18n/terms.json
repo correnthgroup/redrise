@@ -154,5 +154,141 @@
   "settings.hub.limitsDesc": {
     "en-US": "Usage limits and quotas",
     "pt-BR": "Limites de uso e cotas"
+  },
+  "workstation.header.title": {
+    "en-US": "Workstation",
+    "pt-BR": "Estação de trabalho"
+  },
+  "workstation.header.subtitle": {
+    "en-US": "Manage your workspaces, processes and actions",
+    "pt-BR": "Gerencie seus espaços, processos e ações"
+  },
+  "workstation.workspace.header.title": {
+    "en-US": "Space",
+    "pt-BR": "Espaço"
+  },
+  "workstation.workspace.header.subtitle": {
+    "en-US": "Organize your work into spaces",
+    "pt-BR": "Organize seu trabalho em espaços"
+  },
+  "workstation.workflow.header.title": {
+    "en-US": "Process",
+    "pt-BR": "Processo"
+  },
+  "workstation.workflow.header.subtitle": {
+    "en-US": "Manage your workflows and automation processes",
+    "pt-BR": "Gerencie seus fluxos de trabalho e processos de automação"
+  },
+  "workstation.workaction.header.title": {
+    "en-US": "Action",
+    "pt-BR": "Ação"
+  },
+  "workstation.workaction.header.subtitle": {
+    "en-US": "Configure and manage your work actions and tasks",
+    "pt-BR": "Configure e gerencie suas ações e tarefas"
+  },
+  "agents.header.title": {
+    "en-US": "Agents",
+    "pt-BR": "Agentes"
+  },
+  "agents.header.subtitle": {
+    "en-US": "Manage your AI agents, models, engines and analytics",
+    "pt-BR": "Gerencie seus agentes IA, modelos, motores e analytics"
+  },
+  "agents.models.header.title": {
+    "en-US": "Models",
+    "pt-BR": "Modelos"
+  },
+  "agents.models.header.subtitle": {
+    "en-US": "Configure and manage your AI models for various tasks and workflows",
+    "pt-BR": "Configure e gerencie seus modelos IA para diversas tarefas e fluxos"
+  },
+  "agents.engine.header.title": {
+    "en-US": "Engine",
+    "pt-BR": "Motor"
+  },
+  "agents.engine.header.subtitle": {
+    "en-US": "Configure and optimize your AI engine for processing and execution",
+    "pt-BR": "Configure e otimize seu motor IA para processamento e execução"
+  },
+  "agents.analytics.header.title": {
+    "en-US": "Analytics",
+    "pt-BR": "Analytics"
+  },
+  "agents.analytics.header.subtitle": {
+    "en-US": "View analytics and performance metrics for your AI agents and workflows",
+    "pt-BR": "Visualize analytics e métricas de desempenho dos seus agentes IA e fluxos"
+  },
+  "documentation.header.title": {
+    "en-US": "Documentation",
+    "pt-BR": "Documentação"
+  },
+  "documentation.header.subtitle": {
+    "en-US": "Help and documentation resources",
+    "pt-BR": "Recursos de ajuda e documentação"
+  },
+  "documentation.introduction.header.title": {
+    "en-US": "Introduction",
+    "pt-BR": "Introdução"
+  },
+  "documentation.introduction.header.subtitle": {
+    "en-US": "Learn the basics and get started with our platform",
+    "pt-BR": "Aprenda o básico e comece a usar nossa plataforma"
+  },
+  "documentation.get-started.header.title": {
+    "en-US": "Get Started",
+    "pt-BR": "Primeiros passos"
+  },
+  "documentation.get-started.header.subtitle": {
+    "en-US": "Step-by-step guide to set up your environment and start using the platform",
+    "pt-BR": "Guia passo a passo para configurar seu ambiente e começar a usar a plataforma"
+  },
+  "documentation.tutorials.header.title": {
+    "en-US": "Tutorials",
+    "pt-BR": "Tutoriais"
+  },
+  "documentation.tutorials.header.subtitle": {
+    "en-US": "Follow our tutorials to master advanced features and workflows",
+    "pt-BR": "Siga nossos tutoriais para dominar recursos avançados e fluxos"
+  },
+  "documentation.changelog.header.title": {
+    "en-US": "Changelog",
+    "pt-BR": "Histórico de alterações"
+  },
+  "documentation.changelog.header.subtitle": {
+    "en-US": "View the latest updates, improvements and bug fixes",
+    "pt-BR": "Visualize as últimas atualizações, melhorias e correções"
+  },
+  "settings.general.header.title": {
+    "en-US": "General Settings",
+    "pt-BR": "Configurações gerais"
+  },
+  "settings.general.header.subtitle": {
+    "en-US": "Configure general account and application settings",
+    "pt-BR": "Configure as configurações gerais da conta e do aplicativo"
+  },
+  "settings.team.header.title": {
+    "en-US": "Team Settings",
+    "pt-BR": "Configurações da equipe"
+  },
+  "settings.team.header.subtitle": {
+    "en-US": "Manage team members, roles and permissions",
+    "pt-BR": "Gerencie membros, papéis e permissões da equipe"
+  },
+  "settings.billing.header.title": {
+    "en-US": "Billing",
+    "pt-BR": "Faturamento"
+  },
+  "settings.billing.header.subtitle": {
+    "en-US": "Manage your subscription, payment methods and billing history",
+    "pt-BR": "Gerencie sua assinatura, formas de pagamento e histórico de faturamento"
+  },
+  "settings.limits.header.title": {
+    "en-US": "Limits",
+    "pt-BR": "Limites"
+  },
+  "settings.limits.header.subtitle": {
+    "en-US": "View and manage your usage limits and quotas",
+    "pt-BR": "Visualize e gerencie seus limites de uso e cotas"
   }
 }

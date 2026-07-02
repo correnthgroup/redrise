@@ -1,3 +1,5 @@
+"use client"
+
 import { SearchIcon } from "lucide-react"
 import {
   Empty,
@@ -12,14 +14,16 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
+import { useI18n } from "@/hooks/use-i18n"
 
 export default function ModelsPage() {
+  const { t } = useI18n()
   return (
     <Empty>
       <EmptyHeader>
-        <EmptyTitle>Models</EmptyTitle>
+        <EmptyTitle>{t("agents.models.header.title")}</EmptyTitle>
         <EmptyDescription>
-          Configure and manage your AI models for various tasks and workflows.
+          {t("agents.models.header.subtitle")}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

@@ -1,3 +1,5 @@
+"use client"
+
 import { SearchIcon } from "lucide-react"
 import {
   Empty,
@@ -12,14 +14,16 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
+import { useI18n } from "@/hooks/use-i18n"
 
 export default function AgentsPage() {
+  const { t } = useI18n()
   return (
     <Empty>
       <EmptyHeader>
-        <EmptyTitle>Agents</EmptyTitle>
+        <EmptyTitle>{t("agents.header.title")}</EmptyTitle>
         <EmptyDescription>
-          Manage your AI agents, models, engines, and analytics from this hub.
+          {t("agents.header.subtitle")}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

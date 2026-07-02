@@ -1,3 +1,5 @@
+"use client"
+
 import { SearchIcon } from "lucide-react"
 import {
   Empty,
@@ -12,14 +14,16 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
+import { useI18n } from "@/hooks/use-i18n"
 
 export default function TutorialsPage() {
+  const { t } = useI18n()
   return (
     <Empty>
       <EmptyHeader>
-        <EmptyTitle>Tutorials</EmptyTitle>
+        <EmptyTitle>{t("documentation.tutorials.header.title")}</EmptyTitle>
         <EmptyDescription>
-          Follow our tutorials to master advanced features and workflows.
+          {t("documentation.tutorials.header.subtitle")}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

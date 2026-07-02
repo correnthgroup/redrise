@@ -1,3 +1,5 @@
+"use client"
+
 import { SearchIcon } from "lucide-react"
 import {
   Empty,
@@ -12,14 +14,16 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
+import { useI18n } from "@/hooks/use-i18n"
 
 export default function GeneralPage() {
+  const { t } = useI18n()
   return (
     <Empty>
       <EmptyHeader>
-        <EmptyTitle>General Settings</EmptyTitle>
+        <EmptyTitle>{t("settings.general.header.title")}</EmptyTitle>
         <EmptyDescription>
-          Configure general account and application settings.
+          {t("settings.general.header.subtitle")}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

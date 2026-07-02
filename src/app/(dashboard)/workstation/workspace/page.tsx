@@ -22,6 +22,7 @@ import { Item, ItemContent, ItemDescription, ItemGroup, ItemHeader, ItemTitle } 
 import { LayoutGrid, PlusIcon, TrashIcon, FileTextIcon, PencilIcon } from "lucide-react"
 import { toast } from "sonner"
 import { logAuditEvent } from "@/lib/audit-logs"
+import { useI18n } from "@/hooks/use-i18n"
 
 const teamMembers = [
   { label: "Eddie Lake", value: "eddie-lake" },
@@ -187,6 +188,7 @@ function ViewWorkspaces({ workspaces, onDelete }: { workspaces: Workspace[]; onD
 
 export default function WorkspacePage() {
   const router = useRouter()
+  const { t } = useI18n()
   const [workspaces, setWorkspaces] = React.useState<Workspace[]>([])
   const [mounted, setMounted] = React.useState(false)
 
@@ -219,7 +221,10 @@ export default function WorkspacePage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <div />
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight">{t("workstation.workspace.header.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("workstation.workspace.header.subtitle")}</p>
+        </div>
         <Tooltip>
           <TooltipTrigger render={
             <Button onClick={() => router.push("/workstation/workspace/new")}>

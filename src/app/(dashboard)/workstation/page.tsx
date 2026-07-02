@@ -1,3 +1,6 @@
+"use client"
+
+import { useI18n } from "@/hooks/use-i18n"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
 import { SectionCards } from "@/components/section-cards"
@@ -14,108 +17,113 @@ const tableData = [
   },
   {
     id: 2,
-    header: "Wireframes & Mockups",
+    header: "Wireframes",
     type: "Design",
     status: "In Progress",
     target: "80%",
     limit: "100%",
-    reviewer: "Jamik Tashpulatov",
+    reviewer: "Eddie Lake",
   },
   {
     id: 3,
-    header: "Technical Architecture",
-    type: "Technical Approach",
-    status: "In Progress",
-    target: "60%",
+    header: "API Integration",
+    type: "Development",
+    status: "Pending",
+    target: "40%",
     limit: "100%",
-    reviewer: "Assign reviewer",
+    reviewer: "Eddie Lake",
   },
   {
     id: 4,
-    header: "API Documentation",
-    type: "Narrative",
-    status: "Not Started",
-    target: "0%",
-    limit: "100%",
-    reviewer: "Assign reviewer",
-  },
-  {
-    id: 5,
-    header: "Database Schema",
-    type: "Technical Approach",
+    header: "User Testing",
+    type: "Research",
     status: "Done",
     target: "100%",
     limit: "100%",
-    reviewer: "Emily Whalen",
+    reviewer: "Eddie Lake",
+  },
+  {
+    id: 5,
+    header: "Performance Report",
+    type: "Analytics",
+    status: "In Progress",
+    target: "60%",
+    limit: "100%",
+    reviewer: "Eddie Lake",
   },
   {
     id: 6,
-    header: "User Authentication",
-    type: "Technical Approach",
+    header: "Security Audit",
+    type: "Compliance",
+    status: "Pending",
+    target: "20%",
+    limit: "100%",
+    reviewer: "Eddie Lake",
+  },
+  {
+    id: 7,
+    header: "Deployment Plan",
+    type: "DevOps",
+    status: "Done",
+    target: "100%",
+    limit: "100%",
+    reviewer: "Eddie Lake",
+  },
+  {
+    id: 8,
+    header: "Client Presentation",
+    type: "Communication",
     status: "In Progress",
     target: "70%",
     limit: "100%",
     reviewer: "Eddie Lake",
   },
   {
-    id: 7,
-    header: "Dashboard Layout",
-    type: "Design",
-    status: "Done",
-    target: "100%",
-    limit: "100%",
-    reviewer: "Jamik Tashpulatov",
-  },
-  {
-    id: 8,
-    header: "Performance Report",
-    type: "Executive Summary",
-    status: "Not Started",
-    target: "0%",
-    limit: "100%",
-    reviewer: "Assign reviewer",
-  },
-  {
     id: 9,
-    header: "Security Audit",
-    type: "Focus Documents",
-    status: "In Progress",
-    target: "45%",
+    header: "Budget Review",
+    type: "Finance",
+    status: "Pending",
+    target: "30%",
     limit: "100%",
-    reviewer: "Emily Whalen",
+    reviewer: "Eddie Lake",
   },
   {
     id: 10,
-    header: "Deployment Guide",
-    type: "Narrative",
-    status: "Not Started",
-    target: "0%",
+    header: "Marketing Strategy",
+    type: "Planning",
+    status: "Done",
+    target: "100%",
     limit: "100%",
-    reviewer: "Assign reviewer",
+    reviewer: "Eddie Lake",
   },
   {
     id: 11,
-    header: "Mobile Responsiveness",
-    type: "Design",
+    header: "Technical Documentation",
+    type: "Documentation",
     status: "In Progress",
-    target: "55%",
+    target: "50%",
     limit: "100%",
     reviewer: "Eddie Lake",
   },
   {
     id: 12,
-    header: "Testing Strategy",
-    type: "Technical Approach",
-    status: "Not Started",
-    target: "0%",
+    header: "Quality Assurance",
+    type: "Testing",
+    status: "Pending",
+    target: "10%",
     limit: "100%",
-    reviewer: "Assign reviewer",
+    reviewer: "Eddie Lake",
   },
 ]
 
 export default function WorkstationPage() {
+  const { t } = useI18n()
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl font-semibold tracking-tight">{t("workstation.header.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("workstation.header.subtitle")}</p>
+      </div>
       <SectionCards />
       <ChartAreaInteractive />
       <DataTable data={tableData} />

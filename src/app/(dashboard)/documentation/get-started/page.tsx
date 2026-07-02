@@ -1,3 +1,5 @@
+"use client"
+
 import { SearchIcon } from "lucide-react"
 import {
   Empty,
@@ -12,14 +14,16 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
+import { useI18n } from "@/hooks/use-i18n"
 
 export default function GetStartedPage() {
+  const { t } = useI18n()
   return (
     <Empty>
       <EmptyHeader>
-        <EmptyTitle>Get Started</EmptyTitle>
+        <EmptyTitle>{t("documentation.get-started.header.title")}</EmptyTitle>
         <EmptyDescription>
-          Step-by-step guide to set up your environment and start using the platform.
+          {t("documentation.get-started.header.subtitle")}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

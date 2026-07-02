@@ -1,3 +1,5 @@
+"use client"
+
 import { SearchIcon } from "lucide-react"
 import {
   Empty,
@@ -12,14 +14,16 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
+import { useI18n } from "@/hooks/use-i18n"
 
 export default function LimitsPage() {
+  const { t } = useI18n()
   return (
     <Empty>
       <EmptyHeader>
-        <EmptyTitle>Limits</EmptyTitle>
+        <EmptyTitle>{t("settings.limits.header.title")}</EmptyTitle>
         <EmptyDescription>
-          View and manage your usage limits and quotas.
+          {t("settings.limits.header.subtitle")}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

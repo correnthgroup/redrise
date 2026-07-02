@@ -1,3 +1,5 @@
+"use client"
+
 import { SearchIcon } from "lucide-react"
 import {
   Empty,
@@ -12,14 +14,16 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
+import { useI18n } from "@/hooks/use-i18n"
 
 export default function ChangelogPage() {
+  const { t } = useI18n()
   return (
     <Empty>
       <EmptyHeader>
-        <EmptyTitle>Changelog</EmptyTitle>
+        <EmptyTitle>{t("documentation.changelog.header.title")}</EmptyTitle>
         <EmptyDescription>
-          View the latest updates, improvements, and bug fixes.
+          {t("documentation.changelog.header.subtitle")}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

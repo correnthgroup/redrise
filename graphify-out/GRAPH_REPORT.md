@@ -1,16 +1,16 @@
 # Graph Report - redrise  (2026-07-02)
 
 ## Corpus Check
-- 236 files · ~119,770 words
+- 241 files · ~125,594 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1837 nodes · 3209 edges · 170 communities (153 shown, 17 thin omitted)
+- 1948 nodes · 3339 edges · 183 communities (166 shown, 17 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 11 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f04b6480`
+- Built from commit: `1ba8d584`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -62,6 +62,7 @@
 - [[_COMMUNITY_Community 47|Community 47]]
 - [[_COMMUNITY_Community 48|Community 48]]
 - [[_COMMUNITY_Community 49|Community 49]]
+- [[_COMMUNITY_Community 50|Community 50]]
 - [[_COMMUNITY_Community 51|Community 51]]
 - [[_COMMUNITY_Community 52|Community 52]]
 - [[_COMMUNITY_Community 53|Community 53]]
@@ -96,19 +97,32 @@
 - [[_COMMUNITY_Community 89|Community 89]]
 - [[_COMMUNITY_Community 90|Community 90]]
 - [[_COMMUNITY_Community 91|Community 91]]
+- [[_COMMUNITY_Community 92|Community 92]]
+- [[_COMMUNITY_Community 93|Community 93]]
 - [[_COMMUNITY_Community 94|Community 94]]
+- [[_COMMUNITY_Community 95|Community 95]]
 - [[_COMMUNITY_Community 96|Community 96]]
 - [[_COMMUNITY_Community 98|Community 98]]
 - [[_COMMUNITY_Community 100|Community 100]]
 - [[_COMMUNITY_Community 101|Community 101]]
 - [[_COMMUNITY_Community 102|Community 102]]
+- [[_COMMUNITY_Community 103|Community 103]]
 - [[_COMMUNITY_Community 105|Community 105]]
+- [[_COMMUNITY_Community 106|Community 106]]
+- [[_COMMUNITY_Community 107|Community 107]]
 - [[_COMMUNITY_Community 108|Community 108]]
 - [[_COMMUNITY_Community 111|Community 111]]
+- [[_COMMUNITY_Community 112|Community 112]]
+- [[_COMMUNITY_Community 113|Community 113]]
 - [[_COMMUNITY_Community 114|Community 114]]
 - [[_COMMUNITY_Community 115|Community 115]]
 - [[_COMMUNITY_Community 116|Community 116]]
+- [[_COMMUNITY_Community 117|Community 117]]
 - [[_COMMUNITY_Community 118|Community 118]]
+- [[_COMMUNITY_Community 119|Community 119]]
+- [[_COMMUNITY_Community 121|Community 121]]
+- [[_COMMUNITY_Community 124|Community 124]]
+- [[_COMMUNITY_Community 128|Community 128]]
 - [[_COMMUNITY_Community 130|Community 130]]
 - [[_COMMUNITY_Community 131|Community 131]]
 - [[_COMMUNITY_Community 132|Community 132]]
@@ -125,11 +139,9 @@
 - [[_COMMUNITY_Community 146|Community 146]]
 - [[_COMMUNITY_Community 150|Community 150]]
 - [[_COMMUNITY_Community 152|Community 152]]
-- [[_COMMUNITY_Community 153|Community 153]]
 - [[_COMMUNITY_Community 155|Community 155]]
 - [[_COMMUNITY_Community 156|Community 156]]
 - [[_COMMUNITY_Community 158|Community 158]]
-- [[_COMMUNITY_Community 159|Community 159]]
 - [[_COMMUNITY_Community 164|Community 164]]
 - [[_COMMUNITY_Community 165|Community 165]]
 - [[_COMMUNITY_Community 171|Community 171]]
@@ -137,7 +149,7 @@
 - [[_COMMUNITY_Community 173|Community 173]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `cn()` - 233 edges
+1. `cn()` - 244 edges
 2. `TECHNICAL` - 49 edges
 3. `logAuditEvent()` - 36 edges
 4. `Button` - 28 edges
@@ -163,7 +175,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (170 total, 17 thin omitted)
+## Communities (183 total, 17 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.17
@@ -174,36 +186,36 @@ Cohesion: 0.08
 Nodes (26): createDefaultProfile(), decodeJwtPayload(), ensureCurrentUserTeamMember(), fromSupabaseProfile(), getSessionLocation(), getSupabaseSessionId(), loadRememberedSessions(), loadUserProfile() (+18 more)
 
 ### Community 2 - "Community 2"
-Cohesion: 0.05
-Nodes (40): devDependencies, eslint, eslint-config-next, @eslint/js, eslint-plugin-react-hooks, eslint-plugin-react-refresh, globals, jsdom (+32 more)
+Cohesion: 0.08
+Nodes (25): devDependencies, eslint, eslint-config-next, @eslint/js, eslint-plugin-react-hooks, eslint-plugin-react-refresh, globals, jsdom (+17 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.04
 Nodes (45): dependencies, @base-ui/react, class-variance-authority, clsx, cmdk, date-fns, @dnd-kit/core, @dnd-kit/modifiers (+37 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.06
-Nodes (43): AppSidebar(), Project, staticProjects, NavMain(), useExpandedItems(), NavSecondary(), NavUser(), Collapsible() (+35 more)
+Cohesion: 0.07
+Nodes (42): Project, staticProjects, NavMain(), useExpandedItems(), NavSecondary(), NavUser(), Collapsible(), CollapsibleContent() (+34 more)
 
 ### Community 5 - "Community 5"
 Cohesion: 0.05
 Nodes (32): Avatar(), AvatarBadge(), AvatarFallback(), AvatarGroup(), AvatarGroupCount(), AvatarImage(), DropdownMenu(), DropdownMenuCheckboxItem() (+24 more)
 
 ### Community 6 - "Community 6"
-Cohesion: 0.08
-Nodes (12): Project, staticProjects, teamMembers, Workspace, MultiSelectProps, Button, DialogContent(), DialogDescription() (+4 more)
+Cohesion: 0.11
+Nodes (16): LoginForm(), SignupForm(), Project, staticProjects, teamMembers, Workspace, Button, Dialog() (+8 more)
 
 ### Community 7 - "Community 7"
-Cohesion: 0.11
-Nodes (27): MultiSelect(), MultiSelectProps, cn(), BackgroundGradient(), BackgroundGradientProps, Command(), CommandDialog(), CommandEmpty() (+19 more)
+Cohesion: 0.09
+Nodes (35): MultiSelect(), MultiSelectProps, cn(), BackgroundGradient(), BackgroundGradientProps, Command(), CommandDialog(), CommandEmpty() (+27 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.08
 Nodes (8): Sidebar(), SidebarContext, SidebarContextProps, SidebarMenuButton(), sidebarMenuButtonVariants, SidebarRail(), SidebarTrigger(), useSidebar()
 
 ### Community 9 - "Community 9"
-Cohesion: 0.11
-Nodes (21): chartData, columns, schema, Checkbox(), Drawer(), DrawerClose(), DrawerContent(), DrawerDescription() (+13 more)
+Cohesion: 0.08
+Nodes (28): ChartAreaInteractive(), chartData, columns, DataTable(), schema, TableCellViewer(), SectionCards(), useIsMobile() (+20 more)
 
 ### Community 10 - "Community 10"
 Cohesion: 0.10
@@ -235,7 +247,7 @@ Nodes (48): Agents, Analytics, Autenticação, Aviso De Acesso Em Personal Infor
 
 ### Community 17 - "Community 17"
 Cohesion: 0.23
-Nodes (10): LoginForm(), SignupForm(), Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader (+2 more)
+Nodes (13): chartData, chartData, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader (+5 more)
 
 ### Community 18 - "Community 18"
 Cohesion: 0.19
@@ -254,8 +266,8 @@ Cohesion: 0.05
 Nodes (36): Agent Detail Page (`agent-detail-page.tsx`), App Shell (`app-shell.tsx`), Approvers Dropdown, Card Editor — Required Fields, Card Editor — Tasks Table, Edit Button, Files Changed (Complete List), i18n (`src/lib/i18n.ts`) (+28 more)
 
 ### Community 22 - "Community 22"
-Cohesion: 0.07
-Nodes (29): ChartAreaInteractive(), chartData, DataTable(), TableCellViewer(), SectionCards(), useIsMobile(), chartData, ChartConfig (+21 more)
+Cohesion: 0.18
+Nodes (10): ChartConfig, ChartContainer(), ChartContext, ChartContextProps, ChartLegendContent(), ChartTooltipContent(), INITIAL_DIMENSION, THEMES (+2 more)
 
 ### Community 23 - "Community 23"
 Cohesion: 0.17
@@ -270,8 +282,8 @@ Cohesion: 0.12
 Nodes (15): 10. Riscos e dependências, 11. Notas para agentes, 1. Problema, 2. Objetivo, 3. Usuários / atores envolvidos, 4. Solução proposta, 5. User stories, 6. Escopo (+7 more)
 
 ### Community 27 - "Community 27"
-Cohesion: 0.27
-Nodes (8): ApiKey, createApiKey(), CreateApiKeyInput, deleteApiKey(), generateApiKeySecret(), generateShortId(), revokeApiKey(), sha256Hex()
+Cohesion: 0.13
+Nodes (13): ApiKey, createApiKey(), CreateApiKeyInput, deleteApiKey(), generateApiKeySecret(), generateShortId(), revokeApiKey(), sha256Hex() (+5 more)
 
 ### Community 28 - "Community 28"
 Cohesion: 0.18
@@ -282,12 +294,12 @@ Cohesion: 0.13
 Nodes (8): createIntegration(), CreateIntegrationInput, deleteIntegration(), generateShortId(), Integration, IntegrationSetupDetail, IntegrationSetupSummary, IntegrationStatus
 
 ### Community 31 - "Community 31"
-Cohesion: 0.08
-Nodes (24): allEffects, AppElement, appElements, categories, categoryCounts, rawElements, allEffects, AppElement (+16 more)
+Cohesion: 0.07
+Nodes (28): allEffects, AppElement, appElements, categories, categoryCounts, rawElements, allEffects, AppElement (+20 more)
 
 ### Community 33 - "Community 33"
-Cohesion: 0.25
-Nodes (5): AuditAction, AuditEntityType, AuditLog, generateShortId(), LogInput
+Cohesion: 0.06
+Nodes (30): Access Points, Audit & Notifications, Consumers NOT changed (verified), Consumers of `@/components/ui/item` (verified safe), Data Displayed, Files Changed (Complete List), Files Created, Files Modified (+22 more)
 
 ### Community 34 - "Community 34"
 Cohesion: 0.09
@@ -327,7 +339,7 @@ Nodes (6): ContextMenuContentProps, ContextMenuContext, ContextMenuItemProps, Co
 
 ### Community 43 - "Community 43"
 Cohesion: 0.09
-Nodes (30): roles, TeamEntry, teamMembers, Project, staticProjects, roles, TeamEntry, teamMembers (+22 more)
+Nodes (31): roles, TeamEntry, teamMembers, Project, staticProjects, roles, TeamEntry, teamMembers (+23 more)
 
 ### Community 45 - "Community 45"
 Cohesion: 0.11
@@ -348,6 +360,10 @@ Nodes (3): biological gender, en-US, pt-BR
 ### Community 49 - "Community 49"
 Cohesion: 0.67
 Nodes (3): last name, en-US, pt-BR
+
+### Community 50 - "Community 50"
+Cohesion: 0.14
+Nodes (13): 10. i18n — checklist específico, 11. Checklist rápido antes de pedir review, 12. Onde pedir ajuda, 1. Stack (já confirmado), 2. Estrutura de arquivos, 3. Convenção de commits (Conventional Commits), 4. Convenção de branches, 5. PR Body — template (+5 more)
 
 ### Community 51 - "Community 51"
 Cohesion: 0.20
@@ -374,8 +390,8 @@ Cohesion: 0.29
 Nodes (6): Current Architecture Decisions, Current Auth Decisions, Current Backend Decisions, Current Product Decisions, DECISIONS, Future Decisions Already Approved
 
 ### Community 60 - "Community 60"
-Cohesion: 0.09
-Nodes (19): roles, TeamEntry, teamMembers, teamMembers, roles, TeamEntry, teamMembers, teamMembers (+11 more)
+Cohesion: 0.10
+Nodes (15): roles, TeamEntry, teamMembers, teamMembers, roles, TeamEntry, teamMembers, teamMembers (+7 more)
 
 ### Community 63 - "Community 63"
 Cohesion: 0.20
@@ -402,8 +418,8 @@ Cohesion: 0.25
 Nodes (7): Data Requirements, Goal, Out Of Scope, PRD: Agent Provider Wizard And Agent Board Actions, Scope, UX Requirements, Validation
 
 ### Community 71 - "Community 71"
-Cohesion: 0.67
-Nodes (3): dashboard, en-US, pt-BR
+Cohesion: 0.20
+Nodes (9): birth date, en-US, pt-BR, dashboard, en-US, pt-BR, settings.header.subtitle, en-US (+1 more)
 
 ### Community 73 - "Community 73"
 Cohesion: 0.33
@@ -442,8 +458,8 @@ Cohesion: 0.33
 Nodes (6): language, en-US, pt-BR, phone, en-US, pt-BR
 
 ### Community 83 - "Community 83"
-Cohesion: 0.12
-Nodes (10): AnalyticsData, AgentProviderAuthMethod, AgentProviderId, ChatCompletionResponse, ChatMessage, TaskExecuteContext, TaskExecuteResult, supabase (+2 more)
+Cohesion: 0.09
+Nodes (13): AnalyticsData, AgentProviderAuthMethod, AgentProviderId, ChatCompletionResponse, ChatMessage, TaskExecuteContext, TaskExecuteResult, supabase (+5 more)
 
 ### Community 85 - "Community 85"
 Cohesion: 0.25
@@ -473,16 +489,28 @@ Nodes (6): audit log, en-US, pt-BR, username, en-US, pt-BR
 Cohesion: 0.33
 Nodes (6): analytics, en-US, pt-BR, viewer, en-US, pt-BR
 
+### Community 92 - "Community 92"
+Cohesion: 0.14
+Nodes (13): 10. i18n — checklist específico, 11. Checklist rápido antes de pedir review, 12. Onde pedir ajuda, 1. Stack (já confirmado), 2. Estrutura de arquivos, 3. Convenção de commits (Conventional Commits), 4. Convenção de branches, 5. PR Body — template (+5 more)
+
+### Community 93 - "Community 93"
+Cohesion: 0.15
+Nodes (12): Auditoria e notificações, Componentes shadcn — quando usar cada um, Contexto: você está criando uma tela no Redrise, Entregáveis do PR, Especificação da tela, Formato da resposta, i18n — checklist, Onde colocar cada coisa (+4 more)
+
 ### Community 94 - "Community 94"
 Cohesion: 0.67
 Nodes (3): agent, en-US, pt-BR
+
+### Community 95 - "Community 95"
+Cohesion: 0.18
+Nodes (11): scripts, build, dev, lint, mcp:redrise-ops, mcp:redrise-ops:self-test, preview, start (+3 more)
 
 ### Community 96 - "Community 96"
 Cohesion: 0.09
 Nodes (21): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+13 more)
 
 ### Community 98 - "Community 98"
-Cohesion: 0.08
+Cohesion: 0.07
 Nodes (7): BackgroundGradientProps, Input, Label, SwitchProps, labelVariants, Progress, Slider
 
 ### Community 100 - "Community 100"
@@ -493,9 +521,21 @@ Nodes (7): Card, CardAction, CardContent, CardDescription, CardFooter, CardHeade
 Cohesion: 0.25
 Nodes (7): Item, ItemContent, ItemDescription, ItemGroup, ItemHeader, ItemTitle, itemVariants
 
+### Community 103 - "Community 103"
+Cohesion: 0.40
+Nodes (4): name, private, type, version
+
 ### Community 105 - "Community 105"
 Cohesion: 0.29
 Nodes (6): AGENTS.md — Instruções para Agentes de IA, Arquivos de Memória, Formato de Atualização, Procedimento, Regra Principal, Validação
+
+### Community 106 - "Community 106"
+Cohesion: 0.67
+Nodes (3): settings.header.title, en-US, pt-BR
+
+### Community 107 - "Community 107"
+Cohesion: 0.67
+Nodes (3): settings.hub.billingDesc, en-US, pt-BR
 
 ### Community 108 - "Community 108"
 Cohesion: 0.67
@@ -505,6 +545,14 @@ Nodes (3): AppLayout(), breadcrumbMap, getBreadcrumbs()
 Cohesion: 0.33
 Nodes (6): plan, en-US, pt-BR, select all, en-US, pt-BR
 
+### Community 112 - "Community 112"
+Cohesion: 0.67
+Nodes (3): settings.hub.billingTitle, en-US, pt-BR
+
+### Community 113 - "Community 113"
+Cohesion: 0.67
+Nodes (3): settings.hub.generalDesc, en-US, pt-BR
+
 ### Community 114 - "Community 114"
 Cohesion: 0.33
 Nodes (5): Estatísticas, Formato, Registro de Atividades, TASK_LOG.md — Log de Atividades, Última Atualização
@@ -512,6 +560,26 @@ Nodes (5): Estatísticas, Formato, Registro de Atividades, TASK_LOG.md — Log d
 ### Community 116 - "Community 116"
 Cohesion: 0.33
 Nodes (5): Allowed Future Direction, Blocked Direction, Decision, Qdrant Execution Context Notes, Status
+
+### Community 117 - "Community 117"
+Cohesion: 0.67
+Nodes (3): settings.hub.generalTitle, en-US, pt-BR
+
+### Community 119 - "Community 119"
+Cohesion: 0.67
+Nodes (3): settings.hub.limitsDesc, en-US, pt-BR
+
+### Community 121 - "Community 121"
+Cohesion: 0.67
+Nodes (3): settings.hub.limitsTitle, en-US, pt-BR
+
+### Community 124 - "Community 124"
+Cohesion: 0.67
+Nodes (3): settings.hub.teamDesc, en-US, pt-BR
+
+### Community 128 - "Community 128"
+Cohesion: 0.67
+Nodes (3): settings.hub.teamTitle, en-US, pt-BR
 
 ### Community 130 - "Community 130"
 Cohesion: 0.29
@@ -557,45 +625,37 @@ Nodes (3): Layout Constraints, Python Environment, This is NOT the Next.js you k
 Cohesion: 0.67
 Nodes (3): email address, en-US, pt-BR
 
-### Community 153 - "Community 153"
-Cohesion: 0.25
-Nodes (3): InviteRow, ProfileRow, TeamInviteNotification
-
 ### Community 158 - "Community 158"
 Cohesion: 0.67
 Nodes (3): Button, buttonVariants, ButtonProps
 
-### Community 159 - "Community 159"
-Cohesion: 0.67
-Nodes (3): birth date, en-US, pt-BR
-
 ### Community 164 - "Community 164"
-Cohesion: 0.20
-Nodes (14): Empty(), EmptyContent(), EmptyDescription(), EmptyHeader(), EmptyMedia(), emptyMediaVariants, EmptyTitle(), InputGroup() (+6 more)
+Cohesion: 0.18
+Nodes (17): SETTINGS_HUB_ITEMS, SettingsHubItem, Empty(), EmptyContent(), EmptyDescription(), EmptyHeader(), EmptyMedia(), emptyMediaVariants (+9 more)
 
 ### Community 165 - "Community 165"
-Cohesion: 0.21
-Nodes (11): AppLayout(), breadcrumbMap, getBreadcrumbs(), Breadcrumb(), BreadcrumbEllipsis(), BreadcrumbItem(), BreadcrumbLink(), BreadcrumbList() (+3 more)
+Cohesion: 0.19
+Nodes (12): AppLayout(), breadcrumbMap, getBreadcrumbs(), AppSidebar(), Breadcrumb(), BreadcrumbEllipsis(), BreadcrumbItem(), BreadcrumbLink() (+4 more)
 
 ## Knowledge Gaps
-- **640 isolated node(s):** `$schema`, `style`, `rsc`, `tsx`, `css` (+635 more)
+- **720 isolated node(s):** `$schema`, `style`, `rsc`, `tsx`, `css` (+715 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **17 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `Community 7` to `Community 0`, `Community 4`, `Community 5`, `Community 6`, `Community 8`, `Community 9`, `Community 138`, `Community 139`, `Community 17`, `Community 22`, `Community 155`, `Community 30`, `Community 158`, `Community 32`, `Community 31`, `Community 164`, `Community 165`, `Community 37`, `Community 41`, `Community 42`, `Community 43`, `Community 173`, `Community 50`, `Community 52`, `Community 59`, `Community 60`, `Community 61`, `Community 70`, `Community 72`, `Community 84`, `Community 98`, `Community 99`, `Community 100`, `Community 101`, `Community 102`, `Community 109`, `Community 110`, `Community 115`, `Community 118`?**
-  _High betweenness centrality (0.150) - this node is a cross-community bridge._
-- **Why does `supabase` connect `Community 83` to `Community 33`, `Community 34`, `Community 65`, `Community 66`, `Community 1`, `Community 36`, `Community 135`, `Community 10`, `Community 11`, `Community 15`, `Community 17`, `Community 18`, `Community 23`, `Community 153`, `Community 27`, `Community 28`, `Community 29`?**
-  _High betweenness centrality (0.059) - this node is a cross-community bridge._
-- **Why does `logAuditEvent()` connect `Community 28` to `Community 33`, `Community 34`, `Community 36`, `Community 6`, `Community 43`, `Community 23`, `Community 27`, `Community 60`, `Community 29`?**
-  _High betweenness centrality (0.029) - this node is a cross-community bridge._
+- **Why does `cn()` connect `Community 7` to `Community 0`, `Community 4`, `Community 5`, `Community 6`, `Community 8`, `Community 9`, `Community 138`, `Community 139`, `Community 17`, `Community 22`, `Community 155`, `Community 30`, `Community 158`, `Community 32`, `Community 31`, `Community 164`, `Community 165`, `Community 37`, `Community 41`, `Community 42`, `Community 43`, `Community 173`, `Community 52`, `Community 59`, `Community 60`, `Community 61`, `Community 70`, `Community 72`, `Community 84`, `Community 97`, `Community 98`, `Community 99`, `Community 100`, `Community 101`, `Community 102`, `Community 109`, `Community 110`, `Community 115`, `Community 118`?**
+  _High betweenness centrality (0.132) - this node is a cross-community bridge._
+- **Why does `supabase` connect `Community 83` to `Community 65`, `Community 34`, `Community 66`, `Community 1`, `Community 36`, `Community 6`, `Community 135`, `Community 10`, `Community 11`, `Community 15`, `Community 18`, `Community 23`, `Community 27`, `Community 28`, `Community 29`?**
+  _High betweenness centrality (0.044) - this node is a cross-community bridge._
+- **Why does `logAuditEvent()` connect `Community 28` to `Community 34`, `Community 36`, `Community 6`, `Community 43`, `Community 23`, `Community 27`, `Community 60`, `Community 29`?**
+  _High betweenness centrality (0.020) - this node is a cross-community bridge._
 - **Are the 8 inferred relationships involving `cn()` (e.g. with `AlertDialogFooter()` and `AlertDialogHeader()`) actually correct?**
   _`cn()` has 8 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `$schema`, `style`, `rsc` to the rest of the system?**
-  _640 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _720 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.08392603129445235 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
-  _Cohesion score 0.04878048780487805 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08 - nodes in this community are weakly interconnected._

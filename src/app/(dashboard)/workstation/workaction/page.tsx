@@ -1,3 +1,5 @@
+"use client"
+
 import { SearchIcon } from "lucide-react"
 import {
   Empty,
@@ -12,14 +14,16 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
+import { useI18n } from "@/hooks/use-i18n"
 
 export default function WorkactionPage() {
+  const { t } = useI18n()
   return (
     <Empty>
       <EmptyHeader>
-        <EmptyTitle>Action</EmptyTitle>
+        <EmptyTitle>{t("workstation.workaction.header.title")}</EmptyTitle>
         <EmptyDescription>
-          Configure and manage your work actions and tasks.
+          {t("workstation.workaction.header.subtitle")}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

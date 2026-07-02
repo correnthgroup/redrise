@@ -1,3 +1,5 @@
+"use client"
+
 import { SearchIcon } from "lucide-react"
 import {
   Empty,
@@ -12,14 +14,16 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
+import { useI18n } from "@/hooks/use-i18n"
 
 export default function WorkflowPage() {
+  const { t } = useI18n()
   return (
     <Empty>
       <EmptyHeader>
-        <EmptyTitle>Process</EmptyTitle>
+        <EmptyTitle>{t("workstation.workflow.header.title")}</EmptyTitle>
         <EmptyDescription>
-          Manage your workflows and automation processes.
+          {t("workstation.workflow.header.subtitle")}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

@@ -1,3 +1,5 @@
+"use client"
+
 import { SearchIcon } from "lucide-react"
 import {
   Empty,
@@ -12,14 +14,16 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Kbd } from "@/components/ui/kbd"
+import { useI18n } from "@/hooks/use-i18n"
 
 export default function BillingPage() {
+  const { t } = useI18n()
   return (
     <Empty>
       <EmptyHeader>
-        <EmptyTitle>Billing</EmptyTitle>
+        <EmptyTitle>{t("settings.billing.header.title")}</EmptyTitle>
         <EmptyDescription>
-          Manage your subscription, payment methods, and billing history.
+          {t("settings.billing.header.subtitle")}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
