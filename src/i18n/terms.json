@@ -114,5 +114,45 @@
   "select all": {
     "en-US": "Select All",
     "pt-BR": "Selecionar Todos"
+  },
+  "settings.header.title": {
+    "en-US": "Settings",
+    "pt-BR": "Configurações"
+  },
+  "settings.header.subtitle": {
+    "en-US": "Manage your account, team and billing",
+    "pt-BR": "Gerencie sua conta, equipe e faturamento"
+  },
+  "settings.hub.generalTitle": {
+    "en-US": "General",
+    "pt-BR": "Geral"
+  },
+  "settings.hub.generalDesc": {
+    "en-US": "Account and workspace preferences",
+    "pt-BR": "Preferências de conta e workspace"
+  },
+  "settings.hub.teamTitle": {
+    "en-US": "Team",
+    "pt-BR": "Equipe"
+  },
+  "settings.hub.teamDesc": {
+    "en-US": "Manage team members, roles and invitations",
+    "pt-BR": "Gerencie membros, papéis e convites"
+  },
+  "settings.hub.billingTitle": {
+    "en-US": "Billing",
+    "pt-BR": "Faturamento"
+  },
+  "settings.hub.billingDesc": {
+    "en-US": "Plan, payment method and invoices",
+    "pt-BR": "Plano, forma de pagamento e faturas"
+  },
+  "settings.hub.limitsTitle": {
+    "en-US": "Limits",
+    "pt-BR": "Limites"
+  },
+  "settings.hub.limitsDesc": {
+    "en-US": "Usage limits and quotas",
+    "pt-BR": "Limites de uso e cotas"
   }
 }

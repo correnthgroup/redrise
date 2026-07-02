@@ -8,7 +8,7 @@
 - **Package manager**: npm (substituiu Yarn/Corepack).
 - **Stack atual**: Next.js 16 + React 19 + TypeScript ~5.7 + Tailwind CSS v4 (oklch) + shadcn base-nova.
 - **31 rotas** compilando: auth (login/signup), workstation (workspace/workflow/workaction), projects, agents, documentation, settings.
-- **44 componentes UI** shadcn copiados de riseslovecheck (agora deletado).
+- **44 componentes UI** shadcn copiados de riseslovecheck (agora deletado). `item.tsx` atualizado via `shadcn add item` (ItemMedia, ItemActions, ItemHeader, ItemFooter, ItemSeparator).
 - **Sonner + Spinner** implementados em todas as ações CRUD (create/update/delete).
 - **Boas práticas** implementadas: SidebarProvider, SidebarInset, SidebarMenuSkeleton, logAuditEvent() em CRUD, createNotification() disponível.
 - **Auth pages** (login/signup) usam shadcn login-03 adaptado com Supabase Auth + popup "Coming Soon" para Apple/Google.
@@ -38,6 +38,7 @@
 - Billing real foundation foi aplicado: remote migration 044 cria `billing_subscriptions`, `billing-checkout` inicia checkout Stripe autenticado, `billing-webhook --no-verify-jwt` persiste eventos Stripe, e Plans lê estado real do Supabase.
 - UI polish aplicado: cards de Plans e Analytics usam spotlight/glow follow sutil, controles clicáveis recebem cursor de mãozinha, e Auth/Loading/Error/Dialog/aria labels relevantes usam i18n.
 - Agents provider wizard foi aplicado: `New Agent` usa wizard de provedor em 4 etapas, `agent-provider-test` foi publicado, migration 045 foi aplicada, e a lista de Agents tem menu `+` por Agent com Ver Detalhes/Renomear/Deletar com `DELETE`.
+- PRD5 (Update 5.0) aplicada: Settings Hub substitui placeholder por página de navegação com 4 itens (General, Team, Billing, Limits) usando `ItemGroup` com active state por `usePathname()`; novo `settings/layout.tsx` renderiza header compartilhado apenas no hub (`/settings`); `item.tsx` atualizado com componentes adicionais (ItemMedia, ItemActions, etc.).
 - Remote Supabase migration 040 is applied on `vsaropewydcjsvplpugx`.
 - Remote Supabase migration 039 is applied on `vsaropewydcjsvplpugx`.
 - Remote Supabase migrations 036, 037, and 038 are applied on `vsaropewydcjsvplpugx`.

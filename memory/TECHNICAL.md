@@ -285,12 +285,13 @@
 
 ## Settings
 
-- Settings começa com uma grade de atalhos.
-- Cada atalho muda o estado interno `active` em `SettingsPage`.
-- Quando `SettingsPage` é usada dentro do `AppShell`, o detalhe ativo também é informado ao shell para o breadcrumb global mostrar `Settings / Nome do detalhe`.
-- Quando `active` está preenchido, Settings mostra uma tela de detalhe com botão Back no topo.
-- O botão Back volta para a grade de atalhos.
-- Atualmente os submenus são Personal Information, Change Password, Active Sessions, API Keys, Integrations, Members List, Team List e Audit Log.
+- Settings agora é uma hub page de navegação com 4 itens: General, Team, Billing, Limits.
+- Cada item é um link que navega para a sub-rota correspondente via Next.js App Router.
+- A hub usa `usePathname()` para detectar a rota ativa e aplicar `bg-accent` + `text-accent-foreground`.
+- `settings/layout.tsx` renderiza um header compartilhado (título + subtítulo) apenas na hub (`/settings` exato); sub-rotas recebem apenas `{children}`.
+- `settings/page.tsx` renderiza um `ItemGroup` com 4 `Item asChild` rows, cada uma com ícone, título, descrição e chevron.
+- Os submenus são: General (`/settings/general`), Team (`/settings/team`), Billing (`/settings/billing`), Limits (`/settings/limits`).
+- Sub-rotas internas (Personal Information, Change Password, Active Sessions, API Keys, Integrations, Members List, Team List, Audit Log) são renderizadas dentro das sub-páginas correspondentes.
 - O submenu Plans aparece como `Under Construction` fora do ambiente de desenvolvimento e fica desabilitado em produção.
 
 ## Settings > Personal Information
