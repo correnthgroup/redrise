@@ -131,6 +131,10 @@
 - No Builder/Gateway/Governance features exist at commit `8db0e60`; those were implemented in later commits (2d59432, 942bbdd, 77160f0, 1def0fc, fb8c6f0, d7f4a7d, 6f0ca1f) which have been discarded.
 - PRD5 (Update 5.0) Settings Hub implemented: `src/app/(dashboard)/settings/layout.tsx` added (shared header on hub only via `usePathname()`), `src/app/(dashboard)/settings/page.tsx` replaced Empty placeholder with 4-item `ItemGroup` hub list (General/Team/Billing/Limits with active state), `src/components/ui/item.tsx` refreshed via `shadcn add item` (added ItemMedia, ItemActions, ItemHeader, ItemFooter, ItemSeparator), 9 i18n keys added to `src/i18n/terms.json` (en-US + pt-BR).
 - Validation for PRD5 passed: `npm run build` passed (31 routes). `npm run typecheck` has pre-existing vitest error in `workspaces.test.ts`. `npm run lint` has pre-existing 796 errors/warnings baseline (unchanged by this change).
+- SidebarMenuSkeleton hydration mismatch fixed: `suppressHydrationWarning` added to skeleton element with `--skeleton-width` CSS variable (Math.random generates different values on server vs client).
+- 36 i18n header keys added to `src/i18n/terms.json`: `workstation.header.*`, `workstation.workspace.header.*`, `workstation.workflow.header.*`, `workstation.workaction.header.*`, `agents.header.*`, `agents.models.header.*`, `agents.engine.header.*`, `agents.analytics.header.*`, `documentation.header.*`, `documentation.introduction.header.*`, `documentation.get-started.header.*`, `documentation.tutorials.header.*`, `documentation.changelog.header.*`, `settings.general.header.*`, `settings.team.header.*`, `settings.billing.header.*`, `settings.limits.header.*` (en-US + pt-BR each).
+- All 15 menu pages updated to use `useI18n()` with `t()` for header title and subtitle.
+- Graphify refreshed to 2050 nodes, 3513 edges, 213 communities.
 
 ## Next Tasks
 
